@@ -1,1555 +1,238 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Campus Central — Surprise Your Teacher Together | A JetStream Initiative</title>
-    <meta name="description" content="Plan a surprise gift for your teacher with classmates. Free for students across Karnataka.">
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="assets/icon-152.png">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Campus Central">
-    <meta name="theme-color" content="#0f4c5c">
-    <meta name="mobile-web-app-capable" content="yes">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Campus Central – Student Hub</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, system-ui, sans-serif; }
+        body { background: #f8f9fc; color: #1e2a2e; }
 
-        :root {
-            --primary: #0f4c5c;
-            --primary-dark: #0a3a46;
-            --secondary: #e67e22;
-            --accent: #ffb347;
-            --gold: #f4b942;
-            --light: #fef9e6;
-            --dark: #1e2a2e;
-            --gray-bg: #f8f9fc;
-            --success: #2ecc71;
-            --coffee: #6f4e2e;
-        }
-
-        body {
-            background-color: var(--gray-bg);
-            color: var(--dark);
-            line-height: 1.5;
-        }
-
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
+        /* ===== HEADER ===== */
         header {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            background: linear-gradient(135deg, #0f4c5c, #0a3a46);
             color: white;
             padding: 0.8rem 2rem;
             position: sticky;
             top: 0;
-            z-index: 1000;
+            z-index: 100;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
-
         .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
             flex-wrap: wrap;
             gap: 0.5rem;
         }
-
         .logo {
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-        }
-
-        .logo-main {
-            font-size: 1.4rem;
+            font-size: 1.3rem;
             font-weight: 800;
             display: flex;
             align-items: center;
             gap: 8px;
         }
-
-        .logo-main i {
-            color: var(--gold);
-            font-size: 1.4rem;
-        }
-
-        .brand-parent {
-            font-size: 0.55rem;
-            opacity: 0.8;
-            letter-spacing: 1px;
-        }
-
-        nav {
-            flex: 1;
-            text-align: center;
-        }
-
+        .logo i { color: #f4b942; }
+        .brand-parent { font-size: 0.5rem; opacity: 0.8; letter-spacing: 1px; }
         nav ul {
             display: flex;
             list-style: none;
             gap: 0.4rem;
             flex-wrap: wrap;
-            justify-content: center;
         }
-
         nav a {
             color: white;
             text-decoration: none;
-            font-weight: 500;
-            padding: 0.3rem 0.5rem;
+            padding: 0.4rem 0.6rem;
             border-radius: 8px;
             font-size: 0.75rem;
             transition: 0.2s;
-            cursor: pointer;
         }
+        nav a:hover { background: rgba(255,255,255,0.15); color: #ffb347; }
 
-        nav a:hover {
-            background-color: rgba(255,255,255,0.15);
-            color: var(--accent);
-        }
-
-        .dropdown {
-            position: relative;
-            display: inline-block;
-        }
-
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            background-color: white;
-            min-width: 170px;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-            z-index: 1;
-            border-radius: 12px;
-            top: 100%;
-            left: 0;
-        }
-
-        .dropdown-content a {
-            color: var(--primary);
-            padding: 6px 10px;
-            text-decoration: none;
-            display: block;
-            font-size: 0.7rem;
-            text-align: left;
-        }
-
-        .dropdown-content a:hover {
-            background-color: #f1f1f1;
-        }
-
-        .dropdown:hover .dropdown-content {
-            display: block;
-        }
-
-        .header-buttons {
-            display: flex;
-            gap: 0.5rem;
-            flex-shrink: 0;
-        }
-
-        .btn-primary {
-            background-color: var(--secondary);
-            color: white;
-            padding: 0.3rem 0.7rem;
-            border-radius: 40px;
-            font-weight: 600;
-            border: none;
-            cursor: pointer;
-            font-size: 0.7rem;
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 2px solid white;
-            color: white;
-            padding: 0.3rem 0.7rem;
-            border-radius: 40px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-            font-size: 0.7rem;
-        }
-
-        .btn-outline:hover {
-            background: white;
-            color: var(--primary);
-        }
-
+        /* ===== HERO ===== */
         .hero {
             background: linear-gradient(rgba(15, 76, 92, 0.85), rgba(10, 58, 70, 0.9)), url('https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1920&h=1080&fit=crop');
             background-size: cover;
             background-position: center 30%;
             color: white;
-            padding: 2rem 2rem 1.5rem 2rem;
             text-align: center;
-            margin-bottom: 0;
+            padding: 4rem 2rem;
         }
+        .hero h1 { font-size: 2.2rem; margin-bottom: 0.5rem; }
+        .hero p { font-size: 1rem; opacity: 0.9; max-width: 700px; margin: 0 auto; }
+        .highlight { background: #f4b942; color: #0a3a46; padding: 0.1rem 0.6rem; border-radius: 12px; }
 
-        .hero-content {
-            max-width: 850px;
-            margin: 0 auto;
-            animation: fadeInUp 0.7s ease-out;
-        }
-
-        .hero h1 {
-            font-size: 2rem;
-            margin-bottom: 0.8rem;
-            line-height: 1.2;
-        }
-
-        .hero p {
-            font-size: 1rem;
-            margin-bottom: 1.2rem;
-            opacity: 0.9;
-        }
-
-        .highlight {
-            background: var(--gold);
-            color: var(--primary-dark);
-            padding: 0.2rem 0.6rem;
-            border-radius: 12px;
-            display: inline-block;
-        }
-
-        .surprise-badge {
-            display: inline-block;
-            background: rgba(255,255,255,0.2);
-            backdrop-filter: blur(8px);
-            padding: 0.3rem 1rem;
-            border-radius: 50px;
-            font-size: 0.8rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .hero-buttons {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 0.5rem;
-        }
-
-        .offer-badge {
-            display: inline-block;
-            background: var(--success);
-            color: white;
-            padding: 0.2rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            margin-top: 0.6rem;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 0.6rem;
-            text-align: center;
-            margin: 0.75rem auto 0.5rem auto;
-            max-width: 900px;
-        }
-
-        .stat-card {
-            background: white;
-            border-radius: 24px;
-            padding: 0.8rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            transition: transform 0.2s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-3px);
-        }
-
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 800;
-            color: var(--primary);
-        }
-
-        .section {
-            padding: 0.5rem 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .section-title {
-            text-align: center;
-            margin-bottom: 0.5rem;
-        }
-
-        .section-title h2 {
-            font-size: 1.6rem;
-            color: var(--primary);
-            margin-bottom: 0.3rem;
-        }
-
-        .section-title p {
-            color: #5a6e7a;
-            max-width: 600px;
-            margin: 0 auto;
-            font-size: 0.85rem;
-        }
+        /* ===== SECTION ===== */
+        .section { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .section-title { text-align: center; margin-bottom: 1.5rem; }
+        .section-title h2 { font-size: 1.6rem; color: #0f4c5c; }
+        .section-title p { color: #5a6e7a; font-size: 0.85rem; }
 
         .features-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-            margin-top: 0.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.2rem;
         }
-
         .feature-card {
             background: white;
-            border-radius: 24px;
-            padding: 1rem;
+            border-radius: 20px;
+            padding: 1.2rem;
+            text-align: center;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            transition: all 0.2s ease;
-            text-align: center;
-            border-top: 3px solid var(--gold);
-            cursor: pointer;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 24px rgba(0,0,0,0.1);
-        }
-
-        .feature-card i {
-            font-size: 2rem;
-            color: var(--secondary);
-            margin-bottom: 0.5rem;
-        }
-
-        .feature-card h3 {
-            font-size: 1.1rem;
-            margin-bottom: 0.3rem;
-        }
-
-        .feature-card p {
-            font-size: 0.8rem;
-            color: #5a6e7a;
-        }
-
-        .how-it-works {
-            display: flex;
-            justify-content: space-around;
-            flex-wrap: wrap;
-            gap: 1rem;
-            margin: 0.3rem 0;
-        }
-
-        .step {
-            text-align: center;
-            flex: 1;
-            min-width: 150px;
-        }
-
-        .step-number {
-            background: var(--gold);
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 0.6rem;
-            font-size: 1.3rem;
-            font-weight: bold;
-            color: var(--primary-dark);
-        }
-
-        .step h3 {
-            font-size: 1rem;
-            margin-bottom: 0.2rem;
-        }
-
-        .step p {
-            font-size: 0.8rem;
-        }
-
-        .testimonials {
-            background: #fef7e8;
-            margin-top: 0.5rem;
-        }
-
-        .testimonial-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 1rem;
-        }
-
-        .testimonial-card {
-            background: white;
-            border-radius: 24px;
-            padding: 1rem;
-            position: relative;
-            transition: transform 0.2s ease;
-        }
-
-        .testimonial-card:hover {
-            transform: translateY(-3px);
-        }
-
-        .testimonial-card:before {
-            content: '"';
-            font-size: 3rem;
-            color: var(--gold);
-            opacity: 0.3;
-            position: absolute;
-            top: 5px;
-            left: 15px;
-        }
-
-        .testimonial-text {
-            font-style: italic;
-            margin-bottom: 0.5rem;
-            position: relative;
-            z-index: 1;
-            font-size: 0.85rem;
-        }
-
-        .cta-section {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            text-align: center;
-            padding: 1.2rem 2rem;
-            border-radius: 40px;
-            margin: 0.75rem auto;
-            max-width: 1000px;
-        }
-
-        .cta-section h2 {
-            font-size: 1.4rem;
-        }
-
-        .cta-section p {
-            font-size: 0.85rem;
-            margin: 0.4rem 0;
-        }
-
-        .coffee-button {
-            background-color: var(--coffee);
-            color: white;
-            padding: 0.3rem 0.8rem;
-            border-radius: 30px;
-            font-size: 0.7rem;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
+            border-top: 3px solid #f4b942;
             transition: 0.2s;
             cursor: pointer;
         }
+        .feature-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+        .feature-card i { font-size: 2rem; color: #e67e22; margin-bottom: 0.5rem; }
+        .feature-card h3 { font-size: 1rem; margin-bottom: 0.3rem; color: #0f4c5c; }
+        .feature-card p { font-size: 0.8rem; color: #5a6e7a; }
 
-        .coffee-button:hover {
-            background-color: #5a3e24;
-            transform: translateY(-2px);
-        }
-
-        footer {
-            background: var(--dark);
-            color: white;
-            padding: 1.5rem 2rem 1rem;
-            margin-top: 1rem;
-        }
-
-        .footer-content {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 1.5rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .footer-content h3 {
-            font-size: 0.9rem;
-            margin-bottom: 0.6rem;
-        }
-
-        .footer-content ul li, .footer-content p {
-            font-size: 0.7rem;
-            list-style: none;
-        }
-
-        .copyright {
-            text-align: center;
-            margin-top: 1rem;
-            padding-top: 0.8rem;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            font-size: 0.65rem;
-        }
-
-        .hidden { display: none; }
-        .success-msg, .error-msg { padding: 0.8rem; border-radius: 12px; margin-top: 1rem; text-align: center; }
-        .success-msg { background: #d4edda; color: #155724; }
-        .error-msg { background: #f8d7da; color: #721c24; }
-
-        .organizer-badge {
-            background: var(--gold);
-            color: var(--primary-dark);
-            padding: 0.2rem 0.5rem;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: bold;
+        .card-highlight { border-top-color: #2ecc71; }
+        .price-tag {
             display: inline-block;
-            margin-left: 0.5rem;
-        }
-
-        .chat-container {
-            margin-top: 1rem;
-            border: 1px solid #ddd;
-            border-radius: 16px;
-            overflow: hidden;
-        }
-
-        .chat-messages {
-            height: 200px;
-            overflow-y: auto;
-            padding: 0.8rem;
-            background: #fafafa;
-        }
-
-        .chat-message {
-            margin-bottom: 0.8rem;
-            padding: 0.5rem;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        }
-
-        .chat-message strong {
-            color: var(--primary);
-        }
-
-        .chat-message small {
-            font-size: 0.65rem;
-            color: #999;
-            display: block;
-            margin-top: 0.2rem;
-        }
-
-        .chat-input-area {
-            display: flex;
-            padding: 0.5rem;
-            background: white;
-            border-top: 1px solid #ddd;
-        }
-
-        .chat-input-area input {
-            flex: 1;
-            padding: 0.5rem;
-            border: 1px solid #ddd;
+            background: #2ecc71;
+            color: white;
+            padding: 0.15rem 0.6rem;
             border-radius: 20px;
-            margin-right: 0.5rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-top: 0.3rem;
         }
 
-        .chat-input-area button {
-            background: var(--secondary);
+        /* ===== CTA ===== */
+        .cta-section {
+            background: linear-gradient(135deg, #0f4c5c, #0a3a46);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            border-radius: 40px;
+            margin: 1rem auto;
+            max-width: 1000px;
+        }
+        .cta-section h2 { font-size: 1.4rem; }
+        .cta-section p { font-size: 0.85rem; margin: 0.5rem 0; }
+        .btn-primary {
+            background: #e67e22;
             color: white;
             border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
+            padding: 0.6rem 1.5rem;
+            border-radius: 40px;
+            font-weight: 600;
             cursor: pointer;
+            font-size: 0.9rem;
+            transition: 0.2s;
         }
+        .btn-primary:hover { background: #d35400; transform: scale(1.02); }
 
-        /* Two-column wrapper for equal height */
-        .two-column-wrapper {
-            display: flex;
-            gap: 2rem;
-            flex-wrap: wrap;
-            margin: 0.5rem 0;
-            align-items: stretch;
+        /* ===== FOOTER ===== */
+        footer {
+            background: #1e2a2e;
+            color: white;
+            padding: 2rem 2rem 1rem;
+            margin-top: 2rem;
         }
-        .two-column-left {
-            flex: 2;
-            min-width: 260px;
-            display: flex;
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1.5rem;
         }
-        .two-column-right {
-            flex: 1;
-            min-width: 260px;
-            display: flex;
-        }
+        .footer-content h3 { font-size: 0.9rem; margin-bottom: 0.6rem; }
+        .footer-content ul li, .footer-content p { font-size: 0.7rem; list-style: none; }
+        .copyright { text-align: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.65rem; }
 
-        .info-message {
-            background: #e8f4f8;
-            border-left: 4px solid var(--secondary);
-            padding: 1rem;
-            border-radius: 12px;
-            font-size: 0.85rem;
-            height: 100%;
-            width: 100%;
-        }
-
-        .slogan-home-box {
-            background: #e8f4f8;
-            border-radius: 12px;
-            padding: 1rem 1.2rem;
-            text-align: center;
-            transition: all 0.3s ease;
-            height: 100%;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-        .slogan-home-box:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 16px rgba(0,0,0,0.08);
-        }
-        .slogan-home-icon {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-            display: inline-block;
-            animation: pulse 2s infinite;
-            color: var(--secondary);
-        }
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-        .slogan-home-text {
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--primary-dark);
-            line-height: 1.3;
-            margin: 0.5rem 0;
-        }
-        .slogan-home-sub {
-            font-size: 0.65rem;
-            color: #5a6e7a;
-            margin-top: 0.5rem;
-            letter-spacing: 0.5px;
-        }
-
-        @media (max-width: 1000px) {
-            .features-grid {
-                grid-template-columns: repeat(2, 1fr) !important;
-            }
-        }
-        @media (max-width: 800px) {
-            .two-column-wrapper {
-                flex-direction: column;
-            }
-        }
-        @media (max-width: 700px) {
-            .features-grid {
-                grid-template-columns: 1fr !important;
-            }
-            .hero h1 { 
-                font-size: 1.5rem; 
-            }
-            .hero p { 
-                font-size: 0.85rem; 
-            }
-            nav a {
-                font-size: 0.7rem;
-                padding: 0.25rem 0.4rem;
-            }
-            .section { padding: 0.8rem 1rem; }
-            .stats-grid { gap: 0.6rem; }
-            .stat-number { font-size: 1.6rem; }
-            .how-it-works { flex-direction: column; align-items: center; }
-            .footer-content { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 900px) {
-            nav ul { gap: 0.3rem; }
-            nav a { font-size: 0.65rem; padding: 0.25rem 0.4rem; }
-            .nav-container { flex-direction: column; }
-            .header-buttons { justify-content: center; }
-        }
+        @media (max-width: 700px) { .hero h1 { font-size: 1.5rem; } .section { padding: 1rem; } }
     </style>
 </head>
 <body>
-        <header>
-        <div class="nav-container">
-            <div class="logo">
-                <div class="logo-main">
-                    <i class="fas fa-graduation-cap"></i>
-                    <span>Campus Central</span>
-                </div>
-                <div class="brand-parent">
-                    <i class="fas fa-water"></i> A JetStream Initiative
-                </div>
-            </div>
-            <nav>
-                <ul>
-                    <li><a onclick="showPage('home')">Home</a></li>
-                    <li><a onclick="window.location.href='teacher_group_creation_start.html'">Thank Teacher</a></li>
-                    <li><a onclick="window.location.href='celebration_group_creation_start.html'">Celebrate Together</a></li>
-                    <li><a onclick="window.location.href='find_groups.html'">Find Groups</a></li>
-                    <li><a onclick="window.location.href='student_dashboard.html'">My Groups</a></li>
-                    <li><a onclick="showPage('home')">Success Stories</a></li>
-                    <li class="dropdown">
-                        <a href="#">✨ Explore All Features ▼</a>
-                        <div class="dropdown-content">
-                            <a href="find_my_friend.html">🔍 Find My Friend</a>
-                            <a href="avatar_studio.html">🎨 Avatar Studio</a>
-                            <a href="crush_quiz.html">💕 Crush Corner</a>
-                            <a href="family_business.html">🧵 Family Business</a>
-                            <a href="ants_startup.html">🐜 Startup Nest</a>
-                            <a href="keep_hive_buzzing.html">🍯 Keep the Hive</a>
-                            <a href="teen_space.html">👥 Teen Space</a>
-                            <a href="marriage_staffing.html">💒 Marriage Staffing</a>
-                            <a href="mood_memory.html">📖 Mood & Memory</a>
-                        </div>
-                    </li>
-                </ul>
-            </nav>
-            <div class="header-buttons" id="authButtons">
-                <button class="btn-outline" onclick="window.location.href='login.html'">Login</button>
-                <button class="btn-primary" onclick="window.location.href='signup.html'">Sign Up →</button>
-            </div>
-            <div id="userMenu" class="hidden">
-                <span id="userName" style="margin-right: 0.8rem; font-size: 0.7rem;"></span>
-                <button class="btn-outline" onclick="logout()" style="font-size: 0.7rem; padding: 0.25rem 0.6rem;">Logout</button>
-            </div>
-        </div>
-    </header>
-    <!-- HOME PAGE -->
-<div id="homePage">
-    <section class="hero">
-        <div class="hero-content">
-            <div class="surprise-badge">🎉 TOGETHER WE CELEBRATE 🎉</div>
-            <h1>Surprise Your <span class="highlight">Teacher</span> or <span class="highlight">Celebrate</span> Together</h1>
-            <p>One teacher. Many students. One unforgettable surprise. Or plan a reunion with your batchmates!</p>
-            <div class="hero-buttons">
-                <button class="btn-primary" onclick="window.location.href='teacher_group_creation_start.html'">Thank Teacher →</button>
-                <button class="btn-primary" onclick="window.location.href='celebration_group_creation_start.html'" style="background: var(--gold); color: var(--primary-dark);">Celebrate Together →</button>
-            </div>
-            <div class="offer-badge">🎉 For students across Karnataka</div>
-        </div>
-    </section>
 
-    <!-- Two-column: How Campus Central Works (left) + Slogans Box (right) -->
-    <div class="section" style="padding-top: 0.5rem;">
-        <div class="two-column-wrapper">
-            <div class="two-column-left">
-                <div class="info-message">
-                    <i class="fas fa-heart"></i> <strong>How Campus Central Works</strong><br>
-                    • <strong>One person starts</strong> - Create a group/event and pay a small platform fee <br>
-                    • <strong>Friends join for free</strong> - Classmates can join at no cost<br>
-                    • <strong>Chat & Coordinate</strong> - Use our group chat to share ideas and plan<br>
-                    • <strong>Meet in person</strong> - Gift your teacher or celebrate your reunion together<br>
-                    • <strong>Platform keeps this running</strong>
-                </div>
-            </div>
-            <div class="two-column-right">
-                <div class="slogan-home-box" id="rotatingSloganHome">
-                    <div class="slogan-home-icon">
-                        <i class="fas fa-tree"></i>
-                    </div>
-                    <div class="slogan-home-text" id="sloganTextHome">
-                        Created for the campus. Loved by students.
-                    </div>
-                    <div class="slogan-home-sub">
-                        <i class="fas fa-quote-left"></i> campus central
-                    </div>
-                </div>
-            </div>
+<!-- ========== HEADER ========== -->
+<header>
+    <div class="nav-container">
+        <div class="logo">
+            <i class="fas fa-graduation-cap"></i>
+            <span>Campus Central</span>
+            <div class="brand-parent">A JetStream Initiative</div>
         </div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="thankyou-card.html">Thank You Card</a></li>
+                <li><a href="#">Study Groups</a></li>
+                <li><a href="#">Events</a></li>
+                <li><a href="#">About</a></li>
+            </ul>
+        </nav>
     </div>
+</header>
 
-    <!-- Stats Grid -->
-    <div class="section" style="padding-top: 0;">
-        <div class="stats-grid">
-            <div class="stat-card"><div class="stat-number" id="statGroups">0</div><p>Active Groups</p></div>
-            <div class="stat-card"><div class="stat-number" id="statStudents">0</div><p>Members Planning</p></div>
-            <div class="stat-card"><div class="stat-number" id="statTeachers">0</div><p>Teachers/Events</p></div>
-            <div class="stat-card"><div class="stat-number" id="statColleges">0</div><p>Colleges</p></div>
-        </div>
-    </div>
-        <!-- How It Works - 3 steps -->
-    <div class="section" style="padding-top: 0;">
-        <div class="section-title">
-            <h2>📖 How It Works</h2>
-            <p>Three simple steps to create a beautiful memory</p>
-        </div>
-        <div class="how-it-works">
-            <div class="step">
-                <div class="step-number">1</div>
-                <h3>Create or Join</h3>
-                <p>Start a group for your teacher or create a meetup event</p>
-            </div>
-            <div class="step">
-                <div class="step-number">2</div>
-                <h3>Activate</h3>
-                <p>One person pays the platform fee (₹18-₹81 or ₹36-₹63)</p>
-            </div>
-            <div class="step">
-                <div class="step-number">3</div>
-                <h3>Chat & Celebrate</h3>
-                <p>Coordinate with friends, plan, and meet in person</p>
-            </div>
-        </div>
-    </div>
-        <!-- Why Use Campus Central -->
-    <div class="section" style="background: #f0f7f9; border-radius: 48px; margin: 0.5rem auto; padding: 1rem 2rem;">
-        <div class="section-title">
-            <h2>💛 Why Use Campus Central?</h2>
-            <p>We make it easy to bring people together</p>
-        </div>
-        <div class="features-grid">
-            <div class="feature-card" style="border-top-color: var(--secondary); cursor: default;">
-                <i class="fas fa-smile-wink"></i>
-                <h3>Unforgettable Moments</h3>
-                <p>Create memories that last a lifetime with your favorite people</p>
-            </div>
-            <div class="feature-card" style="border-top-color: var(--secondary); cursor: default;">
-                <i class="fas fa-hand-holding-heart"></i>
-                <h3>Share the Joy</h3>
-                <p>One person pays the platform fee, everyone joins for free</p>
-            </div>
-            <div class="feature-card" style="border-top-color: var(--secondary); cursor: default;">
-                <i class="fas fa-users"></i>
-                <h3>Stay Connected</h3>
-                <p>Our built-in chat keeps everyone in the loop</p>
-            </div>
-        </div>
-    </div>
-        <!-- More Tools for Students - 6 REVENUE-FOCUSED CARDS -->
-    <div class="section" style="padding-top: 0.5rem;">
-        <div class="section-title">
-            <h2>📌 More Tools for Students</h2>
-            <p>Explore other ways to connect with your college community</p>
-        </div>
-        <div class="features-grid">
-            <div class="feature-card" onclick="window.location.href='teacher_group_creation_start.html'">
-                <i class="fas fa-chalkboard-user"></i>
-                <h3>Thank Teacher</h3>
-                <p>Surprise your favorite teacher with a group gift</p>
-            </div>
-            <div class="feature-card" onclick="window.location.href='celebration_group_creation_start.html'">
-                <i class="fas fa-calendar-alt"></i>
-                <h3>Celebrate Together</h3>
-                <p>Plan reunions, parties, and batch meetups</p>
-            </div>
-            <div class="feature-card" onclick="window.location.href='find_my_friend.html'">
-                <i class="fas fa-user-friends"></i>
-                <h3>Find My Friend</h3>
-                <p>Reconnect with lost batchmates and friends</p>
-            </div>
-            <div class="feature-card" onclick="window.location.href='mood_memory.html'">
-                <i class="fas fa-book-open"></i>
-                <h3>Mood & Memory</h3>
-                <p>Share travel diaries, study tips, and campus stories</p>
-            </div>
-            <div class="feature-card" onclick="window.location.href='ants_startup.html'">
-                <i class="fas fa-rocket"></i>
-                <h3>Startup Nest</h3>
-                <p>Showcase your startup idea and find co-founders</p>
-            </div>
-            <div class="feature-card" onclick="window.location.href='marriage_staffing.html'">
-                <i class="fas fa-ring"></i>
-                <h3>Marriage Staffing</h3>
-                <p>Find event staff and wedding service opportunities</p>
-            </div>
-        </div>
-        <p style="text-align:center; margin-top:0.5rem; font-size:0.8rem; color: #5a6e7a;">
-            ✨ More tools coming soon. We're building this for you.
-        </p>
-    </div>
-        <!-- Testimonials -->
-    <div class="testimonials" style="margin-top: 0.5rem;">
-        <div class="section" style="padding: 0.8rem 2rem;">
-            <div class="section-title">
-                <h2>💬 Stories from Students Across Karnataka</h2>
-                <p>See how others have made their teachers' day or reunited with friends</p>
-            </div>
-            <div class="testimonial-grid">
-                <div class="testimonial-card">
-                    <div class="testimonial-text">"We surprised our professor on Teacher's Day. 15 of us contributed. She cried tears of joy. Best decision ever."</div>
-                    <strong>Meera S.</strong>
-                    <p>RVCE, Bangalore</p>
-                </div>
-                <div class="testimonial-card">
-                    <div class="testimonial-text">"Found 8 batchmates through this platform. We gifted our school teacher a silver plaque. She still keeps it on her desk after 2 years!"</div>
-                    <strong>Priya M.</strong>
-                    <p>PES University</p>
-                </div>
-                <div class="testimonial-card">
-                    <div class="testimonial-text">"Our class teacher retired last year. We used this platform to collect funds and throw a farewell party. Unforgettable moment for all of us."</div>
-                    <strong>Ankit S.</strong>
-                    <p>BMS College</p>
-                </div>
-            </div>
-        </div>
-    </div>
-        <!-- Support Section (kept as-is for Phase 2/3) -->
-    <div class="section" style="background: #fef9e6; border-radius: 48px; margin: 0.5rem auto; padding: 1rem 2rem;">
-        <div class="section-title">
-            <h2>💛 Your Support Makes a Difference</h2>
-            <p>Share your story, help us improve, or support our mission.</p>
-        </div>
-        <div class="features-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
-            <div class="feature-card" style="border-top-color: var(--gold); cursor: default;">
-                <i class="fas fa-star"></i>
-                <h3>Share Your Success</h3>
-                <p>Planned a surprise or reunion? Tell us your story.</p>
-                <form id="successStoryForm" style="margin-top: 0.5rem;">
-                    <textarea id="successStory" rows="2" placeholder="Your story..." style="width:100%; padding:0.5rem; border-radius:12px; border:1px solid #ddd; margin-bottom:0.5rem; font-family:inherit;"></textarea>
-                    <input type="text" id="storyAuthor" placeholder="Your name / College" style="width:100%; padding:0.5rem; border-radius:12px; border:1px solid #ddd; margin-bottom:0.5rem;">
-                    <button type="submit" class="btn-primary" style="margin-top:0.3rem; width:100%;">Share Story →</button>
-                </form>
-                <div id="storyResult"></div>
-            </div>
+<!-- ========== HERO ========== -->
+<section class="hero">
+    <h1>Welcome to <span class="highlight">Campus Central</span></h1>
+    <p>A student‑friendly platform to express gratitude, share moments, and stay connected with your campus community.</p>
+</section>
 
-            <div class="feature-card" style="border-top-color: var(--gold); cursor: default;">
-                <i class="fas fa-coffee"></i>
-                <h3>Buy Me a Coffee</h3>
-                <p>If Campus Central helped you, buy us a coffee!</p>
-                <div style="display: flex; gap: 0.5rem; justify-content: center; margin-top: 0.5rem; flex-wrap: wrap;">
-                    <a href="#" class="coffee-button" onclick="alert('Thank you for your support! ❤️ UPI: campuscentral@okhdfcbank')">☕ ₹9</a>
-                    <a href="#" class="coffee-button" onclick="alert('Thank you for your support! ❤️ UPI: campuscentral@okhdfcbank')">☕ ₹49</a>
-                    <a href="#" class="coffee-button" onclick="alert('Thank you for your support! ❤️ UPI: campuscentral@okhdfcbank')">☕ ₹99</a>
-                    <a href="#" class="coffee-button" onclick="alert('Thank you for your support! ❤️ UPI: campuscentral@okhdfcbank')">☕ ₹199</a>
-                </div>
-                <p style="font-size:0.7rem; margin-top:0.3rem;">100% goes to improving Campus Central.</p>
-            </div>
-
-            <div class="feature-card" style="border-top-color: var(--gold); cursor: default;">
-                <i class="fas fa-hand-holding-heart"></i>
-                <h3>JetStream Foundation</h3>
-                <p>Supporting underprivileged students across Karnataka.</p>
-                <div style="margin-top: 0.5rem;">
-                    <span class="offer-badge" style="background: var(--gold); color: var(--primary-dark);">✨ Coming Soon</span>
-                </div>
-            </div>
-        </div>
+<!-- ========== FEATURES ========== -->
+<div class="section">
+    <div class="section-title">
+        <h2>✨ Student Services</h2>
+        <p>Simple tools designed for students, by students</p>
     </div>
-        <!-- CTA Section -->
-    <div class="cta-section">
-        <div class="surprise-badge" style="background: rgba(255,255,255,0.2); margin-bottom: 0.5rem;">🤫 SHH... IT'S A SURPRISE 🤫</div>
-        <h2>Ready to Create an Unforgettable Moment?</h2>
-        <p>Join students from across Karnataka who have already made their teachers feel special or reunited with friends.</p>
-        <button class="btn-primary" onclick="window.location.href='teacher_group_creation_start.html'" style="background: var(--gold); color: var(--primary-dark); margin-top: 0.5rem;">Thank Teacher →</button>
-        <button class="btn-primary" onclick="window.location.href='celebration_group_creation_start.html'" style="margin-top: 0.5rem; margin-left: 1rem;">Celebrate Together →</button>
-        <div style="margin-top: 0.8rem; font-size: 0.75rem;"><i class="fas fa-water"></i> A JetStream Initiative — Bringing Karnataka's students together</div>
+    <div class="features-grid">
+        <!-- Featured: Thank You Card -->
+        <div class="feature-card card-highlight" onclick="window.location.href='thankyou-card.html'">
+            <i class="fas fa-heart" style="color:#e74c3c;"></i>
+            <h3>Digital Thank You Card</h3>
+            <p>Send a beautiful e‑card to someone who made a difference.</p>
+            <span class="price-tag">₹10</span>
+        </div>
+
+        <!-- Other features -->
+        <div class="feature-card">
+            <i class="fas fa-users" style="color:#3498db;"></i>
+            <h3>Study Groups</h3>
+            <p>Connect with classmates for group study sessions.</p>
+            <span class="price-tag" style="background:#f39c12;">Coming Soon</span>
+        </div>
+        <div class="feature-card">
+            <i class="fas fa-calendar-alt" style="color:#9b59b6;"></i>
+            <h3>Event Hub</h3>
+            <p>Discover and share campus events and workshops.</p>
+            <span class="price-tag" style="background:#f39c12;">Coming Soon</span>
+        </div>
+        <div class="feature-card">
+            <i class="fas fa-book-open" style="color:#2ecc71;"></i>
+            <h3>Notes Exchange</h3>
+            <p>Share and find study notes from fellow students.</p>
+            <span class="price-tag" style="background:#f39c12;">Coming Soon</span>
+        </div>
     </div>
 </div>
 
+<!-- ========== CTA ========== -->
+<div class="cta-section">
+    <h2>💌 Express Your Gratitude Today</h2>
+    <p>Send a digital Thank You Card – instant, meaningful, and just ₹10.</p>
+    <button class="btn-primary" onclick="window.location.href='thankyou-card.html'">
+        <i class="fas fa-arrow-right"></i> Get Started
+    </button>
+</div>
+
+<!-- ========== FOOTER ========== -->
 <footer>
     <div class="footer-content">
-        <div>
-            <h3>Campus Central</h3>
-            <p>A JetStream Initiative — Bring people together.</p>
-            <a class="coffee-button" style="margin-top:0.3rem; display:inline-flex;" onclick="alert('Thank you for your support! ❤️ UPI: campuscentral@okhdfcbank')">
-                <i class="fas fa-coffee"></i> Support Our Mission
-            </a>
-        </div>
-        <div>
-            <h3>Tools</h3>
-            <ul>
-                <li>Thank Teacher</li>
-                <li>Celebrate Together</li>
-                <li>Find Groups</li>
-                <li>My Groups</li>
-                <li><a href="batchmate_finder.html" style="color:white; text-decoration:none;">Batchmate Finder</a></li>
-                <li><a href="avatar_studio.html" style="color:white; text-decoration:none;">Avatar Studio</a></li>
-                <li><a href="crush_quiz.html" style="color:white; text-decoration:none;">Crush Corner</a></li>
-                <li><a href="family_business.html" style="color:white; text-decoration:none;">Family Business</a></li>
-                <li><a href="ants_startup.html" style="color:white; text-decoration:none;">Startup Nest</a></li>
-                <li><a href="keep_hive_buzzing.html" style="color:white; text-decoration:none;">Keep the Hive</a></li>
-                <li><a href="teen_space.html" style="color:white; text-decoration:none;">Teen Space</a></li>
-                <li><a href="marriage_staffing.html" style="color:white; text-decoration:none;">Marriage Staffing</a></li>
-                <li><a href="mood_memory.html" style="color:white; text-decoration:none;">📖 Mood & Memory</a></li>
-            </ul>
-        </div>
-        <div>
-            <h3>Coming Soon</h3>
-            <ul>
-                <li>Campus Legend</li>
-                <li>Batchmates</li>
-                <li>Fest Hunter</li>
-                <li>Hostel Hero</li>
-                <li>Project Partner</li>
-                <li>Campus Gully</li>
-            </ul>
-        </div>
-        <div>
-            <h3>Legal</h3>
-            <ul>
-                <li><a onclick="showLegalPage('disclaimer')" style="color: white; text-decoration: none; cursor: pointer;">Disclaimer</a></li>
-                <li><a onclick="showLegalPage('privacy')" style="color: white; text-decoration: none; cursor: pointer;">Privacy Policy</a></li>
-                <li><a onclick="showLegalPage('terms')" style="color: white; text-decoration: none; cursor: pointer;">Terms of Service</a></li>
-            </ul>
-        </div>
-        <div>
-            <h3>Contact</h3>
-            <ul>
-                <li>hello@campuscentral.in</li>
-            </ul>
-        </div>
+        <div><h3>Campus Central</h3><p>A JetStream Initiative — For students, by students.</p></div>
+        <div><h3>Quick Links</h3><ul><li><a href="thankyou-card.html" style="color:white;text-decoration:none;">Thank You Card</a></li><li>Study Groups</li><li>Events</li><li>About</li></ul></div>
+        <div><h3>Contact</h3><ul><li>hello@campuscentral.in</li></ul></div>
     </div>
-    <div class="copyright">
-        <p>© 2026 Campus Central — A JetStream Initiative. For students across Karnataka.</p>
-        <p style="font-size:0.6rem;">⚠️ Platform fee only. Actual gift money collected offline among friends.</p>
-    </div>
+    <div class="copyright">© 2026 Campus Central — Made with ❤️ in Karnataka</div>
 </footer>
 
-<script src="js/config.js"></script>
-<script>
-    const API_BASE_URL = window.ACTIVE_CONFIG ? window.ACTIVE_CONFIG.API_BASE_URL : 'http://localhost:8000/api';
-    
-    let currentUser = null;
-    let authToken = localStorage.getItem('authToken') || localStorage.getItem('token');
-
-    document.addEventListener('DOMContentLoaded', function() {
-        const token = localStorage.getItem('authToken');
-        const userData = localStorage.getItem('currentUser');
-        
-        if (token && userData) {
-            try {
-                currentUser = JSON.parse(userData);
-                authToken = token;
-                const authDiv = document.querySelector('.header-buttons');
-                const userMenu = document.getElementById('userMenu');
-                const nameSpan = document.getElementById('userName');
-                if (authDiv) authDiv.classList.add('hidden');
-                if (userMenu) userMenu.classList.remove('hidden');
-                if (nameSpan) nameSpan.innerText = currentUser.full_name;
-            } catch(e) { console.error(e); }
-        }
-    });
-    
-    let pendingTeacherData = null;
-    let teacherFriendsList = [];
-    let teacherFriendAmounts = [];
-    
-    let pendingCelebrateData = null;
-    let celebrateFriendsList = [];
-    let celebrateGeneratedAmount = null;
-    
-    function updateSpecializations() {
-        const mainCourse = document.getElementById('mainCourse');
-        if (!mainCourse) return;
-        const mainCourseValue = mainCourse.value;
-        const specializationGroup = document.getElementById('specializationGroup');
-        const specializationSelect = document.getElementById('specialization');
-        if (mainCourseValue && specializations[mainCourseValue]) {
-            if (specializationGroup) specializationGroup.style.display = 'block';
-            if (specializationSelect) {
-                specializationSelect.innerHTML = '<option value="">Select your specialization</option>';
-                specializations[mainCourseValue].forEach(spec => {
-                    const option = document.createElement('option');
-                    option.value = spec.toLowerCase().replace(/ /g, '_');
-                    option.textContent = spec;
-                    specializationSelect.appendChild(option);
-                });
-            }
-        } else if (mainCourseValue === 'other') {
-            if (specializationGroup) specializationGroup.style.display = 'block';
-            if (specializationSelect) {
-                specializationSelect.innerHTML = '<option value="">Please specify your course</option>';
-                specializationSelect.innerHTML += '<option value="other_course">Other Course</option>';
-            }
-        } else {
-            if (specializationGroup) specializationGroup.style.display = 'none';
-        }
-    }
-    
-    async function apiCall(endpoint, method, body = null, requiresAuth = false) {
-        const headers = { 'Content-Type': 'application/json' };
-        if (requiresAuth && authToken) headers['Authorization'] = `Bearer ${authToken}`;
-        const options = { method, headers };
-        if (body && (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE')) options.body = JSON.stringify(body);
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.detail || 'Something went wrong');
-        return data;
-    }
-    
-    async function signup(full_name, email, whatsapp, password, college, course, specialization) {
-        const result = await apiCall('/auth/signup', 'POST', {
-            full_name: full_name,
-            email: email,
-            whatsapp: whatsapp,
-            password: password,
-            role: "student",
-            college: college || "",
-            course: course || "",
-            specialization: specialization || ""
-        });
-        authToken = result.access_token;
-        localStorage.setItem('authToken', authToken);
-        localStorage.setItem('token', authToken);
-        currentUser = result.user;
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
-        localStorage.setItem('user', JSON.stringify(currentUser));
-        updateUI();
-        return result;
-    }
-    
-    async function login(email, password) {
-        const result = await apiCall('/auth/login', 'POST', { email, password });
-        authToken = result.access_token;
-        localStorage.setItem('authToken', authToken);
-        localStorage.setItem('token', authToken);
-        currentUser = result.user;
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
-        localStorage.setItem('user', JSON.stringify(currentUser));
-        updateUI();
-        return result;
-    }
-    
-    function logout() {
-        authToken = null;
-        currentUser = null;
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('token');
-        localStorage.removeItem('currentUser');
-        localStorage.removeItem('user');
-        updateUI();
-        showPage('home');
-    }
-    
-    async function createGroup(teacher_name, college, whatsapp_link, event_date) {
-        return await apiCall('/groups/create', 'POST', { teacher_name, college, whatsapp_link, event_date }, true);
-    }
-    
-    async function searchGroupsAPI(teacher_name) {
-        return await apiCall(`/groups/search?teacher_name=${encodeURIComponent(teacher_name)}`, 'GET');
-    }
-    
-    async function joinGroup(group_id) {
-        return await apiCall('/groups/join', 'POST', { group_id }, true);
-    }
-    
-    async function getMyGroups() {
-        return await apiCall('/groups/my-groups', 'GET', null, true);
-    }
-    
-    async function deleteGroup(group_id) {
-        return await apiCall('/groups/delete', 'DELETE', { group_id }, true);
-    }
-    
-    async function leaveGroup(group_id) {
-        return await apiCall('/groups/leave', 'POST', { group_id }, true);
-    }
-    
-    async function shareSuccessStory(story, author) {
-        return await apiCall('/stories/create', 'POST', { story_text: story, author_name: author }, false);
-    }
-    
-    async function loadStats() {
-        try {
-            const groups = await apiCall('/groups/search?teacher_name=a', 'GET', null, false);
-            document.getElementById('statGroups').innerText = groups.groups?.length || 0;
-            let totalStudents = 0;
-            if (groups.groups) totalStudents = groups.groups.reduce((sum, g) => sum + (g.member_count || 1), 0);
-            document.getElementById('statStudents').innerText = totalStudents || 0;
-            const uniqueTeachers = new Set();
-            if (groups.groups) groups.groups.forEach(g => { if (g.teacher_name) uniqueTeachers.add(g.teacher_name); });
-            document.getElementById('statTeachers').innerText = uniqueTeachers.size || 0;
-            const uniqueColleges = new Set();
-            if (groups.groups) groups.groups.forEach(g => { if (g.college) uniqueColleges.add(g.college); });
-            document.getElementById('statColleges').innerText = uniqueColleges.size || 0;
-        } catch(e) { console.error('Stats error:', e); }
-    }
-        function updateUI() {
-        const authDiv = document.querySelector('.header-buttons');
-        const userMenu = document.getElementById('userMenu');
-        const nameSpan = document.getElementById('userName');
-        
-        let user = currentUser;
-        if (!user) {
-            const storedUser = localStorage.getItem('currentUser') || localStorage.getItem('user');
-            if (storedUser) {
-                try {
-                    user = JSON.parse(storedUser);
-                    currentUser = user;
-                    authToken = localStorage.getItem('authToken') || localStorage.getItem('token');
-                } catch(e) {}
-            }
-        }
-        
-        if (user) {
-            if (authDiv) authDiv.classList.add('hidden');
-            if (userMenu) userMenu.classList.remove('hidden');
-            if (nameSpan) nameSpan.innerText = user.full_name || (user.email ? user.email.split('@')[0] : 'User');
-        } else {
-            if (authDiv) authDiv.classList.remove('hidden');
-            if (userMenu) userMenu.classList.add('hidden');
-        }
-        loadStats();
-    }
-    
-    function showPage(page) {
-        let pageId = page;
-        if (page === 'signup') pageId = 'signupPage';
-        if (page === 'login') pageId = 'loginPage';
-        if (page === 'home') pageId = 'homePage';
-        if (page === 'groups') pageId = 'groupsPage';
-        if (page === 'dashboard') pageId = 'dashboardPage';
-        if (page === 'thankteacher') pageId = 'thankteacherPage';
-        if (page === 'celebrate') pageId = 'celebratePage';
-        
-        var pages = ['homePage', 'signupPage', 'loginPage', 'thankteacherPage', 'celebratePage', 'groupsPage', 'dashboardPage'];
-        for (var i = 0; i < pages.length; i++) {
-            var el = document.getElementById(pages[i]);
-            if (el) el.classList.add('hidden');
-        }
-        var targetPage = document.getElementById(pageId);
-        if (targetPage) targetPage.classList.remove('hidden');
-        if (pageId === 'dashboardPage') loadDashboard();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-    
-    function showLegalPage(type) {
-        const texts = {
-            disclaimer: '⚠️ Campus Central is a facilitation platform only. Platform fee keeps the service running. Actual gift money is collected offline among friends.',
-            privacy: '🔒 We collect your name, email, phone number, and college information for coordination. We do not sell your data.',
-            terms: '📜 By using Campus Central, you agree to be 18 years or older and use the platform responsibly.'
-        };
-        alert(texts[type]);
-    }
-    
-    function escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-    
-    function getInviteLink(teacherName, college) {
-        const baseUrl = window.location.origin + window.location.pathname;
-        return `${baseUrl}?join=${encodeURIComponent(teacherName)}&college=${encodeURIComponent(college || '')}`;
-    }
-    
-    function copyInviteLink(teacherName, college) {
-        const link = getInviteLink(teacherName, college);
-        navigator.clipboard.writeText(link);
-        alert('Invite link copied! Share with your friends.');
-    }
-    
-    function showThankTeacher() {
-        document.getElementById('teacherGroupStep1').style.display = 'block';
-        document.getElementById('teacherGameStep').style.display = 'none';
-        document.getElementById('createTeacherGroupForm').reset();
-        teacherFriendsList = [];
-        teacherFriendAmounts = [];
-        document.getElementById('teacherNamesList').innerHTML = '';
-        showPage('thankteacher');
-    }
-    
-    function showCelebrateTogether() {
-        document.getElementById('celebrateStep1').style.display = 'block';
-        document.getElementById('celebrateGameStep').style.display = 'none';
-        document.getElementById('createCelebrateForm').reset();
-        celebrateFriendsList = [];
-        celebrateGeneratedAmount = null;
-        document.getElementById('celebrateNamesList').innerHTML = '';
-        document.getElementById('celebrateAmountDisplay').innerHTML = '';
-        document.getElementById('celebratePayButton').style.display = 'none';
-        showPage('celebrate');
-    }
-    
-    const savedUser = localStorage.getItem('currentUser') || localStorage.getItem('user');
-    if (savedUser) {
-        try {
-            currentUser = JSON.parse(savedUser);
-            authToken = localStorage.getItem('authToken') || localStorage.getItem('token');
-            updateUI();
-            if (currentUser) loadDashboard();
-        } catch(e) { console.error('Failed to parse saved user'); }
-    }
-    updateUI();
-    checkJoinLink();
-    
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js').catch(error => console.log('Service Worker registration failed:', error));
-        });
-    }
-    
-    const specializations = {
-        engineering: ["Computer Science Engineering (CSE)", "Information Science Engineering (ISE)", "Electronics & Communication (ECE)", "Electrical Engineering (EE)", "Mechanical Engineering (ME)", "Civil Engineering (CE)", "Artificial Intelligence & ML (AI/ML)", "Data Science", "Cyber Security", "Aerospace Engineering", "Biotechnology", "Chemical Engineering", "Instrumentation Technology", "Industrial Engineering", "Automobile Engineering", "Robotics & Automation"],
-        medical: ["MBBS - Bachelor of Medicine", "BDS - Dental Surgery", "BAMS - Ayurveda", "BHMS - Homeopathy", "BNYS - Naturopathy", "BUMS - Unani Medicine", "BPT - Physiotherapy", "BSc Nursing", "BSc Medical Lab Technology", "BSc Radiology", "BSc Optometry", "Pharmacy (B.Pharm)", "Veterinary Science (BVSc)"],
-        management: ["MBA - Master of Business Administration", "BBM - Bachelor of Business Management", "BBA - Business Administration", "PGDM - Post Graduate Diploma in Management", "Hospital Management", "Event Management", "Sports Management", "Retail Management", "Logistics & Supply Chain", "International Business", "Human Resources (HR)", "Marketing Management", "Finance Management", "Business Analytics"],
-        commerce: ["BCom - Bachelor of Commerce", "MCom - Master of Commerce", "BCom Professional", "BCom Accounting & Finance", "BCom Banking & Insurance", "BCom Taxation", "BCom Computer Applications", "BCom Corporate Secretaryship", "CA - Chartered Accountancy", "CMA - Cost Management Accountancy", "CS - Company Secretary", "CFA - Financial Analyst"],
-        science: ["BSc Physics", "BSc Chemistry", "BSc Mathematics", "BSc Biology/Zoology/Botany", "BSc Computer Science", "BSc Information Technology", "BSc Biotechnology", "BSc Microbiology", "BSc Biochemistry", "BSc Environmental Science", "BSc Forensic Science", "BSc Psychology", "BSc Statistics", "BSc Electronics", "MSc in various fields"],
-        arts: ["BA - Bachelor of Arts", "BA History", "BA Political Science", "BA Sociology", "BA Psychology", "BA Economics", "BA Journalism", "BA English Literature", "BA Kannada Literature", "BA Hindi Literature", "BA Philosophy", "BA Public Administration", "MA - Master of Arts", "Fine Arts (BFA)", "Performing Arts", "Visual Arts"],
-        law: ["BA LLB - 5 Years Integrated", "BBA LLB - 5 Years Integrated", "LLB - 3 Years", "LLM - Master of Laws", "Corporate Law", "Criminal Law", "Constitutional Law", "Intellectual Property Law", "Taxation Law", "Human Rights Law"],
-        architecture: ["BArch - Architecture", "BDes - Design", "BPlan - Planning", "Interior Design", "Fashion Design", "Product Design", "Communication Design", "Graphic Design", "Animation & Multimedia", "MArch - Master of Architecture"],
-        agriculture: ["BSc Agriculture", "BSc Horticulture", "BSc Forestry", "BSc Sericulture", "BSc Food Technology", "BSc Dairy Technology", "Agricultural Engineering", "Fisheries Science", "MSc Agriculture"],
-        education: ["BEd - Bachelor of Education", "BA BEd - Integrated", "BSc BEd - Integrated", "MEd - Master of Education", "Physical Education (BPEd)", "Special Education", "Early Childhood Education"],
-        pharmacy: ["BPharm - Bachelor of Pharmacy", "MPharm - Master of Pharmacy", "PharmD - Doctor of Pharmacy", "Pharmacology", "Pharmaceutical Chemistry", "Pharmaceutics", "Pharmacognosy", "Clinical Pharmacy"],
-        hotel: ["BHM - Hotel Management", "BSc Hospitality & Hotel Admin", "Diploma in Hotel Management", "Culinary Arts", "Bakery & Confectionery", "Tourism Management", "Aviation & Travel Management"],
-        journalism: ["BJMC - Journalism & Mass Comm", "BA Journalism", "BA Mass Communication", "MA Journalism", "Digital Media", "Advertising & PR", "Film Studies", "Event Management"],
-        socialwork: ["BSW - Bachelor of Social Work", "MSW - Master of Social Work", "Rural Development", "Urban Management", "NGO Management", "Counseling Psychology"],
-        physical: ["BPEd - Physical Education", "MPEd - Master of Physical Education", "Sports Coaching", "Yoga Science", "Sports Psychology", "Fitness Management"]
-    };
-        function showTeacherNameGame() {
-        const teacherName = document.getElementById('teacherName').value.trim();
-        if (!teacherName) { alert('Please enter teacher name'); return; }
-        pendingTeacherData = {
-            teacher_name: teacherName,
-            college: document.getElementById('teacherCollege').value.trim(),
-            event_date: document.getElementById('teacherEventDate').value,
-            venue: document.getElementById('teacherVenue').value,
-            pet_names: document.getElementById('teacherPetNames').value,
-            memory: document.getElementById('teacherMemory').value,
-            bring: document.getElementById('teacherBring').value,
-            secret_code: document.getElementById('teacherSecretCode').value,
-            dress_code: document.getElementById('teacherDressCode').value,
-            surprise: document.getElementById('teacherSurprise').value,
-            note: document.getElementById('teacherNote').value,
-            email: document.getElementById('teacherEmail').value,
-            whatsapp: document.getElementById('teacherWhatsapp').value,
-            type: 'teacher'
-        };
-        if (!pendingTeacherData.email || !pendingTeacherData.whatsapp) { alert('Email and WhatsApp number are required'); return; }
-        document.getElementById('teacherGroupStep1').style.display = 'none';
-        document.getElementById('teacherGameStep').style.display = 'block';
-        teacherFriendsList = [];
-        teacherFriendAmounts = [];
-        document.getElementById('teacherNamesList').innerHTML = '';
-        document.getElementById('teacherAmountResults').innerHTML = '';
-        document.getElementById('teacherLowestDisplay').innerHTML = '';
-        document.getElementById('teacherPayButton').style.display = 'none';
-    }
-    
-    function addTeacherFriend() {
-        const name = document.getElementById('teacherFriendName').value.trim();
-        if (!name) { alert('Please enter a name'); return; }
-        if (teacherFriendsList.includes(name)) { alert('Name already added'); return; }
-        const amount = Math.floor(Math.random() * (81 - 18 + 1) + 18);
-        teacherFriendsList.push(name);
-        teacherFriendAmounts.push(amount);
-        const namesDiv = document.getElementById('teacherNamesList');
-        namesDiv.innerHTML += `<div class="group-card" style="margin-bottom:0.5rem;">📌 ${escapeHtml(name)} - ₹${amount}</div>`;
-        document.getElementById('teacherFriendName').value = '';
-        const minAmount = Math.min(...teacherFriendAmounts);
-        const minIndex = teacherFriendAmounts.indexOf(minAmount);
-        const minName = teacherFriendsList[minIndex];
-        document.getElementById('teacherAmountResults').innerHTML = `<div class="info-message"><i class="fas fa-chart-line"></i> <strong>Amounts generated:</strong> ${teacherFriendsList.map((n,i) => `${n}: ₹${teacherFriendAmounts[i]}`).join(' | ')}</div>`;
-        document.getElementById('teacherLowestDisplay').innerHTML = `<div class="success-msg" style="background:#e8f4f8;"><strong>🎉 Best luck!</strong> ${escapeHtml(minName)} got the lowest amount: <span style="font-size:1.5rem; font-weight:bold;">₹${minAmount}</span><br>You will pay this amount to activate the group!</div>`;
-        document.getElementById('teacherPayButton').style.display = 'block';
-        document.getElementById('teacherPayButton').innerHTML = `💰 Pay ₹${minAmount} and Activate Group →`;
-        pendingTeacherData.amountToPay = minAmount;
-    }
-    
-    async function processTeacherPayment() {
-        if (!currentUser) { alert('Please login first'); showPage('login'); return; }
-        const upiId = 'campuscentral@okhdfcbank';
-        const amount = pendingTeacherData.amountToPay;
-        const payUrl = `upi://pay?pa=${upiId}&pn=Campus%20Central&am=${amount}&cu=INR`;
-        if (confirm(`Pay ₹${amount} to activate the surprise group for ${pendingTeacherData.teacher_name}?`)) {
-            window.location.href = payUrl;
-            setTimeout(async () => {
-                try {
-                    const result = await createGroup(pendingTeacherData.teacher_name, pendingTeacherData.college, '', pendingTeacherData.event_date);
-                    const groupId = result.group.id;
-                    localStorage.setItem(`group_activated_${groupId}`, 'true');
-                    localStorage.setItem(`group_payer_${groupId}`, currentUser.full_name || currentUser.email);
-                    localStorage.setItem(`group_type_${groupId}`, 'teacher');
-                    localStorage.setItem(`group_details_${groupId}`, JSON.stringify(pendingTeacherData));
-                    alert('✅ Payment recorded! Your group is now ACTIVE. Share the invite link with friends!');
-                    showPage('dashboard');
-                } catch (error) { alert('Group created but payment not recorded. Please contact support.'); }
-            }, 2000);
-        }
-    }
-    
-    function showCelebrateGame() {
-        const title = document.getElementById('celebrateTitle').value.trim();
-        if (!title) { alert('Please enter event title'); return; }
-        pendingCelebrateData = {
-            title: title,
-            location: document.getElementById('celebrateLocation').value.trim(),
-            event_date: document.getElementById('celebrateDate').value,
-            venue: document.getElementById('celebrateVenue').value,
-            pet_names: document.getElementById('celebratePetNames').value,
-            memory: document.getElementById('celebrateMemory').value,
-            bring: document.getElementById('celebrateBring').value,
-            secret_code: document.getElementById('celebrateSecretCode').value,
-            dress_code: document.getElementById('celebrateDressCode').value,
-            surprise: document.getElementById('celebrateSurprise').value,
-            note: document.getElementById('celebrateNote').value,
-            email: document.getElementById('celebrateEmail').value,
-            whatsapp: document.getElementById('celebrateWhatsapp').value,
-            type: 'celebrate'
-        };
-        if (!pendingCelebrateData.email || !pendingCelebrateData.whatsapp) { alert('Email and WhatsApp number are required'); return; }
-        document.getElementById('celebrateStep1').style.display = 'none';
-        document.getElementById('celebrateGameStep').style.display = 'block';
-        celebrateFriendsList = [];
-        document.getElementById('celebrateNamesList').innerHTML = '';
-        document.getElementById('celebrateAmountDisplay').innerHTML = '';
-        document.getElementById('celebratePayButton').style.display = 'none';
-        document.getElementById('celebrateGenerateBtn').style.display = 'block';
-    }
-    
-    function addCelebrateFriend() {
-        const name = document.getElementById('celebrateFriendName').value.trim();
-        if (!name) { alert('Please enter a name'); return; }
-        if (celebrateFriendsList.includes(name)) { alert('Name already added'); return; }
-        celebrateFriendsList.push(name);
-        const namesDiv = document.getElementById('celebrateNamesList');
-        namesDiv.innerHTML += `<div class="group-card" style="margin-bottom:0.5rem;">📌 ${escapeHtml(name)}</div>`;
-        document.getElementById('celebrateFriendName').value = '';
-    }
-    
-    function generateCelebrateAmount() {
-        if (celebrateFriendsList.length === 0) { alert('Please add at least one friend name first'); return; }
-        celebrateGeneratedAmount = Math.floor(Math.random() * (63 - 36 + 1) + 36);
-        document.getElementById('celebrateAmountDisplay').innerHTML = `<div class="lucky-box"><div class="lucky-number">₹${celebrateGeneratedAmount}</div><p>Your random amount for this celebration!</p></div>`;
-        document.getElementById('celebrateGenerateBtn').style.display = 'none';
-        document.getElementById('celebratePayButton').style.display = 'block';
-        document.getElementById('celebratePayButton').innerHTML = `💰 Pay ₹${celebrateGeneratedAmount} and Activate Event →`;
-        pendingCelebrateData.amountToPay = celebrateGeneratedAmount;
-    }
-    
-    async function processCelebratePayment() {
-        if (!currentUser) { alert('Please login first'); showPage('login'); return; }
-        const upiId = 'campuscentral@okhdfcbank';
-        const amount = pendingCelebrateData.amountToPay;
-        const payUrl = `upi://pay?pa=${upiId}&pn=Campus%20Central&am=${amount}&cu=INR`;
-        if (confirm(`Pay ₹${amount} to activate your celebration event?`)) {
-            window.location.href = payUrl;
-            setTimeout(async () => {
-                try {
-                    const result = await createGroup(pendingCelebrateData.title, pendingCelebrateData.location, '', pendingCelebrateData.event_date);
-                    const groupId = result.group.id;
-                    localStorage.setItem(`group_activated_${groupId}`, 'true');
-                    localStorage.setItem(`group_payer_${groupId}`, currentUser.full_name || currentUser.email);
-                    localStorage.setItem(`group_type_${groupId}`, 'celebrate');
-                    localStorage.setItem(`group_details_${groupId}`, JSON.stringify(pendingCelebrateData));
-                    alert('✅ Payment recorded! Your event is now ACTIVE. Share the invite link with friends!');
-                    showPage('dashboard');
-                } catch (error) { alert('Event created but payment not recorded. Please contact support.'); }
-            }, 2000);
-        }
-    }
-    
-    function sendMessage(groupId) {
-        const input = document.getElementById(`chat-input-${groupId}`);
-        const message = input.value.trim();
-        if (!message || !currentUser) return;
-        let messages = JSON.parse(localStorage.getItem(`chat_${groupId}`)) || [];
-        messages.push({ user: currentUser.full_name || currentUser.email, text: message, time: new Date().toLocaleTimeString() });
-        localStorage.setItem(`chat_${groupId}`, JSON.stringify(messages));
-        input.value = '';
-        loadChatMessages(groupId);
-    }
-    
-    function loadChatMessages(groupId) {
-        const container = document.getElementById(`chat-messages-${groupId}`);
-        if (!container) return;
-        let messages = JSON.parse(localStorage.getItem(`chat_${groupId}`)) || [];
-        container.innerHTML = messages.map(m => `<div class="chat-message"><strong>${escapeHtml(m.user)}</strong><br>${escapeHtml(m.text)}<small>${m.time}</small></div>`).join('');
-        container.scrollTop = container.scrollHeight;
-    }
-    
-    async function loadDashboard() {
-        if (!currentUser) { const dashboardDiv = document.getElementById('myGroupsList'); if (dashboardDiv) dashboardDiv.innerHTML = '<div class="error-msg">Please login to see your groups.</div>'; return; }
-        try {
-            const result = await getMyGroups();
-            const groups = result.groups || [];
-            const dashboardDiv = document.getElementById('myGroupsList');
-            if (!dashboardDiv) return;
-            if (groups.length === 0) { dashboardDiv.innerHTML = '<div class="error-msg">You haven\'t joined any groups yet. <a onclick="showPage(\'groups\')" style="color: var(--secondary); cursor: pointer;">Find a group or event →</a></div>'; return; }
-            let html = '';
-            for (const group of groups) {
-                const isCreator = group.created_by === currentUser?.id;
-                const isActivated = localStorage.getItem(`group_activated_${group.id}`) === 'true';
-                const payerName = localStorage.getItem(`group_payer_${group.id}`) || 'someone';
-                const groupType = localStorage.getItem(`group_type_${group.id}`) || 'teacher';
-                const details = JSON.parse(localStorage.getItem(`group_details_${group.id}`) || '{}');
-                const displayName = groupType === 'teacher' ? group.teacher_name : (details.title || group.teacher_name);
-                const icon = groupType === 'teacher' ? '📖' : '🎉';
-                html += `<div class="group-card"><div class="group-header"><div><h3>${icon} ${escapeHtml(displayName)} ${isCreator ? '<span class="organizer-badge">👑 ORGANIZER</span>' : ''}</h3><p>🏛️ ${group.college || 'Various locations'}</p><p>👥 ${group.member_count || 1} members</p>${isActivated ? `<p><i class="fas fa-check-circle" style="color:#2ecc71;"></i> Activated by ${escapeHtml(payerName)}</p>` : `<p><i class="fas fa-lock" style="color:#e67e22;"></i> Not yet activated - need payment</p>`}${details.venue ? `<p>📍 Venue: ${escapeHtml(details.venue)}</p>` : ''}${details.event_date ? `<p>📅 Date: ${escapeHtml(details.event_date)}</p>` : ''}${details.pet_names ? `<p>🥰 Pet names: ${escapeHtml(details.pet_names)}</p>` : ''}${details.secret_code ? `<p>🤫 Secret code: ${escapeHtml(details.secret_code)}</p>` : ''}${details.dress_code ? `<p>👕 Dress code: ${escapeHtml(details.dress_code)}</p>` : ''}${details.memory ? `<p>💭 Memory: "${escapeHtml(details.memory)}"</p>` : ''}${details.note ? `<p>💌 Note: ${escapeHtml(details.note)}</p>` : ''}</div></div>${isActivated ? `<div class="invite-link" style="margin-top:0.5rem;"><span>🔗 Invite Link:</span><button class="btn-secondary" onclick="copyInviteLink('${escapeHtml(displayName)}', '${escapeHtml(group.college || '')}')">Copy Link</button></div><div class="chat-container"><div class="chat-messages" id="chat-messages-${group.id}"></div><div class="chat-input-area"><input type="text" id="chat-input-${group.id}" placeholder="Share your ideas, plans, or contact number..."><button onclick="sendMessage(${group.id})">Send</button></div></div>` : `<div class="invite-link" style="margin-top:0.5rem; background:#ffe0e0;"><span>🔒 Group not yet activated. First member needs to pay to unlock chat and invites.</span></div>`}<div class="group-actions" style="margin-top:1rem;">${isCreator ? `<button class="btn-secondary" onclick="deleteGroupHandler('${group.id}')">Delete Group</button>` : `<button class="btn-secondary" onclick="leaveGroupHandler('${group.id}')">Leave Group</button>`}${!isActivated && isCreator ? (groupType === 'teacher' ? `<button class="btn-primary" onclick="showThankTeacher()">💰 Pay to Activate (₹18-₹81)</button>` : `<button class="btn-primary" onclick="showCelebrateTogether()">💰 Pay to Activate (₹36-₹63)</button>`) : ''}</div></div>`;
-            }
-            dashboardDiv.innerHTML = html;
-            for (const group of groups) { if (localStorage.getItem(`group_activated_${group.id}`) === 'true') loadChatMessages(group.id); }
-        } catch (error) { const dashboardDiv = document.getElementById('myGroupsList'); if (dashboardDiv) dashboardDiv.innerHTML = `<div class="error-msg">Error: ${error.message}</div>`; }
-    }
-    
-    async function searchGroups() {
-        const searchInput = document.getElementById('searchTeacherInput');
-        if (!searchInput) return;
-        const searchTerm = searchInput.value.trim();
-        const resultsDiv = document.getElementById('searchResults');
-        if (!resultsDiv) return;
-        if (!searchTerm) { resultsDiv.innerHTML = '<div class="error-msg">Enter a teacher name or event title.</div>'; return; }
-        try {
-            const result = await searchGroupsAPI(searchTerm);
-            const groups = result.groups || [];
-            if (groups.length === 0) { resultsDiv.innerHTML = `<div class="error-msg">No groups found. <a onclick="showThankTeacher()" style="color: var(--secondary); cursor: pointer;">Create one →</a></div>`; return; }
-            let html = '<h3>🎁 Groups & Events Found:</h3>';
-            for (const group of groups) {
-                const isActivated = localStorage.getItem(`group_activated_${group.id}`) === 'true';
-                const groupType = localStorage.getItem(`group_type_${group.id}`) || 'teacher';
-                const details = JSON.parse(localStorage.getItem(`group_details_${group.id}`) || '{}');
-                const displayName = groupType === 'teacher' ? group.teacher_name : (details.title || group.teacher_name);
-                const icon = groupType === 'teacher' ? '📖' : '🎉';
-                const statusIcon = isActivated ? '✅' : '⏳';
-                const statusText = isActivated ? 'Active - You can join!' : 'Awaiting activation';
-                const statusColor = isActivated ? '#2ecc71' : '#e67e22';
-                html += `<div class="group-card"><div><h3>${icon} ${escapeHtml(displayName)}</h3><p>🏛️ ${group.college || 'Various locations'}</p><p>👥 ${group.member_count || 1} members</p><p><span style="color:${statusColor};">${statusIcon} ${statusText}</span></p></div><div><button class="btn-primary" onclick="joinGroupHandler('${group.id}')" ${!isActivated ? 'disabled style="opacity:0.5;"' : ''}>${isActivated ? 'Join →' : 'Waiting for Activation'}</button></div></div>`;
-            }
-            resultsDiv.innerHTML = html;
-        } catch (error) { resultsDiv.innerHTML = `<div class="error-msg">Error: ${error.message}</div>`; }
-    }
-    
-    async function joinGroupHandler(groupId) { if (!currentUser) { alert('Please login first'); showPage('login'); return; } try { await joinGroup(groupId); alert('🤫 You joined the group/event!'); searchGroups(); loadDashboard(); } catch (error) { alert(error.message); } }
-    async function deleteGroupHandler(groupId) { if (confirm('Are you sure? This will remove the group for everyone.')) { try { await deleteGroup(groupId); alert('Group deleted.'); loadDashboard(); } catch (error) { alert(error.message); } } }
-    async function leaveGroupHandler(groupId) { if (confirm('Are you sure you want to leave this group?')) { try { await leaveGroup(groupId); alert('You left the group.'); loadDashboard(); } catch (error) { alert(error.message); } } }
-    
-    function checkJoinLink() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const joinTerm = urlParams.get('join');
-        if (joinTerm) { setTimeout(() => { const searchInput = document.getElementById('searchTeacherInput'); if (searchInput) { searchInput.value = joinTerm; showPage('groups'); searchGroups(); } }, 500); }
-    }
-    
-    const successStoryForm = document.getElementById('successStoryForm');
-    if (successStoryForm) {
-        successStoryForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const story = document.getElementById('successStory').value;
-            const author = document.getElementById('storyAuthor').value;
-            if (story && author) {
-                try {
-                    await shareSuccessStory(story, author);
-                    const storyResult = document.getElementById('storyResult');
-                    if (storyResult) storyResult.innerHTML = '<div class="success-msg">Thank you for sharing! 💛</div>';
-                    document.getElementById('successStory').value = '';
-                    document.getElementById('storyAuthor').value = '';
-                    setTimeout(() => { if (storyResult) storyResult.innerHTML = ''; }, 3000);
-                } catch(error) { alert('Failed to share story. Please try again.'); }
-            } else { alert('Please fill both fields'); }
-        });
-    }
-    
-    const homeSlogans = [
-        "Created for the campus. Loved by students.",
-        "Campus-driven. Student-focused.",
-        "Where batchmates become friends again",
-        "Your campus. Your community.",
-        "Real connections. Real help. Real campus life."
-    ];
-    let homeSloganIndex = 0;
-    const homeSloganSpan = document.getElementById("sloganTextHome");
-    function rotateHomeSlogan() {
-        homeSloganIndex = (homeSloganIndex + 1) % homeSlogans.length;
-        const box = document.getElementById("rotatingSloganHome");
-        if (!box) return;
-        box.style.opacity = "0";
-        setTimeout(() => { if (homeSloganSpan) homeSloganSpan.textContent = homeSlogans[homeSloganIndex]; box.style.opacity = "1"; }, 300);
-    }
-    setInterval(rotateHomeSlogan, 5000);
-</script>
-<script src="js/auth-guard.js"></script>
 </body>
 </html>
