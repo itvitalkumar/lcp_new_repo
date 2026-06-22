@@ -54,5 +54,5 @@ jobs:
         with:
           app-name: 'lcp-backend-app'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_F8B135D67BDA4220A38B91B11B3DF70C }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_BBB0949976CC4312AF7225D04E568B6F }}
           package: .
