@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Central - Group Details</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+
+        :root {
+            --primary: #0f4c5c;
+            --primary-dark: #0a3a46;
+            --secondary: #e67e22;
+            --gold: #f4b942;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .group-card {
+            background: white;
+            border-radius: 32px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .group-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .status-badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.75rem;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .group-details {
+            margin-bottom: 1rem;
+        }
+
+        .detail-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .members-list {
+            margin: 1rem 0;
+            padding: 0.8rem;
+            background: #f8f9fc;
+            border-radius: 16px;
+        }
+
+        .member {
+            display: inline-block;
+            background: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            margin: 0.2rem;
+            font-size: 0.75rem;
+        }
+
+        .invite-section {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #e8f4f8;
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        .invite-link {
+            background: white;
+            padding: 0.5rem;
+            border-radius: 12px;
+            word-break: break-all;
+            font-size: 0.75rem;
+            margin: 0.5rem 0;
+        }
+
+        .chat-section {
+            margin-top: 1rem;
+            border-top: 1px solid #eee;
+            padding-top: 1rem;
+        }
+
+        .chat-messages {
+            max-height: 300px;
+            overflow-y: auto;
+            background: #fafafa;
+            border-radius: 16px;
+            padding: 0.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .chat-message {
+            background: white;
+            padding: 0.5rem;
+            border-radius: 12px;
+            margin-bottom: 0.5rem;
+        }
+
+        .chat-message strong {
+            color: var(--primary);
+        }
+
+        .chat-message small {
+            font-size: 0.6rem;
+            color: #999;
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 0.6rem;
+            border: 1px solid #ddd;
+            border-radius: 30px;
+        }
+
+        .chat-input button {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 30px;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 30px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        @media (max-width: 700px) {
+            body { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="group-card">
+            <div class="group-header">
+                <div class="group-title" id="groupTitle">2019 Batch Reunion</div>
+                <span class="status-badge status-active" id="groupStatus">✅ Active</span>
+            </div>
+
+            <div class="group-details">
+                <div class="detail-row"><span>📍</span> <span id="groupLocation">Bangalore</span></div>
+                <div class="detail-row"><span>📅</span> <span id="groupDate">April 20, 2024</span></div>
+                <div class="detail-row"><span>👑</span> <span id="groupOrganizer">Organizer: Amit Kumar</span></div>
+            </div>
+
+            <div class="members-list">
+                <strong>👥 Members (12)</strong>
+                <div id="membersList">
+                    <span class="member">Priya Sharma</span>
+                    <span class="member">Amit Kumar 👑</span>
+                    <span class="member">Sneha Rao</span>
+                    <span class="member">+9 more</span>
+                </div>
+            </div>
+
+            <div class="invite-section">
+                <strong>🔗 Invite Friends</strong>
+                <div class="invite-link" id="inviteLink">https://campuscentral.in/join/group_123</div>
+                <button class="btn-primary" onclick="copyInviteLink()">📋 Copy Invite Link</button>
+            </div>
+
+            <div class="chat-section">
+                <strong>💬 Group Chat</strong>
+                <div class="chat-messages" id="chatMessages">
+                    <div class="chat-message"><strong>Priya Sharma</strong><br>Can't wait to see everyone!<br><small>10:30 AM</small></div>
+                    <div class="chat-message"><strong>Amit Kumar</strong><br>I've booked the venue. Excited!<br><small>11:15 AM</small></div>
+                </div>
+                <div class="chat-input">
+                    <input type="text" id="chatInput" placeholder="Type your message...">
+                    <button onclick="sendMessage()">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function copyInviteLink() {
+            const link = document.getElementById('inviteLink').innerText;
+            navigator.clipboard.writeText(link);
+            alert('✅ Invite link copied! Share with your friends.');
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+            
+            const messagesDiv = document.getElementById('chatMessages');
+            const newMessage = document.createElement('div');
+            newMessage.className = 'chat-message';
+            newMessage.innerHTML = `<strong>You</strong><br>${escapeHtml(message)}<br><small>Just now</small>`;
+            messagesDiv.appendChild(newMessage);
+            input.value = '';
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            
+            alert("Message sent! (Demo mode)");
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+    <script src="js/auth-guard.js"></script>`n</body>
+</html>

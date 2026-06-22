@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Campus Central — Friend Search Posts | Reconnect with Batchmates</title>
+    <meta name="description" content="Browse friend search posts, share your own search, and reconnect with your campus community.">
+    <script src="js/config.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+        }
+
+        :root {
+            --primary: #0f4c5c;
+            --primary-dark: #0a3a46;
+            --secondary: #e67e22;
+            --accent: #ffb347;
+            --gold: #f4b942;
+            --light: #fef9e6;
+            --dark: #1e2a2e;
+            --gray-bg: #f8f9fc;
+            --success: #2ecc71;
+            --coffee: #6f4e2e;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--gray-bg) 0%, #f0f4f8 100%);
+            color: var(--dark);
+            line-height: 1.5;
+        }
+                header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 0.8rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .logo { display: flex; flex-direction: column; flex-shrink: 0; }
+        .logo-main { font-size: 1.4rem; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+        .logo-main i { color: var(--gold); font-size: 1.4rem; }
+        .brand-parent { font-size: 0.55rem; opacity: 0.8; letter-spacing: 1px; }
+        nav { flex: 1; text-align: center; }
+        nav ul { display: flex; list-style: none; gap: 0.4rem; flex-wrap: wrap; justify-content: center; }
+        nav a { color: white; text-decoration: none; font-weight: 500; padding: 0.3rem 0.5rem; border-radius: 8px; font-size: 0.75rem; transition: 0.2s; cursor: pointer; }
+        nav a:hover { background-color: rgba(255,255,255,0.15); color: var(--accent); }
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-content { display: none; position: absolute; background: white; min-width: 170px; box-shadow: 0 8px 16px rgba(0,0,0,0.2); border-radius: 12px; z-index: 1; }
+        .dropdown-content a { color: var(--primary); padding: 6px 10px; text-decoration: none; display: block; font-size: 0.7rem; text-align: left; }
+        .dropdown-content a:hover { background-color: #f1f1f1; }
+        .dropdown:hover .dropdown-content { display: block; }
+        .header-buttons { display: flex; gap: 0.5rem; flex-shrink: 0; }
+        .btn-primary { background: var(--secondary); color: white; padding: 0.3rem 0.7rem; border-radius: 40px; font-weight: 600; border: none; cursor: pointer; font-size: 0.7rem; transition: all 0.2s; }
+        .btn-primary:hover { background: #d35400; transform: scale(1.02); }
+        .btn-outline { background: transparent; border: 2px solid white; color: white; padding: 0.3rem 0.7rem; border-radius: 40px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.7rem; }
+        .btn-outline:hover { background: white; color: var(--primary); transform: scale(1.02); }
+        .hidden { display: none; }
+                .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .sidebar { flex: 0 0 260px; }
+        .vertical-tab {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            width: 100%;
+            padding: 0.7rem 1rem;
+            margin-bottom: 0.8rem;
+            background: white;
+            border: none;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--primary);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .vertical-tab i { width: 24px; color: var(--secondary); font-size: 0.9rem; }
+        .vertical-tab.active { background: var(--secondary); color: white; box-shadow: 0 4px 12px rgba(230,126,34,0.3); }
+        .vertical-tab.active i { color: white; }
+        .vertical-tab:hover:not(.active) { background: var(--light); transform: translateX(3px); }
+
+        .slogan-sidebar-box {
+            background: #e8f4f8;
+            border-radius: 12px;
+            padding: 1rem 1rem;
+            margin-top: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .slogan-sidebar-box:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.2);
+        }
+        .slogan-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .slogan-text-sidebar {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            line-height: 1.4;
+            margin: 0.5rem 0;
+        }
+        .slogan-sub {
+            font-size: 0.65rem;
+            color: #5a6e7a;
+            margin-top: 0.5rem;
+            letter-spacing: 0.5px;
+        }
+        .slogan-sidebar-box i.fa-quote-left {
+            color: var(--gold);
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+                .main-content { flex: 1; min-width: 260px; }
+        .tab-panel { display: none; animation: fadeIn 0.3s ease; }
+        .tab-panel.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .panel-description {
+            background: var(--light);
+            padding: 0.8rem 1rem;
+            border-radius: 20px;
+            margin-bottom: 1.5rem;
+            font-size: 0.8rem;
+            color: #2c3e40;
+            border-left: 3px solid var(--secondary);
+        }
+        .posts-heading {
+            font-size: 1.4rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+        .info-text {
+            background: linear-gradient(135deg, #e8f4f8, #d4ece8);
+            padding: 1rem;
+            border-radius: 20px;
+            margin-bottom: 1.5rem;
+            font-size: 0.85rem;
+            color: #1a4c5c;
+            border-left: 4px solid var(--secondary);
+        }
+        .feed-list { display: flex; flex-direction: column; gap: 1.5rem; }
+        .post-card {
+            background: white;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+        }
+        .post-card:hover { transform: translateY(-5px); box-shadow: 0 25px 35px -12px rgba(0,0,0,0.2); }
+        .post-media { width: 100%; max-height: 280px; object-fit: cover; background: #f0f0f0; cursor: pointer; transition: transform 0.3s; }
+        .post-media:hover { transform: scale(1.02); }
+        .post-content { padding: 1.2rem; }
+        .post-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; flex-wrap: wrap; gap: 0.5rem; }
+        .post-author { font-weight: 700; color: var(--primary); font-size: 0.85rem; display: flex; align-items: center; gap: 6px; }
+        .badge {
+            font-size: 0.6rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 20px;
+            background: var(--light);
+            color: var(--primary-dark);
+        }
+        .badge.trending { background: var(--gold); color: var(--primary-dark); }
+        .badge.verified { background: #2ecc71; color: white; }
+        .badge.anonymous { background: #95a5a6; color: white; }
+        .post-meta { font-size: 0.7rem; color: #5a6e7a; }
+        .post-message { margin: 0.6rem 0; line-height: 1.5; font-size: 0.85rem; color: #2c3e40; }
+        .post-actions {
+            display: flex;
+            gap: 1rem;
+            padding-top: 0.6rem;
+            border-top: 1px solid #eee;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .action-btn {
+            background: none;
+            border: none;
+            color: #5a6e7a;
+            cursor: pointer;
+            font-size: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s;
+            padding: 0.3rem 0.6rem;
+            border-radius: 40px;
+        }
+        .action-btn:hover { background: var(--light); color: var(--secondary); transform: scale(1.02); }
+        .delete-btn { color: #e74c3c; }
+        .delete-btn:hover { background: #fee; color: #c0392b; }
+        .know-btn { color: var(--secondary); font-weight: 600; }
+        .comments-section {
+            margin-top: 0.8rem;
+            padding-left: 0.8rem;
+            border-left: 2px solid var(--gold);
+            display: none;
+        }
+        .comment {
+            background: var(--gray-bg);
+            padding: 0.5rem;
+            border-radius: 16px;
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+        }
+                .create-post-form, .search-card {
+            background: white;
+            border-radius: 24px;
+            padding: 1.2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+        .form-group { margin-bottom: 0.8rem; }
+        .form-group label { display: block; font-weight: 600; font-size: 0.75rem; margin-bottom: 0.2rem; color: var(--primary); }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 24px;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(230,126,34,0.1);
+        }
+        .photo-preview { margin-top: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .photo-preview img { width: 80px; height: 80px; object-fit: cover; border-radius: 16px; }
+        .privacy-options {
+            background: var(--light);
+            border-radius: 20px;
+            padding: 0.6rem;
+            margin: 0.5rem 0;
+        }
+        .privacy-option { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem; }
+        .privacy-option input { width: auto; }
+        .btn-primary-large {
+            background: var(--secondary);
+            color: white;
+            padding: 0.7rem;
+            border-radius: 40px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .btn-primary-large:hover { background: #d35400; transform: scale(1.02); }
+        .search-row { display: flex; gap: 0.8rem; flex-wrap: wrap; }
+        .search-input {
+            flex: 1;
+            padding: 0.6rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 40px;
+            font-size: 0.85rem;
+        }
+        .search-btn {
+            background: var(--secondary);
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .search-btn:hover { background: #d35400; transform: scale(1.02); }
+        .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+        .friend-card {
+            background: white;
+            border-radius: 20px;
+            padding: 1rem;
+            border-top: 3px solid var(--gold);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+        }
+        .friend-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+        .friend-card .connect-btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 40px;
+            padding: 0.4rem 1rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            margin-top: 0.6rem;
+            transition: all 0.2s;
+        }
+        .friend-card .connect-btn:hover { background: #d35400; transform: scale(1.02); }
+        .placeholder-card {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem;
+            text-align: center;
+            color: #7f8c8d;
+        }
+        .success-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+        .success-modal-content {
+            background: white;
+            border-radius: 32px;
+            padding: 1.5rem;
+            max-width: 350px;
+            width: 90%;
+            text-align: center;
+            animation: fadeIn 0.3s ease;
+        }
+        .success-modal-icon {
+            width: 60px;
+            height: 60px;
+            background: #2ecc71;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.8rem;
+            font-size: 2rem;
+            color: white;
+        }
+        footer {
+            background: var(--dark);
+            color: white;
+            padding: 2rem 2rem 1rem;
+            margin-top: 3rem;
+        }
+        .footer-content { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem; max-width: 1200px; margin: 0 auto; }
+        .footer-content h3 { font-size: 0.9rem; margin-bottom: 0.6rem; }
+        .footer-content ul li, .footer-content p { font-size: 0.7rem; list-style: none; }
+        .copyright { text-align: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.65rem; }
+        @media (max-width: 800px) { .container { flex-direction: column; } .sidebar { flex: auto; } .vertical-tab { display: inline-flex; width: auto; margin-right: 0.5rem; } }
+        @media (max-width: 900px) { nav ul { gap: 0.3rem; } nav a { font-size: 0.65rem; padding: 0.25rem 0.4rem; } .nav-container { flex-direction: column; } .header-buttons { justify-content: center; } }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="logo">
+                <div class="logo-main"><i class="fas fa-graduation-cap"></i><span>Campus Central</span></div>
+                <div class="brand-parent"><i class="fas fa-water"></i> A JetStream Initiative</div>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="teacher_group_creation_start.html">Thank Teacher</a></li>
+                    <li><a href="celebration_group_creation_start.html">Celebrate Together</a></li>
+                    <li><a href="find_groups.html">Find Groups</a></li>
+                    <li><a href="student_dashboard.html">My Groups</a></li>
+                    <li><a href="index.html">Success Stories</a></li>
+                    <li class="dropdown">
+                        <a href="#">✨ Explore All Features ▼</a>
+                        <div class="dropdown-content">
+                            <a href="find_my_friend.html">🔍 Find My Friend</a>
+                            <a href="avatar_studio.html">🎨 Avatar Studio</a>
+                            <a href="crush_quiz.html">💕 Crush Corner</a>
+                            <a href="family_business.html">🧵 Family Business</a>
+                            <a href="ants_startup.html">🐜 Startup Nest</a>
+                            <a href="keep_hive_buzzing.html">🍯 Keep the Hive</a>
+                            <a href="teen_space.html">👥 Teen Space</a>
+                            <a href="marriage_staffing.html">💒 Marriage Staffing</a>
+                        </div>
+                    </li>
+                </ul>
+            </nav>
+            <div class="header-buttons" id="authButtons">
+                <button class="btn-outline" onclick="window.location.href='login.html'">Login</button>
+                <button class="btn-primary" onclick="window.location.href='signup.html'">Sign Up →</button>
+            </div>
+            <div id="userMenu" class="hidden">
+                <span id="userName" style="margin-right: 0.8rem; font-size: 0.7rem;"></span>
+                <button class="btn-outline" onclick="logout()" style="font-size: 0.7rem; padding: 0.25rem 0.6rem;">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="sidebar">
+            <button class="vertical-tab active" data-tab="posts"><i class="fas fa-newspaper"></i> Friend Search Posts</button>
+            <button class="vertical-tab" data-tab="post"><i class="fas fa-pen-alt"></i> Post a Friend Search</button>
+            <button class="vertical-tab" data-tab="find"><i class="fas fa-search"></i> Find Friends</button>
+            <button class="vertical-tab" data-tab="connections"><i class="fas fa-users"></i> My Connections</button>
+
+            <div class="slogan-sidebar-box" id="rotatingSloganSidebar">
+                <div class="slogan-icon">
+                    <i class="fas fa-tree"></i>
+                </div>
+                <div class="slogan-text-sidebar" id="sloganTextSidebar">
+                    Where batchmates become friends again
+                </div>
+                <div class="slogan-sub">
+                    <i class="fas fa-quote-left"></i> campus central
+                </div>
+            </div>
+        </div>
+                <div class="main-content">
+            <div id="postsPanel" class="tab-panel active">
+                <div class="posts-heading">Friend Search Posts</div>
+                <div class="info-text">
+                    <i class="fas fa-info-circle"></i> <strong>What is this page?</strong><br>
+                    Here you will find posts from fellow students who are looking for lost friends, batchmates, or classmates. 
+                    Each post includes details like college, batch year, and a personal message. 
+                    You can like, comment, or share a post to help someone reconnect. 
+                    If you are searching for someone, use the <strong>"Post a Friend Search"</strong> tab to create your own post. 
+                    Together, we can rebuild lost connections.
+                </div>
+                <div id="feedList" class="feed-list"></div>
+            </div>
+
+            <div id="postPanel" class="tab-panel">
+                <div class="panel-description">
+                    <i class="fas fa-heart"></i> Share details about a friend you've lost touch with. Your post will be visible to the community, who may help you reconnect.
+                </div>
+                <div class="create-post-form">
+                    <div class="form-group">
+                        <label>🏫 College / School name *</label>
+                        <input type="text" id="postCollege" placeholder="e.g., RVCE, UBDTCE">
+                    </div>
+                    <div class="form-group">
+                        <label>📅 Batch / Passing year</label>
+                        <input type="text" id="postBatch" placeholder="e.g., 2007">
+                    </div>
+                    <div class="form-group">
+                        <label>💬 What are you looking for?</label>
+                        <textarea id="postMessage" rows="3" placeholder="Tell your story..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>📸 Add a photo (optional)</label>
+                        <input type="file" id="postPhoto" accept="image/*">
+                        <div id="postPhotoPreview" class="photo-preview"></div>
+                    </div>
+                    <div class="privacy-options">
+                        <label style="margin-bottom: 0.3rem; display: block;">🔐 Privacy level</label>
+                        <div class="privacy-option">
+                            <input type="radio" name="privacy" value="public" id="postPrivacyPublic" checked> <label for="postPrivacyPublic">🌍 Public – visible to everyone</label>
+                        </div>
+                        <div class="privacy-option">
+                            <input type="radio" name="privacy" value="verified" id="postPrivacyVerified"> <label for="postPrivacyVerified">✅ Verified only – only college-verified users see full post</label>
+                        </div>
+                        <div class="privacy-option">
+                            <input type="radio" name="privacy" value="private" id="postPrivacyPrivate"> <label for="postPrivacyPrivate">🔒 Private – only after mutual connection request approved</label>
+                        </div>
+                    </div>
+                    <div style="margin: 0.5rem 0;">
+                        <input type="checkbox" id="postAnonymous"> <label for="postAnonymous">🎭 Post anonymously (hide my name)</label>
+                    </div>
+                    <button class="btn-primary-large" id="submitPostBtn">Publish →</button>
+                    <div id="postFeedback" style="margin-top:0.5rem;"></div>
+                </div>
+            </div>
+
+            <div id="findPanel" class="tab-panel">
+                <div class="panel-description">
+                    <i class="fas fa-search"></i> Search for other registered students by name, college, or batch. Send connection requests to people who might know your lost friend.
+                </div>
+                <div class="search-card">
+                    <div class="search-row">
+                        <input type="text" id="friendName" class="search-input" placeholder="Friend's name (optional)">
+                        <input type="text" id="friendCollege" class="search-input" placeholder="College name">
+                        <input type="text" id="friendBatch" class="search-input" placeholder="Batch year">
+                        <button class="search-btn" id="searchFriendsBtn"><i class="fas fa-search"></i> Search</button>
+                    </div>
+                </div>
+                <div id="searchResults" class="results-grid"></div>
+            </div>
+
+            <div id="connectionsPanel" class="tab-panel">
+                <div class="panel-description">
+                    <i class="fas fa-users"></i> View pending connection requests and your accepted connections.
+                </div>
+                <h3 style="font-size:1rem; margin:1rem 0 0.5rem;">Incoming Requests</h3>
+                <div id="incomingRequestsList" class="results-grid"></div>
+                <h3 style="font-size:1rem; margin:1rem 0 0.5rem;">Your Connections</h3>
+                <div id="acceptedConnectionsList" class="results-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="successModal" class="success-modal">
+        <div class="success-modal-content">
+            <div class="success-modal-icon"><i class="fas fa-check-circle"></i></div>
+            <h3>✨ Post Published!</h3>
+            <p>Your friend search is now in Friend Search Posts.</p>
+            <button class="btn-primary" onclick="closeSuccessModal()" style="margin-top:1rem;">Continue</button>
+        </div>
+    </div>
+        <footer>
+        <div class="footer-content">
+            <div>
+                <h3>Campus Central</h3>
+                <p>A JetStream Initiative — Bring people together.</p>
+                <a class="coffee-button" style="margin-top:0.5rem; display:inline-flex; background-color: var(--coffee); color: white; padding: 0.3rem 0.8rem; border-radius: 30px; text-decoration: none; font-size: 0.7rem;" onclick="alert('Thank you for your support! ❤️ UPI: campuscentral@okhdfcbank')">
+                    <i class="fas fa-coffee"></i> Support Our Mission
+                </a>
+            </div>
+            <div>
+                <h3>Tools</h3>
+                <ul>
+                    <li>Thank Teacher</li>
+                    <li>Celebrate Together</li>
+                    <li>Find Groups</li>
+                    <li>My Groups</li>
+                    <li><a href="batchmate_finder.html" style="color:white; text-decoration:none;">Batchmate Finder</a></li>
+                    <li><a href="avatar_studio.html" style="color:white; text-decoration:none;">Avatar Studio</a></li>
+                    <li><a href="crush_quiz.html" style="color:white; text-decoration:none;">Crush Corner</a></li>
+                    <li><a href="family_business.html" style="color:white; text-decoration:none;">Family Business</a></li>
+                    <li><a href="ants_startup.html" style="color:white; text-decoration:none;">Startup Nest</a></li>
+                    <li><a href="keep_hive_buzzing.html" style="color:white; text-decoration:none;">Keep the Hive</a></li>
+                    <li><a href="teen_space.html" style="color:white; text-decoration:none;">Teen Space</a></li>
+                    <li><a href="marriage_staffing.html" style="color:white; text-decoration:none;">Marriage Staffing</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3>Coming Soon</h3>
+                <ul>
+                    <li>Campus Legend</li>
+                    <li>Batchmates</li>
+                    <li>Fest Hunter</li>
+                    <li>Hostel Hero</li>
+                    <li>Project Partner</li>
+                    <li>Campus Gully</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Legal</h3>
+                <ul>
+                    <li><a onclick="showLegalPage('disclaimer')" style="color: white; text-decoration: none; cursor: pointer;">Disclaimer</a></li>
+                    <li><a onclick="showLegalPage('privacy')" style="color: white; text-decoration: none; cursor: pointer;">Privacy Policy</a></li>
+                    <li><a onclick="showLegalPage('terms')" style="color: white; text-decoration: none; cursor: pointer;">Terms of Service</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3>Contact</h3>
+                <ul>
+                    <li>hello@campuscentral.in</li>
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>© 2026 Campus Central — A JetStream Initiative. For students across Karnataka.</p>
+            <p style="font-size:0.65rem;">⚠️ Platform fee only. Actual gift money collected offline among friends.</p>
+        </div>
+    </footer>
+
+    <script src="js/config.js"></script>
+    <script>
+        // ========== AUTHENTICATION GUARD ==========
+        const authToken = localStorage.getItem('authToken') || localStorage.getItem('token');
+        const userData = localStorage.getItem('currentUser') || localStorage.getItem('user');
+        const currentPath = window.location.pathname;
+
+        if (!authToken || !userData) {
+            localStorage.setItem('redirectAfterLogin', currentPath);
+            window.location.href = `login.html?redirect=${encodeURIComponent(currentPath)}`;
+            throw new Error('Not authenticated');
+        }
+
+        function showLegalPage(type) {
+            const texts = {
+                disclaimer: '⚠️ Campus Central is a facilitation platform only. Platform fee keeps the service running. Actual gift money is collected offline among friends.',
+                privacy: '🔒 We collect your name, email, phone number, and college information for coordination. We do not sell your data.',
+                terms: '📜 By using Campus Central, you agree to be 18 years or older and use the platform responsibly.'
+            };
+            alert(texts[type]);
+        }
+
+        function logout() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('token');
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('user');
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = 'index.html';
+        }
+
+        function updateHeaderUI() {
+            const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+            const userData = localStorage.getItem('currentUser') || localStorage.getItem('user');
+            const authDiv = document.getElementById('authButtons');
+            const userMenu = document.getElementById('userMenu');
+            const userNameSpan = document.getElementById('userName');
+            if (token && userData) {
+                try {
+                    const user = JSON.parse(userData);
+                    if (authDiv) authDiv.classList.add('hidden');
+                    if (userMenu) userMenu.classList.remove('hidden');
+                    if (userNameSpan) userNameSpan.innerText = user.full_name || (user.email ? user.email.split('@')[0] : 'User');
+                } catch(e) { console.error(e); }
+            } else {
+                if (authDiv) authDiv.classList.remove('hidden');
+                if (userMenu) userMenu.classList.add('hidden');
+            }
+        }
+        updateHeaderUI();
+
+        const API_BASE = window.ACTIVE_CONFIG ? window.ACTIVE_CONFIG.API_BASE_URL : 'http://localhost:8000/api';
+        let currentUser = null;
+        
+        function loadCurrentUser() {
+            const userData = localStorage.getItem('currentUser') || localStorage.getItem('user');
+            if (userData) {
+                try { currentUser = JSON.parse(userData); } catch(e) {}
+            }
+        }
+        loadCurrentUser();
+
+        async function fetchWithAuth(url, options = {}) {
+            const headers = { ...options.headers };
+            if (options.body instanceof FormData) {
+                delete headers['Content-Type'];
+            } else {
+                headers['Content-Type'] = 'application/json';
+            }
+            const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+            const res = await fetch(url, { ...options, headers });
+            if (res.status === 401) {
+                logout();
+                throw new Error('Session expired');
+            }
+            return res;
+        }
+
+        function showSuccessModal() {
+            document.getElementById('successModal').style.display = 'flex';
+        }
+        window.closeSuccessModal = function() {
+            document.getElementById('successModal').style.display = 'none';
+        };
+
+        // Tab switching
+        const vertTabs = document.querySelectorAll('.vertical-tab');
+        const panels = {
+            posts: document.getElementById('postsPanel'),
+            post: document.getElementById('postPanel'),
+            find: document.getElementById('findPanel'),
+            connections: document.getElementById('connectionsPanel')
+        };
+        vertTabs.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.dataset.tab;
+                vertTabs.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                Object.values(panels).forEach(panel => panel.classList.remove('active'));
+                panels[tabId].classList.add('active');
+                if (tabId === 'posts') renderFeed();
+                if (tabId === 'connections') {
+                    loadIncomingRequests();
+                    loadAcceptedConnections();
+                }
+            });
+        });
+        
+        let allPosts = [];
+        
+        // ============================================================
+        // ⭐ CRITICAL CHANGE: Use DEDICATED Friend Search endpoint
+        // ============================================================
+        async function renderFeed() {
+            const container = document.getElementById('feedList');
+            if (!container) return;
+            try {
+                // ✅ USE DEDICATED FRIEND SEARCH ENDPOINT
+                const res = await fetchWithAuth(`${API_BASE}/friend-search/posts`);
+                allPosts = await res.json();
+                if (!allPosts.length) {
+                    container.innerHTML = '<div class="placeholder-card">📭 No friend search posts yet. Be the first to post a search!</div>';
+                    return;
+                }
+                container.innerHTML = allPosts.map(post => {
+                    const isAuthor = currentUser && (post.user_id === currentUser.id);
+                    const authorName = post.anonymous ? "Anonymous 🎭" : (post.user_name || "Someone");
+                    const isTrending = (post.likes_count || 0) + (post.comments?.length || 0) > 8;
+                    const privacyBadge = post.privacy === 'verified' ? '<span class="badge verified">✅ Verified only</span>' : (post.privacy === 'private' ? '<span class="badge">🔒 Private</span>' : '');
+                    return `
+                        <div class="post-card" data-id="${post.id}">
+                            ${post.photo ? `<img class="post-media" src="${post.photo}" alt="post image" onclick="window.open('${post.photo}','_blank')">` : '<div class="post-media" style="height:140px; background:var(--light); display:flex; align-items:center; justify-content:center;"><i class="fas fa-user-friends" style="font-size:2.5rem; color:#ccc;"></i></div>'}
+                            <div class="post-content">
+                                <div class="post-header">
+                                    <div class="post-author"><i class="fas fa-user-circle"></i> ${escapeHtml(authorName)}</div>
+                                    <div style="display:flex; gap:0.3rem; flex-wrap:wrap;">
+                                        ${post.anonymous ? '<span class="badge anonymous">🎭 Anonymous</span>' : ''}
+                                        ${privacyBadge}
+                                        ${isTrending ? '<span class="badge trending"><i class="fas fa-fire"></i> Trending</span>' : ''}
+                                    </div>
+                                </div>
+                                <div class="post-meta">📅 ${post.batch || 'any'} | 🏫 ${escapeHtml(post.college)}</div>
+                                <div class="post-message">${escapeHtml(post.message)}</div>
+                                <div class="post-actions">
+                                    <button class="action-btn like-btn" data-id="${post.id}"><i class="fa-regular fa-heart"></i> ${post.likes_count || 0}</button>
+                                    <button class="action-btn comment-toggle" data-id="${post.id}"><i class="fa-regular fa-comment"></i> ${post.comments ? post.comments.length : 0}</button>
+                                    <button class="action-btn share-btn" data-id="${post.id}"><i class="fa-solid fa-share"></i> Share</button>
+                                    <button class="action-btn know-btn" data-id="${post.id}"><i class="fas fa-tree"></i> I know them</button>
+                                    ${isAuthor ? `<button class="action-btn delete-btn" data-id="${post.id}"><i class="fa-solid fa-trash"></i> Delete</button>` : ''}
+                                </div>
+                                <div class="comments-section" id="comments-${post.id}">
+                                    ${post.comments ? post.comments.map(c => `<div class="comment"><strong>${escapeHtml(c.user_name)}</strong>: ${escapeHtml(c.text)}</div>`).join('') : ''}
+                                    <div style="margin-top:8px;"><input type="text" placeholder="Add a comment..." class="comment-input" data-id="${post.id}" style="width:70%; padding:0.4rem; border-radius:40px;"><button class="add-comment-btn" data-id="${post.id}" style="margin-left:0.5rem; background:var(--secondary); border:none; border-radius:40px; padding:0.4rem 1rem; color:white; cursor:pointer;">Post</button></div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                attachFeedEvents();
+            } catch(e) {
+                console.error(e);
+                container.innerHTML = '<div class="placeholder-card">❌ Error loading posts. Please try again.</div>';
+            }
+        }
+
+        function attachFeedEvents() {
+            document.querySelectorAll('.like-btn').forEach(btn => {
+                btn.onclick = async () => {
+                    if (!currentUser) { alert('Please login first'); return; }
+                    const postId = btn.dataset.id;
+                    try {
+                        await fetchWithAuth(`${API_BASE}/social/posts/${postId}/like`, { method: 'POST' });
+                        renderFeed();
+                    } catch(e) { alert('Failed to like'); }
+                };
+            });
+            document.querySelectorAll('.comment-toggle').forEach(btn => {
+                btn.onclick = () => {
+                    const sec = document.getElementById(`comments-${btn.dataset.id}`);
+                    if (sec) sec.style.display = sec.style.display === 'block' ? 'none' : 'block';
+                };
+            });
+            document.querySelectorAll('.add-comment-btn').forEach(btn => {
+                btn.onclick = async () => {
+                    if (!currentUser) { alert('Please login first'); return; }
+                    const postId = btn.dataset.id;
+                    const input = document.querySelector(`.comment-input[data-id="${postId}"]`);
+                    if (!input.value.trim()) return;
+                    try {
+                        await fetchWithAuth(`${API_BASE}/social/posts/${postId}/comment`, { method: 'POST', body: JSON.stringify({ text: input.value.trim() }) });
+                        renderFeed();
+                    } catch(e) { alert('Failed to comment'); }
+                };
+            });
+            document.querySelectorAll('.share-btn').forEach(btn => {
+                btn.onclick = () => { navigator.clipboard.writeText(window.location.href); alert("📎 Link copied!"); };
+            });
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.onclick = async () => {
+                    if (!currentUser) return;
+                    if (!confirm('Delete this post?')) return;
+                    const postId = btn.dataset.id;
+                    try {
+                        await fetchWithAuth(`${API_BASE}/social/posts/${postId}`, { method: 'DELETE' });
+                        renderFeed();
+                    } catch(e) { alert('Failed to delete'); }
+                };
+            });
+            document.querySelectorAll('.know-btn').forEach(btn => {
+                btn.onclick = async () => {
+                    if (!currentUser) { alert('Please login first'); return; }
+                    const postId = btn.dataset.id;
+                    const post = allPosts.find(p => p.id == postId);
+                    if (!post) { alert('Post not found'); return; }
+                    const targetUserId = post.user_id;
+                    if (targetUserId === currentUser.id) { alert('You cannot send a request to yourself'); return; }
+                    try {
+                        const res = await fetchWithAuth(`${API_BASE}/connections/request`, {
+                            method: 'POST',
+                            body: JSON.stringify({ to_user_id: targetUserId, post_id: postId })
+                        });
+                        const data = await res.json();
+                        if (res.ok) alert('✅ Connection request sent! The author will be notified.');
+                        else alert(data.detail || 'Failed to send request');
+                    } catch(e) { alert('Error sending request'); }
+                };
+            });
+        }
+        
+        let currentPostPhoto = null;
+        document.getElementById('postPhoto')?.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                currentPostPhoto = file;
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    document.getElementById('postPhotoPreview').innerHTML = `<img src="${ev.target.result}">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('submitPostBtn')?.addEventListener('click', async () => {
+            if (!currentUser) { alert('Please login first'); window.location.href = 'login.html'; return; }
+            const college = document.getElementById('postCollege').value.trim();
+            if (!college) { alert('College name required'); return; }
+            const formData = new FormData();
+            formData.append('college', college);
+            formData.append('batch', document.getElementById('postBatch').value.trim());
+            formData.append('message', document.getElementById('postMessage').value.trim());
+            formData.append('privacy', document.querySelector('input[name="privacy"]:checked').value);
+            formData.append('anonymous', document.getElementById('postAnonymous').checked);
+            if (currentPostPhoto) formData.append('photo', currentPostPhoto);
+            try {
+                // ✅ USE DEDICATED FRIEND SEARCH ENDPOINT FOR CREATION
+                const res = await fetchWithAuth(`${API_BASE}/friend-search/posts`, { method: 'POST', body: formData });
+                if (res.ok) {
+                    document.getElementById('postCollege').value = '';
+                    document.getElementById('postBatch').value = '';
+                    document.getElementById('postMessage').value = '';
+                    document.getElementById('postPhotoPreview').innerHTML = '';
+                    currentPostPhoto = null;
+                    document.getElementById('postPrivacyPublic').checked = true;
+                    document.getElementById('postAnonymous').checked = false;
+                    showSuccessModal();
+                    renderFeed();
+                    const postsTab = document.querySelector('.vertical-tab[data-tab="posts"]');
+                    if (postsTab) postsTab.click();
+                } else { alert('Failed to publish'); }
+            } catch(e) { alert('Error'); }
+        });
+
+        async function searchFriends() {
+            const name = document.getElementById('friendName').value.trim();
+            const college = document.getElementById('friendCollege').value.trim();
+            const batch = document.getElementById('friendBatch').value.trim();
+            const resultsDiv = document.getElementById('searchResults');
+            resultsDiv.innerHTML = '<div style="text-align:center; padding:1rem;">🔍 Searching...</div>';
+            try {
+                const params = new URLSearchParams();
+                if (name) params.append('name', name);
+                if (college) params.append('college', college);
+                if (batch) params.append('batch', batch);
+                const url = `${API_BASE}/users/search?${params.toString()}`;
+                const res = await fetchWithAuth(url);
+                if (!res.ok) throw new Error('Search failed');
+                const users = await res.json();
+                if (!users.length) {
+                    resultsDiv.innerHTML = '<div class="placeholder-card">😔 No users found. Try different keywords.</div>';
+                    return;
+                }
+                resultsDiv.innerHTML = users.map(user => `
+                    <div class="friend-card">
+                        <div class="post-author"><i class="fas fa-user-circle"></i> ${escapeHtml(user.full_name)}</div>
+                        <div class="post-meta">🏫 ${escapeHtml(user.college || 'Not specified')} | 📅 ${escapeHtml(user.batch || '?')}</div>
+                        <button class="connect-btn" data-user-id="${user.id}">Connect</button>
+                    </div>
+                `).join('');
+                document.querySelectorAll('.connect-btn').forEach(btn => {
+                    btn.onclick = async () => {
+                        if (!currentUser) { alert('Please login first'); return; }
+                        const targetUserId = btn.dataset.userId;
+                        if (targetUserId == currentUser.id) { alert('Cannot connect to yourself'); return; }
+                        try {
+                            const res = await fetchWithAuth(`${API_BASE}/connections/request`, {
+                                method: 'POST',
+                                body: JSON.stringify({ to_user_id: targetUserId })
+                            });
+                            if (res.ok) alert('Connection request sent!');
+                            else alert('Failed to send request');
+                        } catch(e) { alert('Error'); }
+                    };
+                });
+            } catch(e) {
+                console.error(e);
+                resultsDiv.innerHTML = '<div class="placeholder-card">❌ Error loading results. Please try again.</div>';
+            }
+        }
+        document.getElementById('searchFriendsBtn')?.addEventListener('click', searchFriends);
+
+        async function loadIncomingRequests() {
+            const container = document.getElementById('incomingRequestsList');
+            if (!container) return;
+            try {
+                const res = await fetchWithAuth(`${API_BASE}/connections/incoming`);
+                const requests = await res.json();
+                if (!requests.length) { container.innerHTML = '<p>No pending requests.</p>'; return; }
+                container.innerHTML = requests.map(req => `
+                    <div class="friend-card" data-req-id="${req.id}">
+                        <div class="post-author"><i class="fas fa-user"></i> ${escapeHtml(req.from_user_name)}</div>
+                        <div style="margin-top:0.5rem;">
+                            <button class="accept-req-btn" data-req-id="${req.id}" style="background:var(--secondary); border:none; border-radius:40px; padding:0.3rem 1rem; color:white; cursor:pointer;">Accept</button>
+                            <button class="reject-req-btn" data-req-id="${req.id}" style="background:#95a5a6; border:none; border-radius:40px; padding:0.3rem 1rem; color:white; cursor:pointer; margin-left:0.5rem;">Reject</button>
+                        </div>
+                    </div>
+                `).join('');
+                document.querySelectorAll('.accept-req-btn').forEach(btn => {
+                    btn.onclick = async () => {
+                        const reqId = btn.dataset.reqId;
+                        await fetchWithAuth(`${API_BASE}/connections/respond/${reqId}`, { method: 'POST', body: JSON.stringify({ accept: true }) });
+                        loadIncomingRequests();
+                        loadAcceptedConnections();
+                    };
+                });
+                document.querySelectorAll('.reject-req-btn').forEach(btn => {
+                    btn.onclick = async () => {
+                        const reqId = btn.dataset.reqId;
+                        await fetchWithAuth(`${API_BASE}/connections/respond/${reqId}`, { method: 'POST', body: JSON.stringify({ accept: false }) });
+                        loadIncomingRequests();
+                    };
+                });
+            } catch(e) { console.error(e); container.innerHTML = '<p>Error loading requests.</p>'; }
+        }
+
+        async function loadAcceptedConnections() {
+            const container = document.getElementById('acceptedConnectionsList');
+            if (!container) return;
+            try {
+                const res = await fetchWithAuth(`${API_BASE}/connections/accepted`);
+                const connections = await res.json();
+                if (!connections.length) { container.innerHTML = '<p>No connections yet. Accept requests to see contacts here.</p>'; return; }
+                container.innerHTML = connections.map(conn => `
+                    <div class="friend-card">
+                        <div class="post-author"><i class="fas fa-user"></i> ${escapeHtml(conn.full_name)}</div>
+                        <div class="post-meta">🏫 ${escapeHtml(conn.college || 'Not specified')}</div>
+                        <div><strong>📞 Contact:</strong> ${escapeHtml(conn.contact)}</div>
+                    </div>
+                `).join('');
+            } catch(e) { console.error(e); container.innerHTML = '<p>Error loading connections.</p>'; }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
+        }
+
+        // Rotating slogans for sidebar box
+        const sidebarSlogans = [
+            "✨ Where batchmates become friends again",
+            "🎓 Your campus. Your community.",
+            "🤝 Real connections. Real help.",
+            "💫 Built by students, for students",
+            "🌟 Reconnect with your lost friends",
+            "💖 Every search brings someone closer"
+        ];
+        let sloganIndexSidebar = 0;
+        const sloganSpanSidebar = document.getElementById("sloganTextSidebar");
+        
+        function rotateSidebarSlogan() {
+            sloganIndexSidebar = (sloganIndexSidebar + 1) % sidebarSlogans.length;
+            const box = document.getElementById("rotatingSloganSidebar");
+            if (!box) return;
+            box.style.opacity = "0";
+            setTimeout(() => {
+                if (sloganSpanSidebar) {
+                    sloganSpanSidebar.textContent = sidebarSlogans[sloganIndexSidebar];
+                }
+                box.style.opacity = "1";
+            }, 300);
+        }
+        
+        setInterval(rotateSidebarSlogan, 5000);
+
+        // ========== INITIAL LOAD ==========
+        renderFeed();
+    </script>
+</body>
+</html>

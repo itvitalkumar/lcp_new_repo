@@ -1,0 +1,180 @@
+# ============================================================
+# Campus Central – Complete Git Ignore
+# ============================================================
+
+# ============================================================
+# IGNORE ENTIRE FOLDERS
+# ============================================================
+utilities/
+tests/
+redone/
+venv/
+env/
+.venv/
+CampusCentralApp/
+uploads/
+frontend/backup/
+frontend/bcp/
+frontend/other_variants/
+frontend/lucky_game_important/
+frontend/test-results/
+frontend/components/
+backend/__pycache__/
+__pycache__/
+
+# ============================================================
+# PYTHON
+# ============================================================
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.db
+*.sqlite
+*.sqlite3
+*.log
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+*.pyi
+*.egg-info/
+dist/
+build/
+*.egg
+
+# ============================================================
+# ENVIRONMENT VARIABLES
+# ============================================================
+.env
+.env.local
+.env.*.local
+.env.example  # ← If you don't want to track example either
+
+# ============================================================
+# NODE / NPM
+# ============================================================
+node_modules/
+**/node_modules/
+**/node_modules/**/*
+package-lock.json
+**/package-lock.json
+backend/package-lock.json
+backend/package.json
+tests/package-lock.json
+tests/package.json
+
+# ============================================================
+# FRONTEND ARTIFACTS
+# ============================================================
+frontend/backup/
+frontend/bcp/
+frontend/other_variants/
+frontend/lucky_game_important/
+frontend/test-results/
+frontend/components/
+frontend/*.backup
+frontend/login.html.backup
+frontend/*.backup.*
+frontend/*.orig
+
+# ============================================================
+# TEST FILES - COMPLETE IGNORE
+# ============================================================
+tests/
+*.spec.js
+*.spec.py
+*.test.js
+*.test.py
+playwright-report/
+test-results/
+*.report.html
+*.spec.backup
+*.backup
+
+# ============================================================
+# EXCEL / OFFICE TEMP FILES
+# ============================================================
+*.xlsx
+*.xls
+*.xlsm
+*.xlsb
+*.xlw
+~$*
+*.tmp
+*.swp
+*.swo
+*.bak
+
+# ============================================================
+# BACKUP FILES
+# ============================================================
+*.backup
+*.before_fix
+*.orig
+*.back
+*.old
+*.save
+
+# ============================================================
+# IDE / EDITOR
+# ============================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+Desktop.ini
+Thumbs.db
+.vs/
+.ionide/
+
+# ============================================================
+# OS FILES
+# ============================================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ============================================================
+# AZURE / DEPLOYMENT
+# ============================================================
+*.deploy
+*.publishsettings
+azure-*.json
+*.deploy.*
+*.deploy.yaml
+
+# ============================================================
+# MISCELLANEOUS
+# ============================================================
+*.html.backup
+load_test.py
+git_workflow_guide.html
+mobile_app_workflow_guide.html
+pre_deploy_report.html
+staging_inventory.txt
+*.personal.*
+*.notes.*
+todo.*.txt
+*.txt
+
+# ============================================================
+# SECURITY
+# ============================================================
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.truststore
+*.secret

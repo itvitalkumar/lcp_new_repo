@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Campus Central - Student Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Master Configuration -->
+    <script src="js/config.js"></script>
+    
+    <style>
+        /* ========== INDEX.HTML DESIGN SYSTEM ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+        }
+
+        :root {
+            --primary: #0f4c5c;
+            --primary-dark: #0a3a46;
+            --secondary: #e67e22;
+            --accent: #ffb347;
+            --gold: #f4b942;
+            --light: #fef9e6;
+            --dark: #1e2a2e;
+            --gray-bg: #f8f9fc;
+            --success: #2ecc71;
+            --coffee: #6f4e2e;
+        }
+
+        body {
+            background-color: var(--gray-bg);
+            color: var(--dark);
+            line-height: 1.5;
+        }
+
+        /* Header (identical to index.html) */
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 0.8rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .logo {
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .logo-main {
+            font-size: 1.4rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-main i {
+            color: var(--gold);
+            font-size: 1.4rem;
+        }
+
+        .brand-parent {
+            font-size: 0.55rem;
+            opacity: 0.8;
+            letter-spacing: 1px;
+        }
+
+        nav {
+            flex: 1;
+            text-align: center;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.3rem 0.5rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            transition: 0.2s;
+            cursor: pointer;
+        }
+
+        nav a:hover {
+            background-color: rgba(255,255,255,0.15);
+            color: var(--accent);
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: white;
+            min-width: 170px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 12px;
+            top: 100%;
+            left: 0;
+        }
+
+        .dropdown-content a {
+            color: var(--primary);
+            padding: 6px 10px;
+            text-decoration: none;
+            display: block;
+            font-size: 0.7rem;
+            text-align: left;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .btn-primary {
+            background-color: var(--secondary);
+            color: white;
+            padding: 0.3rem 0.7rem;
+            border-radius: 40px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid white;
+            color: white;
+            padding: 0.3rem 0.7rem;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.7rem;
+        }
+
+        .btn-outline:hover {
+            background: white;
+            color: var(--primary);
+        }
+
+        .hidden { display: none; }
+
+        /* Dashboard wrapper */
+        .dashboard-wrapper {
+            display: flex;
+            gap: 1.5rem;
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+            flex-wrap: wrap;
+        }
+                .main-content {
+            flex: 2;
+            min-width: 250px;
+        }
+
+        .right-sidebar {
+            flex: 0.9;
+            min-width: 280px;
+            background: white;
+            border-radius: 24px;
+            padding: 1.2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            height: fit-content;
+            position: sticky;
+            top: 1rem;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .dashboard-header h1 {
+            color: var(--primary);
+            font-size: 1.6rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .create-group-btn {
+            background-color: var(--secondary);
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: 0.2s;
+        }
+
+        .create-group-btn:hover {
+            background: #d35400;
+            transform: translateY(-2px);
+        }
+
+        /* Stats cards */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 24px;
+            padding: 1rem;
+            text-align: center;
+            border-top: 3px solid var(--gold);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .search-input {
+            width: 100%;
+            max-width: 300px;
+            padding: 0.6rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 40px;
+            margin-bottom: 1rem;
+            transition: 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 2px rgba(230,126,34,0.1);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            border-radius: 40px;
+            transition: 0.2s;
+        }
+
+        .tab-btn.active {
+            color: var(--secondary);
+            background: rgba(230,126,34,0.1);
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: #eef2f3;
+        }
+
+        /* Group cards (matching index.html) */
+        .group-card {
+            background: white;
+            border-radius: 24px;
+            padding: 1.2rem;
+            margin-bottom: 1rem;
+            border-top: 3px solid var(--gold);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+        }
+
+        .group-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+        }
+
+        .group-card.highlight {
+            border-left: 3px solid #2ecc71;
+            background: #f0fff4;
+            box-shadow: 0 4px 12px rgba(46,204,113,0.2);
+        }
+
+        .group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 0.5rem;
+        }
+
+        .group-title h3 {
+            font-size: 1rem;
+            color: var(--primary);
+        }
+
+        .organizer-badge {
+            background: var(--gold);
+            padding: 0.2rem 0.6rem;
+            border-radius: 40px;
+            font-size: 0.6rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-left: 0.5rem;
+        }
+
+        .status-badge {
+            padding: 0.2rem 0.7rem;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .group-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            font-size: 0.75rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .group-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.8rem;
+            padding-top: 0.8rem;
+            border-top: 1px solid #eee;
+        }
+
+        .action-btn {
+            padding: 0.3rem 0.8rem;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .action-primary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .action-primary:hover {
+            background: #d35400;
+            transform: translateY(-2px);
+        }
+
+        .action-secondary {
+            background: #eef2f3;
+            color: var(--primary);
+        }
+
+        .action-secondary:hover {
+            background: #e0e5e7;
+        }
+                /* Chat styles */
+        .chat-section {
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .chat-section.open {
+            display: block;
+        }
+
+        .chat-messages {
+            max-height: 200px;
+            overflow-y: auto;
+            background: var(--gray-bg);
+            border-radius: 20px;
+            padding: 0.8rem;
+            font-size: 0.8rem;
+        }
+
+        .chat-message {
+            background: white;
+            padding: 0.5rem;
+            border-radius: 16px;
+            margin-bottom: 0.5rem;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .chat-message img {
+            max-width: 150px;
+            border-radius: 12px;
+            margin-top: 0.3rem;
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.8rem;
+            align-items: center;
+        }
+
+        .chat-input-area input {
+            flex: 1;
+            padding: 0.6rem 1rem;
+            border-radius: 40px;
+            border: 1px solid #ddd;
+            font-size: 0.8rem;
+        }
+
+        .emoji-btn, .image-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.3rem;
+        }
+
+        .send-btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 40px;
+            cursor: pointer;
+        }
+
+        .image-preview {
+            position: relative;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+
+        .image-preview img {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+        }
+
+        .remove-image {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: red;
+            color: white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            font-size: 0.6rem;
+            cursor: pointer;
+        }
+
+        .emoji-picker {
+            display: none;
+            position: absolute;
+            background: white;
+            border-radius: 20px;
+            padding: 0.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            z-index: 100;
+        }
+
+        .emoji-picker span {
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.2rem;
+        }
+
+        /* Invite Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 32px;
+            padding: 1.5rem;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .invite-link-box {
+            background: #f0f2f5;
+            border-radius: 40px;
+            padding: 0.5rem;
+            margin: 1rem 0;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .invite-link-box input {
+            flex: 1;
+            background: none;
+            border: none;
+            font-size: 0.8rem;
+        }
+
+        .copy-btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 0.3rem 0.8rem;
+            border-radius: 40px;
+            cursor: pointer;
+        }
+
+        .whatsapp-share {
+            background: #25D366;
+            color: white;
+            border: none;
+            padding: 0.6rem;
+            border-radius: 40px;
+            width: 100%;
+            margin: 0.5rem 0;
+            cursor: pointer;
+        }
+
+        .sidebar-section {
+            background: var(--gray-bg);
+            border-radius: 20px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .sidebar-title {
+            font-size: 0.9rem;
+            color: var(--primary);
+            margin-bottom: 0.8rem;
+            border-bottom: 2px solid var(--gold);
+            padding-bottom: 0.3rem;
+        }
+
+        .leaderboard-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            padding: 0.3rem 0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: 20px;
+            color: #999;
+        }
+
+        .event-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.75rem;
+            padding: 0.3rem 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .event-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--dark);
+            color: white;
+            padding: 2rem 2rem 1rem;
+            margin-top: 3rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-content h3 {
+            font-size: 1rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-content ul li, .footer-content p {
+            font-size: 0.75rem;
+            list-style: none;
+        }
+
+        .copyright {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.7rem;
+        }
+
+        @media (max-width: 900px) {
+            nav ul { gap: 0.3rem; }
+            nav a { font-size: 0.65rem; padding: 0.25rem 0.4rem; }
+            .nav-container { flex-direction: column; }
+            .header-buttons { justify-content: center; }
+            .dashboard-wrapper { flex-direction: column; }
+            .right-sidebar { position: static; }
+        }
+    </style>
+</head>
+<body>
+        <!-- Header identical to index.html -->
+    <header>
+        <div class="nav-container">
+            <div class="logo">
+                <div class="logo-main">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>Campus Central</span>
+                </div>
+                <div class="brand-parent">
+                    <i class="fas fa-water"></i> A JetStream Initiative
+                </div>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="teacher_group_creation_start.html">Thank Teacher</a></li>
+                    <li><a href="celebration_group_creation_start.html">Celebrate Together</a></li>
+                    <li><a href="find_groups.html">Find Groups</a></li>
+                    <li><a href="student_dashboard.html">My Groups</a></li>
+                    <li><a href="index.html">Success Stories</a></li>
+                    <li class="dropdown">
+                        <a href="#">✨ Explore All Features ▼</a>
+                        <div class="dropdown-content">
+                            <a href="find_my_friend.html">🔍 Find My Friend</a>
+                            <a href="avatar_studio.html">🎨 Avatar Studio</a>
+                            <a href="crush_quiz.html">💕 Crush Corner</a>
+                            <a href="family_business.html">🧵 Family Business</a>
+                            <a href="ants_startup.html">🐜 Startup Nest</a>
+                            <a href="keep_hive_buzzing.html">🍯 Keep the Hive</a>
+                            <a href="teen_space.html">👥 Teen Space</a>
+                            <a href="marriage_staffing.html">💒 Marriage Staffing</a>
+                        </div>
+                    </li>
+                </ul>
+            </nav>
+            <div class="header-buttons" id="authButtons">
+                <button class="btn-outline" onclick="window.location.href='login.html'">Login</button>
+                <button class="btn-primary" onclick="window.location.href='signup.html'">Sign Up →</button>
+            </div>
+            <div id="userMenu" class="hidden">
+                <span id="userName" style="margin-right: 0.8rem; font-size: 0.7rem;"></span>
+                <button class="btn-outline" onclick="logout()" style="font-size: 0.7rem; padding: 0.25rem 0.6rem;">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="dashboard-wrapper">
+        <div class="main-content">
+            <div class="dashboard-header">
+                <h1><i class="fas fa-graduation-cap"></i> Student Dashboard</h1>
+                <button class="create-group-btn" onclick="window.location.href='teacher_group_creation_start.html'">+ Create New Group</button>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-card"><div class="stat-number" id="totalGroups">0</div><div>Total Groups</div></div>
+                <div class="stat-card"><div class="stat-number" id="activeGroups">0</div><div>Active</div></div>
+                <div class="stat-card"><div class="stat-number" id="pendingGroups">0</div><div>Pending</div></div>
+            </div>
+
+            <input type="text" id="searchGroups" class="search-input" placeholder="🔍 Search groups...">
+
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('all', this)">All Groups</button>
+                <button class="tab-btn" onclick="switchTab('created', this)">Created by Me</button>
+                <button class="tab-btn" onclick="switchTab('joined', this)">I Joined</button>
+            </div>
+
+            <div id="groupsList"></div>
+        </div>
+
+        <div class="right-sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title"><i class="fas fa-trophy"></i> Batch Leaderboard</div>
+                <div id="leaderboardList" class="leaderboard-list">
+                    <div style="text-align:center; font-size:0.7rem; color:#999;">Loading...</div>
+                </div>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title"><i class="fas fa-calendar"></i> Upcoming Events</div>
+                <div id="upcomingEvents">
+                    <div style="text-align:center; font-size:0.7rem; color:#999;">Loading...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invite Modal -->
+    <div id="inviteModal" class="modal">
+        <div class="modal-content">
+            <h3>📢 Invite Friends</h3>
+            <div class="invite-link-box">
+                <input type="text" id="inviteLinkInput" readonly>
+                <button class="copy-btn" onclick="copyInviteLink()">Copy</button>
+            </div>
+            <button class="whatsapp-share" onclick="shareToWhatsApp()">
+                <i class="fab fa-whatsapp"></i> Share on WhatsApp
+            </button>
+            <button class="whatsapp-share" style="background:#3498db;" onclick="shareViaSMS()">
+                <i class="fas fa-sms"></i> Share via SMS
+            </button>
+            <button class="whatsapp-share" style="background:#2c3e50;" onclick="showQRCode()">
+                <i class="fas fa-qrcode"></i> Show QR Code
+            </button>
+            <button class="action-btn action-secondary" onclick="closeInviteModal()" style="margin-top:0.5rem;">Close</button>
+        </div>
+    </div>
+        <footer>
+        <div class="footer-content">
+            <div>
+                <h3>Campus Central</h3>
+                <p>A JetStream Initiative — Bring people together.</p>
+                <a class="coffee-button" style="margin-top:0.5rem; display:inline-flex; background-color: var(--coffee); color: white; padding: 0.3rem 0.8rem; border-radius: 30px; text-decoration: none; font-size: 0.7rem;" onclick="alert('Thank you for your support! ❤️ UPI: campuscentral@okhdfcbank')">
+                    <i class="fas fa-coffee"></i> Support Our Mission
+                </a>
+            </div>
+            <div>
+                <h3>Tools</h3>
+                <ul>
+                    <li>Thank Teacher</li>
+                    <li>Celebrate Together</li>
+                    <li>Find Groups</li>
+                    <li>My Groups</li>
+                    <li><a href="batchmate_finder.html" style="color:white; text-decoration:none;">Batchmate Finder</a></li>
+                    <li><a href="avatar_studio.html" style="color:white; text-decoration:none;">Avatar Studio</a></li>
+                    <li><a href="crush_quiz.html" style="color:white; text-decoration:none;">Crush Corner</a></li>
+                    <li><a href="family_business.html" style="color:white; text-decoration:none;">Family Business</a></li>
+                    <li><a href="ants_startup.html" style="color:white; text-decoration:none;">Startup Nest</a></li>
+                    <li><a href="keep_hive_buzzing.html" style="color:white; text-decoration:none;">Keep the Hive</a></li>
+                    <li><a href="teen_space.html" style="color:white; text-decoration:none;">Teen Space</a></li>
+                    <li><a href="marriage_staffing.html" style="color:white; text-decoration:none;">Marriage Staffing</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3>Coming Soon</h3>
+                <ul>
+                    <li>Campus Legend</li>
+                    <li>Batchmates</li>
+                    <li>Fest Hunter</li>
+                    <li>Hostel Hero</li>
+                    <li>Project Partner</li>
+                    <li>Campus Gully</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Legal</h3>
+                <ul>
+                    <li><a onclick="showLegalPage('disclaimer')" style="color: white; text-decoration: none; cursor: pointer;">Disclaimer</a></li>
+                    <li><a onclick="showLegalPage('privacy')" style="color: white; text-decoration: none; cursor: pointer;">Privacy Policy</a></li>
+                    <li><a onclick="showLegalPage('terms')" style="color: white; text-decoration: none; cursor: pointer;">Terms of Service</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3>Contact</h3>
+                <ul>
+                    <li>hello@campuscentral.in</li>
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>© 2026 Campus Central — A JetStream Initiative. For students across Karnataka.</p>
+            <p style="font-size:0.65rem;">⚠️ Platform fee only. Actual gift money collected offline among friends.</p>
+        </div>
+    </footer>
+
+    <script src="js/config.js"></script>
+    <script>
+        // ========== SHARED FUNCTIONS FOR HEADER ==========
+        function showLegalPage(type) {
+            const texts = {
+                disclaimer: '⚠️ Campus Central is a facilitation platform only. Platform fee keeps the service running. Actual gift money is collected offline among friends.',
+                privacy: '🔒 We collect your name, email, phone number, and college information for coordination. We do not sell your data.',
+                terms: '📜 By using Campus Central, you agree to be 18 years or older and use the platform responsibly.'
+            };
+            alert(texts[type]);
+        }
+
+        function logout() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('token');
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('user');
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = 'index.html';
+        }
+
+        function updateHeaderUI() {
+            const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+            const userData = localStorage.getItem('currentUser') || localStorage.getItem('user');
+            const authDiv = document.getElementById('authButtons');
+            const userMenu = document.getElementById('userMenu');
+            const userNameSpan = document.getElementById('userName');
+            if (token && userData) {
+                try {
+                    const user = JSON.parse(userData);
+                    if (authDiv) authDiv.classList.add('hidden');
+                    if (userMenu) userMenu.classList.remove('hidden');
+                    if (userNameSpan) userNameSpan.innerText = user.full_name || (user.email ? user.email.split('@')[0] : 'User');
+                } catch(e) { console.error(e); }
+            } else {
+                if (authDiv) authDiv.classList.remove('hidden');
+                if (userMenu) userMenu.classList.add('hidden');
+            }
+        }
+
+        // ========== DASHBOARD LOGIC (unchanged) ==========
+        const API_BASE = window.ACTIVE_CONFIG ? window.ACTIVE_CONFIG.API_BASE_URL : 'http://localhost:8000/api';
+        let authToken = localStorage.getItem('authToken') || localStorage.getItem('token');
+        let currentUser = JSON.parse(localStorage.getItem('currentUser') || localStorage.getItem('user') || '{}');
+        let allGroups = [];
+        let currentTab = "all";
+        let searchQuery = "";
+        let currentGroupId = null;
+        let currentImageFile = null;
+        let currentChatGroupId = null;
+
+        async function apiCall(endpoint, method, body = null, requiresAuth = true) {
+            const headers = { 'Content-Type': 'application/json' };
+            if (requiresAuth && authToken) headers['Authorization'] = `Bearer ${authToken}`;
+            const options = { method, headers };
+            if (body) options.body = JSON.stringify(body);
+            const response = await fetch(`${API_BASE}${endpoint}`, options);
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.detail || data.message || 'API call failed');
+            return data;
+        }
+
+        async function loadGroups() {
+            try {
+                const data = await apiCall('/groups/my-groups', 'GET', null, true);
+                allGroups = data.groups || [];
+                updateStats();
+                renderGroups();
+                loadLeaderboard();
+                loadEvents();
+            } catch (error) {
+                console.error('Error loading groups:', error);
+                if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('currentUser');
+                    localStorage.removeItem('user');
+                    window.location.href = 'login.html';
+                }
+                allGroups = [];
+                renderGroups();
+            }
+        }
+
+        function updateStats() {
+            const userGroups = allGroups.filter(g => g.is_member);
+            const active = userGroups.filter(g => g.status === 'active').length;
+            const pending = userGroups.filter(g => g.status === 'pending').length;
+            document.getElementById('totalGroups').innerText = userGroups.length;
+            document.getElementById('activeGroups').innerText = active;
+            document.getElementById('pendingGroups').innerText = pending;
+        }
+
+        function filterGroups() {
+            let filtered = allGroups.filter(g => g.is_member);
+            if (currentTab === 'created') filtered = filtered.filter(g => g.is_creator);
+            if (currentTab === 'joined') filtered = filtered.filter(g => !g.is_creator);
+            if (searchQuery) filtered = filtered.filter(g => g.name.toLowerCase().includes(searchQuery.toLowerCase()));
+            return filtered;
+        }
+
+        function renderGroups() {
+            const filtered = filterGroups();
+            const container = document.getElementById('groupsList');
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="empty-state"><i class="fas fa-folder-open"></i><h3>No groups found</h3><button class="create-group-btn" style="margin-top:1rem;" onclick="window.location.href='teacher_group_creation_start.html'">+ Create New Group</button></div>`;
+                return;
+            }
+            container.innerHTML = filtered.map(g => `
+                <div class="group-card" id="group-card-${g.id}" data-group-id="${g.id}" data-type="${g.type || 'teacher'}">
+                    <div class="group-header">
+                        <div class="group-title"><h3>${escapeHtml(g.name)} ${g.is_creator ? '<span class="organizer-badge">👑 ORGANIZER</span>' : ''}</h3></div>
+                        <span class="status-badge ${g.status === 'active' ? 'status-active' : ''}">${g.status === 'active' ? 'Active' : 'Pending'}</span>
+                    </div>
+                    <div class="group-details">
+                        <span><i class="fas fa-users"></i> ${g.member_count || 1} members</span>
+                        <span><i class="fas fa-calendar"></i> ${g.event_date || 'TBD'}</span>
+                    </div>
+                    <div class="group-actions">
+                        ${g.status === 'active' ? `<button class="action-btn action-secondary" onclick="toggleChat('${g.id}')">💬 Chat</button>` : ''}
+                        ${g.is_creator ? `<button class="action-btn action-primary" onclick="openInviteModal('${g.id}', '${escapeHtml(g.name)}')">📢 Invite</button>` : ''}
+                        ${g.is_creator ? `<button class="action-btn" style="background:#e74c3c; color:white;" onclick="deleteGroup('${g.id}')">Delete</button>` : ''}
+                    </div>
+                    ${g.status === 'active' ? `
+                        <div class="chat-section" id="chat-${g.id}">
+                            <div class="chat-messages" id="chat-messages-${g.id}"></div>
+                            <div class="chat-input-area">
+                                <button class="emoji-btn" onclick="toggleEmojiPicker('${g.id}')">😊</button>
+                                <button class="image-btn" onclick="document.getElementById('imageInput-${g.id}').click()">📷</button>
+                                <input type="text" id="chat-input-${g.id}" placeholder="Type a message...">
+                                <button class="send-btn" onclick="sendMessage('${g.id}')">Send</button>
+                            </div>
+                            <div class="emoji-picker" id="emoji-picker-${g.id}">
+                                <span onclick="addEmoji('${g.id}', '😊')">😊</span>
+                                <span onclick="addEmoji('${g.id}', '😂')">😂</span>
+                                <span onclick="addEmoji('${g.id}', '🥰')">🥰</span>
+                                <span onclick="addEmoji('${g.id}', '🎉')">🎉</span>
+                                <span onclick="addEmoji('${g.id}', '❤️')">❤️</span>
+                                <span onclick="addEmoji('${g.id}', '👍')">👍</span>
+                                <span onclick="addEmoji('${g.id}', '🙏')">🙏</span>
+                                <span onclick="addEmoji('${g.id}', '🎂')">🎂</span>
+                                <span onclick="addEmoji('${g.id}', '🎁')">🎁</span>
+                            </div>
+                            <input type="file" id="imageInput-${g.id}" accept="image/*" style="display:none;" onchange="previewImageForChat('${g.id}', this)">
+                            <div id="image-preview-${g.id}" style="display:flex; gap:0.3rem; margin-top:0.3rem;"></div>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+            filtered.forEach(g => {
+                if (g.status === 'active') loadChatMessages(g.id, g.type || 'teacher');
+            });
+            checkForHighlightedGroup();
+        }
+                function loadChatMessages(groupId, groupType) {
+            if (!groupType) groupType = 'teacher';
+            apiCall(`/messages/${groupId}?group_type=${groupType}`, 'GET', null, true)
+                .then(data => {
+                    const container = document.getElementById(`chat-messages-${groupId}`);
+                    if (!container) return;
+                    container.innerHTML = (data.messages || []).map(m => `
+                        <div class="chat-message">
+                            <strong>${escapeHtml(m.sender_name)}</strong><br>
+                            ${m.image ? `<img src="${m.image}">` : ''}
+                            ${m.message ? escapeHtml(m.message) : ''}
+                            <small>${new Date(m.created_at || Date.now()).toLocaleTimeString()}</small>
+                        </div>
+                    `).join('');
+                    container.scrollTop = container.scrollHeight;
+                })
+                .catch(err => console.error('Load messages error:', err));
+        }
+
+        function previewImageForChat(groupId, input) {
+            if (input.files && input.files[0]) {
+                currentImageFile = input.files[0];
+                currentChatGroupId = groupId;
+                const previewDiv = document.getElementById(`image-preview-${groupId}`);
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewDiv.innerHTML = `<div class="image-preview"><img src="${e.target.result}"><span class="remove-image" onclick="clearImagePreview('${groupId}')">×</span></div>`;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function clearImagePreview(groupId) {
+            currentImageFile = null;
+            document.getElementById(`image-preview-${groupId}`).innerHTML = '';
+            document.getElementById(`imageInput-${groupId}`).value = '';
+        }
+
+        async function sendMessage(groupId) {
+            const input = document.getElementById(`chat-input-${groupId}`);
+            const text = input.value.trim();
+            if (!text && !currentImageFile) return;
+            let imageBase64 = null;
+            if (currentImageFile) imageBase64 = await fileToBase64(currentImageFile);
+            try {
+                await apiCall('/messages/send', 'POST', {
+                    group_id: groupId,
+                    group_type: 'teacher',
+                    message: text || null,
+                    image: imageBase64
+                }, true);
+                input.value = '';
+                clearImagePreview(groupId);
+                const groupCard = document.getElementById(`group-card-${groupId}`);
+                const groupType = groupCard?.getAttribute('data-type') || 'teacher';
+                loadChatMessages(groupId, groupType);
+            } catch (error) {
+                console.error('Send message error:', error);
+            }
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        function toggleChat(id) {
+            const el = document.getElementById(`chat-${id}`);
+            if (el) {
+                if (el.style.display === 'none' || el.style.display === '') {
+                    el.style.display = 'block';
+                    el.classList.add('open');
+                } else {
+                    el.style.display = 'none';
+                    el.classList.remove('open');
+                }
+            }
+        }
+
+        function toggleEmojiPicker(groupId) {
+            const picker = document.getElementById(`emoji-picker-${groupId}`);
+            if (picker) picker.style.display = picker.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function addEmoji(groupId, emoji) {
+            const input = document.getElementById(`chat-input-${groupId}`);
+            if (input) input.value += emoji;
+            toggleEmojiPicker(groupId);
+        }
+
+        function openInviteModal(groupId, groupName) {
+            currentGroupId = groupId;
+            const inviteLink = `https://campuscentral.in/join/${groupId}`;
+            document.getElementById('inviteLinkInput').value = inviteLink;
+            document.getElementById('inviteModal').style.display = 'flex';
+        }
+
+        function closeInviteModal() {
+            document.getElementById('inviteModal').style.display = 'none';
+            currentGroupId = null;
+        }
+
+        function copyInviteLink() {
+            const link = document.getElementById('inviteLinkInput').value;
+            navigator.clipboard.writeText(link);
+            alert('✅ Invite link copied!');
+        }
+
+        function shareToWhatsApp() {
+            const link = document.getElementById('inviteLinkInput').value;
+            window.open(`https://wa.me/?text=${encodeURIComponent(`Join my group on Campus Central! ${link}`)}`, '_blank');
+        }
+
+        function shareViaSMS() {
+            const link = document.getElementById('inviteLinkInput').value;
+            window.open(`sms:?body=${encodeURIComponent(`Join my group on Campus Central! ${link}`)}`, '_blank');
+        }
+
+        function showQRCode() {
+            alert('QR code generation coming soon!');
+        }
+
+        async function deleteGroup(groupId) {
+            if (confirm('Are you sure you want to delete this group?')) {
+                try {
+                    await apiCall('/groups/delete', 'DELETE', { group_id: groupId }, true);
+                    loadGroups();
+                } catch (error) {
+                    alert('Error deleting group: ' + error.message);
+                }
+            }
+        }
+
+        function switchTab(tab, btn) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderGroups();
+        }
+
+        document.getElementById('searchGroups').addEventListener('input', function(e) {
+            searchQuery = e.target.value;
+            renderGroups();
+        });
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+                function getHighlightedGroupIdFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('highlight');
+        }
+
+        function checkForHighlightedGroup() {
+            const highlightGroupId = getHighlightedGroupIdFromUrl();
+            if (!highlightGroupId) return;
+            const groupCard = document.getElementById(`group-card-${highlightGroupId}`);
+            if (groupCard) {
+                groupCard.classList.add('highlight');
+                groupCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                const chatSection = document.getElementById(`chat-${highlightGroupId}`);
+                if (chatSection) {
+                    setTimeout(() => {
+                        chatSection.style.display = 'block';
+                        chatSection.classList.add('open');
+                        const groupType = groupCard.getAttribute('data-type') || 'teacher';
+                        loadChatMessages(highlightGroupId, groupType);
+                        const chatInput = document.getElementById(`chat-input-${highlightGroupId}`);
+                        if (chatInput) {
+                            chatInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            chatInput.focus();
+                        }
+                    }, 500);
+                }
+                setTimeout(() => groupCard.classList.remove('highlight'), 5000);
+            }
+        }
+
+        async function loadLeaderboard() {
+            const leaderboardContainer = document.getElementById('leaderboardList');
+            leaderboardContainer.innerHTML = '<div style="text-align:center; font-size:0.7rem; color:#999;">Loading stats...</div>';
+            try {
+                const data = await apiCall('/groups/my-groups', 'GET', null, true);
+                const groups = data.groups || [];
+                const batchCounts = {};
+                groups.forEach(group => {
+                    let batch = null;
+                    const nameMatch = group.name?.match(/(19|20)\d{2}/);
+                    if (nameMatch) batch = nameMatch[0];
+                    if (!batch && group.event_date) {
+                        const dateMatch = group.event_date.match(/(19|20)\d{2}/);
+                        if (dateMatch) batch = dateMatch[0];
+                    }
+                    if (batch) batchCounts[batch] = (batchCounts[batch] || 0) + 1;
+                });
+                const leaderboardData = Object.entries(batchCounts)
+                    .map(([batch, count]) => ({ batch: `${batch} Batch`, groups: count }))
+                    .sort((a, b) => parseInt(b.batch) - parseInt(a.batch))
+                    .slice(0, 5);
+                if (leaderboardData.length === 0) {
+                    leaderboardContainer.innerHTML = '<div style="text-align:center; font-size:0.7rem; color:#999;">No batch data yet</div>';
+                    return;
+                }
+                leaderboardContainer.innerHTML = leaderboardData.map(l => `
+                    <div class="leaderboard-item">
+                        <span>🎓 ${escapeHtml(l.batch)}</span>
+                        <span style="color:#e67e22; font-weight:bold;">${l.groups} groups</span>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading leaderboard:', error);
+                leaderboardContainer.innerHTML = '<div style="text-align:center; font-size:0.7rem; color:#999;">Login to see stats</div>';
+            }
+        }
+
+        async function loadEvents() {
+            const eventsContainer = document.getElementById('upcomingEvents');
+            eventsContainer.innerHTML = '<div style="text-align:center; font-size:0.7rem; color:#999;">Loading events...</div>';
+            try {
+                const data = await apiCall('/groups/my-groups', 'GET', null, true);
+                const groups = data.groups || [];
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const upcomingEvents = groups
+                    .filter(group => {
+                        const isCelebration = group.type === 'celebration' || group.name?.toLowerCase().includes('reunion');
+                        if (!isCelebration) return false;
+                        if (group.status !== 'active') return false;
+                        if (!group.event_date) return false;
+                        const eventDate = new Date(group.event_date);
+                        if (isNaN(eventDate.getTime())) return false;
+                        return eventDate >= today;
+                    })
+                    .map(group => {
+                        const eventDate = new Date(group.event_date);
+                        const daysDiff = Math.ceil((eventDate - today) / (1000 * 60 * 60 * 24));
+                        return { name: group.name, days: daysDiff, date: group.event_date };
+                    })
+                    .sort((a, b) => a.days - b.days)
+                    .slice(0, 5);
+                if (upcomingEvents.length === 0) {
+                    eventsContainer.innerHTML = '<div style="text-align:center; font-size:0.7rem; color:#999;">No upcoming events</div>';
+                    return;
+                }
+                eventsContainer.innerHTML = upcomingEvents.map(event => `
+                    <div class="event-item">
+                        <span>🎉 ${escapeHtml(event.name)}</span>
+                        <span style="color:#e67e22;">${event.days === 0 ? 'Today!' : `In ${event.days} days`}</span>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading events:', error);
+                eventsContainer.innerHTML = '<div style="text-align:center; font-size:0.7rem; color:#999;">Login to see events</div>';
+            }
+        }
+
+        updateHeaderUI();
+        authToken = localStorage.getItem('authToken') || localStorage.getItem('token');
+        currentUser = JSON.parse(localStorage.getItem('currentUser') || localStorage.getItem('user') || '{}');
+        loadGroups();
+        setInterval(() => { loadGroups(); }, 30000);
+    </script>
+    <script src="js/auth-guard.js"></script>
+</body>
+</html>

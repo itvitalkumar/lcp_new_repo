@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marriage Staffing Marketplace - Campus Central</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background: linear-gradient(135deg, #0f4c5c, #0a3a46); min-height: 100vh; padding: 2rem; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { text-align: center; color: white; margin-bottom: 2rem; }
+        .header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .header h1 i { color: #f4b942; }
+        .tabs { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+        .tab-btn { background: rgba(255,255,255,0.2); border: none; padding: 0.6rem 1.5rem; border-radius: 40px; color: white; font-weight: 600; cursor: pointer; }
+        .tab-btn.active { background: #e67e22; }
+        .card { background: white; border-radius: 24px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .card h2 { color: #0f4c5c; margin-bottom: 1rem; font-size: 1.3rem; }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; font-weight: 600; color: #0f4c5c; margin-bottom: 0.3rem; font-size: 0.85rem; }
+        input, select, textarea { width: 100%; padding: 0.7rem; border: 1px solid #ddd; border-radius: 12px; font-size: 0.9rem; }
+        .btn-primary { background: #e67e22; color: white; border: none; padding: 0.8rem; border-radius: 40px; font-weight: 600; cursor: pointer; width: 100%; font-size: 1rem; }
+        .btn-primary:hover { background: #d35400; }
+        .jobs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem; margin-top: 1rem; }
+        .job-card { background: white; border-radius: 20px; padding: 1.2rem; border-left: 4px solid #e67e22; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.2s; }
+        .job-card:hover { transform: translateY(-3px); }
+        .job-title { font-size: 1rem; font-weight: bold; color: #0f4c5c; margin-bottom: 0.3rem; }
+        .job-detail { font-size: 0.8rem; color: #666; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+        .price-badge { display: inline-block; background: #2ecc71; color: white; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.7rem; }
+        .apply-btn { background: #25D366; color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 20px; cursor: pointer; font-size: 0.7rem; margin-top: 0.5rem; }
+        .empty-state { text-align: center; padding: 3rem; color: #999; }
+        .loading { text-align: center; padding: 2rem; color: #e67e22; }
+        footer { text-align: center; margin-top: 2rem; color: white; opacity: 0.7; font-size: 0.7rem; }
+        @media (max-width: 700px) { body { padding: 1rem; } .jobs-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-ring"></i> 💒 Marriage Staffing Marketplace</h1>
+            <p>Find students for event staffing • Students earn ₹300-1000 per event</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('browse')">📋 Browse Jobs</button>
+            <button class="tab-btn" onclick="switchTab('post')">📝 Post a Job</button>
+            <button class="tab-btn" onclick="switchTab('student')">👤 Student Profile</button>
+        </div>
+
+        <!-- Browse Jobs Tab -->
+        <div id="browseTab">
+            <div class="card">
+                <h2>🔍 Available Staffing Opportunities</h2>
+                <div id="jobsList" class="jobs-grid"><div class="loading">Loading jobs...</div></div>
+            </div>
+        </div>
+
+        <!-- Post Job Tab -->
+        <div id="postTab" style="display: none;">
+            <div class="card">
+                <h2>📝 Post a Staffing Job</h2>
+                <p style="color:#666; margin-bottom:1rem;">Platform fee: ₹99 per posting (one-time). Students pay nothing.</p>
+                <form id="jobForm">
+                    <div class="form-group"><label>📅 Event Date *</label><input type="date" id="eventDate" required></div>
+                    <div class="form-group"><label>📍 Event Location *</label><input type="text" id="eventLocation" placeholder="City, Venue" required></div>
+                    <div class="form-group"><label>🎉 Event Type *</label><select id="eventType"><option>wedding</option><option>reception</option><option>engagement</option><option>other</option></select></div>
+                    <div class="form-group"><label>👔 Role Needed *</label><select id="roleNeeded"><option>serving</option><option>dancing</option><option>cleaning</option><option>decoration</option><option>all</option></select></div>
+                    <div class="form-group"><label>👥 Number of Staff *</label><input type="number" id="numberOfStaff" min="1" max="50" required></div>
+                    <div class="form-group"><label>💰 Pay per Staff (₹) *</label><input type="number" id="payPerStaff" placeholder="300-1000" required></div>
+                    <div class="form-group"><label>📝 Description</label><textarea id="jobDescription" rows="2" placeholder="Any special requirements?"></textarea></div>
+                    <div class="form-group"><label>📞 Contact WhatsApp *</label><input type="tel" id="contactWhatsapp" placeholder="10-digit number" required></div>
+                    <button type="submit" class="btn-primary">📢 Post Job (₹99) →</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Student Profile Tab -->
+        <div id="studentTab" style="display: none;">
+            <div class="card">
+                <h2>👤 Your Student Profile</h2>
+                <form id="profileForm">
+                    <div class="form-group"><label>🛠️ Your Skills</label><select id="skills" multiple><option>Serving</option><option>Dancing</option><option>Cleaning</option><option>Decoration</option><option>Coordination</option></select><small>Ctrl+Click to select multiple</small></div>
+                    <div class="form-group"><label>📅 Availability</label><select id="availability"><option>full_time</option><option>weekend_only</option><option>flexible</option></select></div>
+                    <div class="form-group"><label>💼 Experience</label><textarea id="experience" rows="2" placeholder="Any previous event experience?"></textarea></div>
+                    <div class="form-group"><label>📞 WhatsApp *</label><input type="tel" id="studentWhatsapp" required></div>
+                    <button type="submit" class="btn-primary">💾 Save Profile</button>
+                </form>
+            </div>
+        </div>
+        <footer>Campus Central — A JetStream Initiative | Platform fee: ₹99/post</footer>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000/api';
+        let authToken = localStorage.getItem('authToken');
+        
+        async function apiCall(endpoint, method, body = null, requiresAuth = true) {
+            const headers = { 'Content-Type': 'application/json' };
+            if (requiresAuth && authToken) headers['Authorization'] = `Bearer ${authToken}`;
+            const options = { method, headers };
+            if (body) options.body = JSON.stringify(body);
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.detail || 'API call failed');
+            return data;
+        }
+
+        async function loadJobs() {
+            try {
+                const jobs = await apiCall('/marriage/jobs', 'GET', null, false);
+                const container = document.getElementById('jobsList');
+                if (jobs.length === 0) { container.innerHTML = '<div class="empty-state">No jobs posted yet. Be the first to post!</div>'; return; }
+                container.innerHTML = jobs.map(j => `
+                    <div class="job-card">
+                        <div class="job-title">${j.event_type.toUpperCase()} at ${j.event_location}</div>
+                        <div class="job-detail">📅 ${j.event_date} | 👥 Need ${j.number_of_staff} staff</div>
+                        <div class="job-detail">💰 ₹${j.pay_per_staff}/person | 👔 Role: ${j.role_needed}</div>
+                        <div class="job-detail">📞 Contact: ${j.contact_whatsapp}</div>
+                        <div class="job-detail"><span class="price-badge">${j.applicants_count} applied</span></div>
+                        <button class="apply-btn" onclick="applyForJob(${j.id})">🤝 Apply Now</button>
+                    </div>
+                `).join('');
+            } catch (error) { console.error(error); }
+        }
+
+        document.getElementById('jobForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!authToken) { alert('Please login first'); window.location.href='login.html'; return; }
+            try {
+                const result = await apiCall('/marriage/post-job', 'POST', {
+                    event_date: document.getElementById('eventDate').value,
+                    event_location: document.getElementById('eventLocation').value,
+                    event_type: document.getElementById('eventType').value,
+                    role_needed: document.getElementById('roleNeeded').value,
+                    number_of_staff: parseInt(document.getElementById('numberOfStaff').value),
+                    pay_per_staff: parseInt(document.getElementById('payPerStaff').value),
+                    description: document.getElementById('jobDescription').value,
+                    contact_whatsapp: document.getElementById('contactWhatsapp').value
+                }, true);
+                const payment = await apiCall(`/marriage/activate/${result.id}`, 'POST', {}, true);
+                if (confirm(`Pay ₹${payment.amount} to activate your job posting?`)) window.location.href = payment.payment_link;
+                alert('Job posted! Please complete payment to activate.');
+                document.getElementById('jobForm').reset();
+                switchTab('browse');
+            } catch (error) { alert('Error: ' + error.message); }
+        });
+
+        document.getElementById('profileForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!authToken) { alert('Please login first'); window.location.href='login.html'; return; }
+            try {
+                const skillsSelect = document.getElementById('skills');
+                const skills = Array.from(skillsSelect.selectedOptions).map(opt => opt.value);
+                await apiCall('/marriage/student/profile', 'POST', {
+                    skills: skills,
+                    availability: document.getElementById('availability').value,
+                    experience: document.getElementById('experience').value,
+                    whatsapp: document.getElementById('studentWhatsapp').value
+                }, true);
+                alert('Profile saved successfully!');
+            } catch (error) { alert('Error: ' + error.message); }
+        });
+
+        async function applyForJob(jobId) {
+            if (!authToken) { alert('Please login first'); window.location.href='login.html'; return; }
+            try {
+                await apiCall('/marriage/apply', 'POST', { job_id: jobId }, true);
+                alert('Application submitted! The organizer will contact you.');
+                loadJobs();
+            } catch (error) { alert('Error: ' + error.message); }
+        }
+
+        function switchTab(tab) {
+            document.getElementById('browseTab').style.display = 'none';
+            document.getElementById('postTab').style.display = 'none';
+            document.getElementById('studentTab').style.display = 'none';
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            if (tab === 'browse') { document.getElementById('browseTab').style.display = 'block'; document.querySelector('.tab-btn').classList.add('active'); loadJobs(); }
+            else if (tab === 'post') { document.getElementById('postTab').style.display = 'block'; document.querySelectorAll('.tab-btn')[1].classList.add('active'); }
+            else { document.getElementById('studentTab').style.display = 'block'; document.querySelectorAll('.tab-btn')[2].classList.add('active'); }
+        }
+        loadJobs();
+    </script>
+    <script src="js/auth-guard.js"></script>`n</body>
+</html>

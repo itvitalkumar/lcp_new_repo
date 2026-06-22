@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ants' Startup Nest - Campus Central</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f4c5c, #0a3a46);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header h1 i {
+            color: #f4b942;
+        }
+
+        .header p {
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 40px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: #e67e22;
+        }
+
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            color: #0f4c5c;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: #0f4c5c;
+            margin-bottom: 0.3rem;
+            font-size: 0.85rem;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.7rem;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: #e67e22;
+            color: white;
+            border: none;
+            padding: 0.8rem;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            background: #d35400;
+            transform: translateY(-2px);
+        }
+
+        .ideas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .idea-card {
+            background: white;
+            border-radius: 20px;
+            padding: 1.2rem;
+            border-left: 4px solid #f4b942;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+
+        .idea-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .idea-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #0f4c5c;
+            margin-bottom: 0.3rem;
+        }
+
+        .idea-category {
+            display: inline-block;
+            background: #e8f4f8;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            color: #e67e22;
+            margin-bottom: 0.5rem;
+        }
+
+        .idea-description {
+            font-size: 0.85rem;
+            color: #555;
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+        }
+
+        .idea-meta {
+            font-size: 0.7rem;
+            color: #999;
+            margin-top: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .interested-btn {
+            background: #2ecc71;
+            color: white;
+            border: none;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: 20px;
+            color: #999;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 2rem;
+            color: #e67e22;
+        }
+
+        .filter-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            color: white;
+            opacity: 0.7;
+            font-size: 0.7rem;
+        }
+
+        @media (max-width: 700px) {
+            body { padding: 1rem; }
+            .ideas-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-rocket"></i> 🐜 Ants' Startup Nest</h1>
+            <p>Small ants can move mountains! Share your startup idea, find co-founders, build together</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('browse')">📋 Browse Ideas</button>
+            <button class="tab-btn" onclick="switchTab('post')">💡 Post Your Idea</button>
+        </div>
+
+        <!-- Browse Ideas Tab -->
+        <div id="browseTab">
+            <div class="card">
+                <div class="filter-row">
+                    <h2>🚀 Student Startup Ideas</h2>
+                    <select id="categoryFilter" onchange="loadIdeas()" style="width: auto; padding: 0.4rem;">
+                        <option value="all">All Categories</option>
+                        <option value="Tech">💻 Tech/SaaS</option>
+                        <option value="Social">🌱 Social Impact</option>
+                        <option value="Ecommerce">🛍️ E-commerce</option>
+                        <option value="Education">📚 Education</option>
+                        <option value="Health">💊 Health/Wellness</option>
+                        <option value="Food">🍔 Food/Beverage</option>
+                        <option value="Other">📦 Other</option>
+                    </select>
+                </div>
+                <div id="ideasList" class="ideas-grid">
+                    <div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading ideas...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Post Idea Tab -->
+        <div id="postTab" style="display: none;">
+            <div class="card">
+                <h2>💡 Share Your Startup Idea</h2>
+                <p style="color: #666; margin-bottom: 1rem; font-size: 0.85rem;">Find co-founders, get feedback, and build together. Free forever.</p>
+                
+                <form id="ideaForm">
+                    <div class="form-group">
+                        <label>💡 Idea Title *</label>
+                        <input type="text" id="ideaTitle" placeholder="e.g., Eco-friendly packaging solution" required>
+                    </div>
+                    <div class="form-group">
+                        <label>📂 Category *</label>
+                        <select id="ideaCategory" required>
+                            <option value="">Select category</option>
+                            <option value="Tech">💻 Tech/SaaS</option>
+                            <option value="Social">🌱 Social Impact</option>
+                            <option value="Ecommerce">🛍️ E-commerce</option>
+                            <option value="Education">📚 Education</option>
+                            <option value="Health">💊 Health/Wellness</option>
+                            <option value="Food">🍔 Food/Beverage</option>
+                            <option value="Other">📦 Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>📝 One-line Pitch *</label>
+                        <input type="text" id="ideaPitch" placeholder="e.g., Making sustainable packaging affordable for small businesses" required>
+                    </div>
+                    <div class="form-group">
+                        <label>🔍 Full Description</label>
+                        <textarea id="ideaDescription" rows="4" placeholder="Describe your idea in detail: problem, solution, target market..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>🤝 What are you looking for?</label>
+                        <select id="ideaLookingFor">
+                            <option value="Co-founder">🤝 Co-founder</option>
+                            <option value="Team members">👥 Team members</option>
+                            <option value="Feedback">💬 Feedback only</option>
+                            <option value="Mentor">🎓 Mentor</option>
+                            <option value="Funding">💰 Funding/Investment</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>📱 WhatsApp (Optional)</label>
+                        <input type="tel" id="founderWhatsapp" placeholder="For collaboration">
+                    </div>
+                    <button type="submit" class="btn-primary">🐜 Post Your Idea (FREE) →</button>
+                </form>
+            </div>
+        </div>
+
+        <footer>
+            Campus Central — A JetStream Initiative | Building together, one ant at a time
+        </footer>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000/api';
+        let authToken = localStorage.getItem('authToken');
+
+        async function apiCall(endpoint, method, body = null, requiresAuth = true) {
+            const headers = { 'Content-Type': 'application/json' };
+            if (requiresAuth && authToken) headers['Authorization'] = `Bearer ${authToken}`;
+            const options = { method, headers };
+            if (body) options.body = JSON.stringify(body);
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.detail || 'API call failed');
+            return data;
+        }
+
+        async function loadIdeas() {
+            const category = document.getElementById('categoryFilter').value;
+            const container = document.getElementById('ideasList');
+            container.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading ideas...</div>';
+            
+            try {
+                const ideas = await apiCall(`/startup/list?category=${category}`, 'GET', null, false);
+                
+                if (ideas.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><i class="fas fa-rocket"></i><h3>No ideas posted yet</h3><p>Be the first to share your startup idea!</p></div>';
+                    return;
+                }
+                
+                const lookingForMap = {
+                    "Co-founder": "🤝 Looking for co-founder",
+                    "Team members": "👥 Looking for team members",
+                    "Feedback": "💬 Seeking feedback",
+                    "Mentor": "🎓 Seeking mentor",
+                    "Funding": "💰 Seeking funding"
+                };
+                
+                container.innerHTML = ideas.map(idea => `
+                    <div class="idea-card">
+                        <div class="idea-title">${escapeHtml(idea.title)}</div>
+                        <div class="idea-category">${escapeHtml(idea.category)}</div>
+                        <div class="idea-description"><strong>Pitch:</strong> ${escapeHtml(idea.pitch)}</div>
+                        ${idea.description ? `<div class="idea-description" style="font-size: 0.75rem; color:#666;">${escapeHtml(idea.description.substring(0, 150))}${idea.description.length > 150 ? '...' : ''}</div>` : ''}
+                        <div class="idea-meta">
+                            <span>👤 ${escapeHtml(idea.founder_name)}</span>
+                            <span>🏛️ ${escapeHtml(idea.college)}</span>
+                            <span>${lookingForMap[idea.looking_for] || idea.looking_for}</span>
+                            <span>❤️ ${idea.interest_count || 0} interested</span>
+                        </div>
+                        <div class="idea-meta" style="margin-top: 0.8rem;">
+                            <button class="interested-btn" onclick="expressInterest(${idea.id}, '${escapeHtml(idea.title)}', '${idea.whatsapp || ''}')">🤝 I'm Interested</button>
+                            <span style="font-size: 0.6rem;">📅 ${new Date(idea.created_at).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error(error);
+                container.innerHTML = '<div class="empty-state">Error loading ideas. Please try again.</div>';
+            }
+        }
+
+        document.getElementById('ideaForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!authToken) {
+                alert('Please login first to post your idea');
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            try {
+                await apiCall('/startup/create', 'POST', {
+                    title: document.getElementById('ideaTitle').value.trim(),
+                    category: document.getElementById('ideaCategory').value,
+                    pitch: document.getElementById('ideaPitch').value.trim(),
+                    description: document.getElementById('ideaDescription').value.trim(),
+                    looking_for: document.getElementById('ideaLookingFor').value,
+                    whatsapp: document.getElementById('founderWhatsapp').value.trim()
+                }, true);
+                
+                alert('✅ Your startup idea has been posted successfully!');
+                document.getElementById('ideaForm').reset();
+                switchTab('browse');
+                loadIdeas();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        });
+
+        async function expressInterest(ideaId, title, whatsapp) {
+            if (!authToken) {
+                alert('Please login first to express interest');
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            try {
+                const result = await apiCall('/startup/interest', 'POST', {
+                    idea_id: ideaId,
+                    message: `Hi! I'm interested in your startup idea "${title}". Let's connect!`
+                }, true);
+                
+                if (result.founder_whatsapp) {
+                    window.open(`https://wa.me/${result.founder_whatsapp}?text=Hi! I'm interested in your startup idea "${title}" on Campus Central. Let's connect!`, '_blank');
+                } else {
+                    alert(`✅ Interest recorded for "${title}"! The founder has been notified.`);
+                }
+                
+                loadIdeas(); // Refresh to update interest count
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        function switchTab(tab) {
+            const browseTab = document.getElementById('browseTab');
+            const postTab = document.getElementById('postTab');
+            const btns = document.querySelectorAll('.tab-btn');
+            
+            if (tab === 'browse') {
+                browseTab.style.display = 'block';
+                postTab.style.display = 'none';
+                btns[0].classList.add('active');
+                btns[1].classList.remove('active');
+                loadIdeas();
+            } else {
+                browseTab.style.display = 'none';
+                postTab.style.display = 'block';
+                btns[0].classList.remove('active');
+                btns[1].classList.add('active');
+            }
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Load initial ideas
+        loadIdeas();
+    </script>
+    <script src="js/auth-guard.js"></script>`n</body>
+</html>

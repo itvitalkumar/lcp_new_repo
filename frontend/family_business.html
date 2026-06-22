@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Business Showcase - Campus Central</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f4c5c, #0a3a46);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header h1 i {
+            color: #f4b942;
+        }
+
+        .header p {
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 40px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: #e67e22;
+        }
+
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            color: #0f4c5c;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: #0f4c5c;
+            margin-bottom: 0.3rem;
+            font-size: 0.85rem;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.7rem;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: #e67e22;
+            color: white;
+            border: none;
+            padding: 0.8rem;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            background: #d35400;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid #e67e22;
+            color: #e67e22;
+            padding: 0.3rem 0.8rem;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            margin-left: 0.5rem;
+        }
+
+        .businesses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .business-card {
+            background: white;
+            border-radius: 20px;
+            padding: 1.2rem;
+            border-left: 4px solid #f4b942;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+
+        .business-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .business-name {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #0f4c5c;
+            margin-bottom: 0.3rem;
+        }
+
+        .business-category {
+            display: inline-block;
+            background: #fef9e6;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            color: #e67e22;
+            margin-bottom: 0.5rem;
+        }
+
+        .business-details {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 0.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .whatsapp-btn {
+            background: #25D366;
+            color: white;
+            border: none;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            margin-top: 0.5rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: 20px;
+            color: #999;
+        }
+
+        .filter-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .search-box {
+            flex: 1;
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 40px;
+            font-size: 0.8rem;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            color: white;
+            opacity: 0.7;
+            font-size: 0.7rem;
+        }
+
+        .free-badge {
+            display: inline-block;
+            background: #2ecc71;
+            color: white;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            margin-left: 0.5rem;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 2rem;
+            color: #e67e22;
+        }
+
+        @media (max-width: 700px) {
+            body { padding: 1rem; }
+            .businesses-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-store"></i> 🧵 Student Family Business Showcase</h1>
+            <p>Support local businesses owned by students' families — 100% free, no commission</p>
+            <span class="free-badge">✨ Always FREE</span>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('list')">📋 Browse Businesses</button>
+            <button class="tab-btn" onclick="switchTab('add')">➕ List Your Family Business</button>
+        </div>
+
+        <!-- Browse Businesses Tab -->
+        <div id="listTab">
+            <div class="card">
+                <div class="filter-row">
+                    <h2>🔍 Local Family Businesses</h2>
+                    <select id="categoryFilter" onchange="loadBusinesses()" style="width: auto; padding: 0.4rem;">
+                        <option value="all">All Categories</option>
+                        <option value="Tailoring">🧵 Tailoring/Embroidery</option>
+                        <option value="Plumbing">🔧 Plumbing/Electrical</option>
+                        <option value="Bakery">🍰 Bakery/Sweets</option>
+                        <option value="Stationery">📚 Stationery/Xerox</option>
+                        <option value="Repair">🚗 Bike/Car Repair</option>
+                        <option value="Saloon">💇 Saloon/Beauty</option>
+                        <option value="Other">📦 Other</option>
+                    </select>
+                </div>
+                <div id="businessesList" class="businesses-grid">
+                    <div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading businesses...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Business Tab -->
+        <div id="addTab" style="display: none;">
+            <div class="card">
+                <h2>📝 List Your Family Business</h2>
+                <p style="color: #666; margin-bottom: 1rem; font-size: 0.85rem;">Free listing. No commission. 100% money goes to your family.</p>
+                
+                <form id="businessForm">
+                    <div class="form-group">
+                        <label>🏪 Business Name *</label>
+                        <input type="text" id="businessName" placeholder="e.g., Sharma Tailoring" required>
+                    </div>
+                    <div class="form-group">
+                        <label>📂 Category *</label>
+                        <select id="businessCategory" required>
+                            <option value="">Select category</option>
+                            <option value="Tailoring">🧵 Tailoring/Embroidery</option>
+                            <option value="Plumbing">🔧 Plumbing/Electrical</option>
+                            <option value="Bakery">🍰 Bakery/Sweets</option>
+                            <option value="Stationery">📚 Stationery/Xerox</option>
+                            <option value="Repair">🚗 Bike/Car Repair</option>
+                            <option value="Saloon">💇 Saloon/Beauty</option>
+                            <option value="Other">📦 Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>📍 Location (Area, City) *</label>
+                        <input type="text" id="businessLocation" placeholder="e.g., Rajajinagar, Bangalore" required>
+                    </div>
+                    <div class="form-group">
+                        <label>📞 WhatsApp Number *</label>
+                        <input type="tel" id="businessWhatsapp" placeholder="10-digit number" required>
+                    </div>
+                    <div class="form-group">
+                        <label>📝 Description (What do you offer?)</label>
+                        <textarea id="businessDescription" rows="3" placeholder="e.g., Custom stitching, uniform stitching, dress alterations..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>👤 Your Name (Student) *</label>
+                        <input type="text" id="studentName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>🏛️ Your College *</label>
+                        <input type="text" id="studentCollege" required>
+                    </div>
+                    <button type="submit" class="btn-primary">✨ List Business (FREE) →</button>
+                </form>
+            </div>
+        </div>
+
+        <footer>
+            Campus Central — A JetStream Initiative | Supporting student families, 100% free
+        </footer>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000/api';
+        let authToken = localStorage.getItem('authToken');
+
+        async function apiCall(endpoint, method, body = null, requiresAuth = true) {
+            const headers = { 'Content-Type': 'application/json' };
+            if (requiresAuth && authToken) headers['Authorization'] = `Bearer ${authToken}`;
+            const options = { method, headers };
+            if (body) options.body = JSON.stringify(body);
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.detail || 'API call failed');
+            return data;
+        }
+
+        async function loadBusinesses() {
+            const category = document.getElementById('categoryFilter').value;
+            const container = document.getElementById('businessesList');
+            container.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading businesses...</div>';
+            
+            try {
+                const businesses = await apiCall(`/business/list?category=${category}`, 'GET', null, false);
+                
+                if (businesses.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><i class="fas fa-store"></i><h3>No businesses listed yet</h3><p>Be the first to list your family business!</p></div>';
+                    return;
+                }
+                
+                container.innerHTML = businesses.map(b => `
+                    <div class="business-card">
+                        <div class="business-name">${escapeHtml(b.name)}</div>
+                        <div class="business-category">${escapeHtml(b.category)}</div>
+                        <div class="business-details"><i class="fas fa-map-marker-alt"></i> ${escapeHtml(b.location)}</div>
+                        <div class="business-details"><i class="fas fa-info-circle"></i> ${escapeHtml(b.description || 'Contact for more details')}</div>
+                        <div class="business-details" style="font-size: 0.7rem; color: #999;">👤 Listed by: ${escapeHtml(b.student_name)} (${escapeHtml(b.college)})</div>
+                        <div class="business-details" style="font-size: 0.65rem; color: #aaa;">👁️ ${b.views || 0} views</div>
+                        <button class="whatsapp-btn" onclick="contactOnWhatsapp('${b.whatsapp}', '${escapeHtml(b.name)}')">📱 Contact on WhatsApp</button>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error(error);
+                container.innerHTML = '<div class="empty-state">Error loading businesses. Please try again.</div>';
+            }
+        }
+
+        function contactOnWhatsapp(whatsapp, businessName) {
+            const message = `Hi! I'm interested in your services from Campus Central.`;
+            const url = `https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`;
+            window.open(url, '_blank');
+        }
+
+        function switchTab(tab) {
+            const listTab = document.getElementById('listTab');
+            const addTab = document.getElementById('addTab');
+            const btns = document.querySelectorAll('.tab-btn');
+            
+            if (tab === 'list') {
+                listTab.style.display = 'block';
+                addTab.style.display = 'none';
+                btns[0].classList.add('active');
+                btns[1].classList.remove('active');
+                loadBusinesses();
+            } else {
+                listTab.style.display = 'none';
+                addTab.style.display = 'block';
+                btns[0].classList.remove('active');
+                btns[1].classList.add('active');
+            }
+        }
+
+        document.getElementById('businessForm')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!authToken) {
+                alert('Please login first to list your business');
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            const newBusiness = {
+                name: document.getElementById('businessName').value.trim(),
+                category: document.getElementById('businessCategory').value,
+                location: document.getElementById('businessLocation').value.trim(),
+                whatsapp: document.getElementById('businessWhatsapp').value.trim(),
+                description: document.getElementById('businessDescription').value.trim(),
+                student_name: document.getElementById('studentName').value.trim(),
+                college: document.getElementById('studentCollege').value.trim()
+            };
+
+            if (!newBusiness.name || !newBusiness.category || !newBusiness.location || !newBusiness.whatsapp || !newBusiness.student_name || !newBusiness.college) {
+                alert('Please fill all required fields');
+                return;
+            }
+
+            try {
+                await apiCall('/business/create', 'POST', newBusiness, true);
+                alert('✅ Your family business has been listed successfully!');
+                document.getElementById('businessForm').reset();
+                switchTab('list');
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        });
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Load initial businesses
+        loadBusinesses();
+    </script>
+    <script src="js/auth-guard.js"></script>`n</body>
+</html>

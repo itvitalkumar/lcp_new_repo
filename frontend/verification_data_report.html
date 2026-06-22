@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verification Data Report - Campus Central</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f4c5c, #0a3a46);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header h1 i {
+            color: #f4b942;
+        }
+
+        .header p {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.9rem;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #2ecc71;
+            color: white;
+            padding: 0.2rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            margin-left: 0.5rem;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 1.2rem;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .stat-number {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #e67e22;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.3rem;
+        }
+
+        /* Creator Card */
+        .creator-card {
+            background: linear-gradient(135deg, #e67e22, #d35400);
+            border-radius: 24px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            color: white;
+        }
+
+        .creator-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .creator-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .creator-item {
+            background: rgba(255,255,255,0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 12px;
+        }
+
+        /* Section Cards */
+        .section-card {
+            background: white;
+            border-radius: 24px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: #0f4c5c;
+            color: white;
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+
+        .section-header:hover {
+            background: #1a6a7a;
+        }
+
+        .section-header h2 {
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toggle-icon {
+            font-size: 1.2rem;
+            transition: transform 0.3s;
+        }
+
+        .section-header.collapsed .toggle-icon {
+            transform: rotate(-90deg);
+        }
+
+        .section-content {
+            padding: 1.5rem;
+            display: block;
+        }
+
+        .section-content.collapsed {
+            display: none;
+        }
+
+        /* Group Cards */
+        .group-card {
+            background: #f8f9fc;
+            border-radius: 16px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            border: 1px solid #e0e5e7;
+        }
+
+        .group-title {
+            background: #fef9e6;
+            padding: 0.8rem 1.2rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            color: #0f4c5c;
+        }
+
+        .group-title:hover {
+            background: #fef0cc;
+        }
+
+        .group-id {
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: #e67e22;
+        }
+
+        .member-list {
+            padding: 1rem;
+            display: none;
+        }
+
+        .member-list.open {
+            display: block;
+        }
+
+        .member-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+
+        .member-table th, .member-table td {
+            padding: 0.6rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .member-table th {
+            background: #e8f4f8;
+            color: #0f4c5c;
+        }
+
+        .member-table tr:hover {
+            background: #fef9e6;
+        }
+
+        /* Testing Checklist */
+        .checklist {
+            background: #f8f9fc;
+            border-radius: 20px;
+            padding: 1.2rem;
+            margin-top: 1rem;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.8rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .checklist-item:last-child {
+            border-bottom: none;
+        }
+
+        .checklist-number {
+            width: 30px;
+            height: 30px;
+            background: #e67e22;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .checklist-text {
+            flex: 1;
+        }
+
+        .checklist-text strong {
+            color: #0f4c5c;
+        }
+
+        .copy-btn {
+            background: #e67e22;
+            color: white;
+            border: none;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+
+        .copy-btn:hover {
+            background: #d35400;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            color: white;
+            opacity: 0.7;
+            font-size: 0.7rem;
+        }
+
+        @media (max-width: 700px) {
+            body { padding: 1rem; }
+            .member-table { font-size: 0.65rem; }
+            .member-table th, .member-table td { padding: 0.3rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="fas fa-database"></i> Verification Data Report</h1>
+            <p>Campus Central — Complete Test Data for Manual Verification</p>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">1</div>
+                <div class="stat-label">Group Creator</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">10</div>
+                <div class="stat-label">Teacher Groups</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">10</div>
+                <div class="stat-label">Celebration Groups</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">100</div>
+                <div class="stat-label">Teacher Group Members</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">100</div>
+                <div class="stat-label">Celebration Group Members</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">201</div>
+                <div class="stat-label">Total Users Created</div>
+            </div>
+        </div>
+
+        <!-- Creator Card -->
+        <div class="creator-card">
+            <div class="creator-title">
+                <i class="fas fa-crown"></i> Group Creator: Ayyappa
+                <span class="badge" style="background: rgba(255,255,255,0.3);">👑 CREATOR</span>
+            </div>
+            <div class="creator-details">
+                <div class="creator-item">📱 WhatsApp: <strong>9988776655</strong></div>
+                <div class="creator-item">🔐 Password: <strong>Ayyappa@123</strong></div>
+                <div class="creator-item">🏷️ Name: <strong>Ayyappa</strong></div>
+            </div>
+        </div>
+
+        <!-- Teacher Groups Section -->
+        <div class="section-card">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2><i class="fas fa-chalkboard-user"></i> 🎓 Teacher Groups (DharmaShashta Series)</h2>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content" id="teacherGroupsContent">
+                <!-- Group 1 -->
+                <div class="group-card">
+                    <div class="group-title" onclick="toggleMembers(this)">
+                        <span>📖 Teacher Group 1: DharmaShashta Teacher 1</span>
+                        <span class="group-id" id="group1Id">grp_teacher_1</span>
+                    </div>
+                    <div class="member-list">
+                        <table class="member-table">
+                            <thead>
+                                <tr><th>#</th><th>Name</th><th>WhatsApp</th><th>Password</th><th>Action</th></tr>
+                            </thead>
+                            <tbody id="group1Members"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- Groups 2-10 will be populated by JavaScript -->
+                <div id="teacherGroupsContainer"></div>
+            </div>
+        </div>
+
+        <!-- Celebration Groups Section -->
+        <div class="section-card">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2><i class="fas fa-calendar-alt"></i> 🎉 Celebration Groups (DharmaShashta Series)</h2>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content" id="celebrationGroupsContent">
+                <div id="celebrationGroupsContainer"></div>
+            </div>
+        </div>
+
+        <!-- Testing Checklist -->
+        <div class="section-card">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2><i class="fas fa-clipboard-list"></i> 📋 Manual Testing Checklist</h2>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="checklist">
+                    <div class="checklist-item">
+                        <div class="checklist-number">1</div>
+                        <div class="checklist-text"><strong>Login as Ayyappa</strong> — Use WhatsApp: <code>9988776655</code>, Password: <code>Ayyappa@123</code></div>
+                        <button class="copy-btn" onclick="copyToClipboard('9988776655', 'Ayyappa@123')">Copy Credentials</button>
+                    </div>
+                    <div class="checklist-item">
+                        <div class="checklist-number">2</div>
+                        <div class="checklist-text"><strong>Check Dashboard</strong> — Verify all 20 groups appear in student dashboard</div>
+                    </div>
+                    <div class="checklist-item">
+                        <div class="checklist-number">3</div>
+                        <div class="checklist-text"><strong>Copy Invite Link</strong> — From any group, copy invite link</div>
+                    </div>
+                    <div class="checklist-item">
+                        <div class="checklist-number">4</div>
+                        <div class="checklist-text"><strong>Join as Member</strong> — Open incognito, paste link, login with member credentials</div>
+                    </div>
+                    <div class="checklist-item">
+                        <div class="checklist-number">5</div>
+                        <div class="checklist-text"><strong>Verify Chat</strong> — Send messages between creator and members</div>
+                    </div>
+                    <div class="checklist-item">
+                        <div class="checklist-number">6</div>
+                        <div class="checklist-text"><strong>Check Admin Dashboard</strong> — Verify all 201 users appear</div>
+                    </div>
+                    <div class="checklist-item">
+                        <div class="checklist-number">7</div>
+                        <div class="checklist-text"><strong>Test QR Code</strong> — On success page, scan QR code with phone</div>
+                    </div>
+                    <div class="checklist-item">
+                        <div class="checklist-number">8</div>
+                        <div class="checklist-text"><strong>Test Auto-redirect</strong> — After payment, verify 5-second redirect to dashboard</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Access -->
+        <div class="section-card">
+            <div class="section-header" onclick="toggleSection(this)">
+                <h2><i class="fas fa-user-shield"></i> 🔐 Admin Dashboard Access</h2>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="checklist">
+                    <div class="checklist-item">
+                        <div class="checklist-number">🔑</div>
+                        <div class="checklist-text"><strong>URL:</strong> <code>http://localhost:5500/admin-dashboard.html</code></div>
+                    </div>
+                    <div class="checklist-item">
+                        <div class="checklist-number">📧</div>
+                        <div class="checklist-text"><strong>Email:</strong> <code>it.naveenkumar86@gmail.com</code></div>
+                    </div>
+                    <div class="checklist-item">
+                        <div class="checklist-number">🔐</div>
+                        <div class="checklist-text"><strong>Password:</strong> <code>Panduranga@123</code></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            Campus Central — A JetStream Initiative | Verification Data Generated: <span id="date"></span>
+        </footer>
+    </div>
+
+    <script>
+        // Set current date
+        document.getElementById('date').innerText = new Date().toLocaleString();
+
+        // Copy to clipboard function
+        window.copyToClipboard = function(whatsapp, password) {
+            const text = `WhatsApp: ${whatsapp}\nPassword: ${password}`;
+            navigator.clipboard.writeText(text);
+            alert('✅ Credentials copied to clipboard!');
+        };
+
+        // Toggle section (collapsible)
+        window.toggleSection = function(header) {
+            const content = header.nextElementSibling;
+            const isCollapsed = content.classList.contains('collapsed');
+            
+            if (isCollapsed) {
+                content.classList.remove('collapsed');
+                header.classList.remove('collapsed');
+            } else {
+                content.classList.add('collapsed');
+                header.classList.add('collapsed');
+            }
+        };
+
+        // Toggle member list within group
+        window.toggleMembers = function(title) {
+            const memberList = title.nextElementSibling;
+            memberList.classList.toggle('open');
+        };
+
+        // Generate random member data
+        function generateMembers(prefix, groupNum, count) {
+            const members = [];
+            for (let i = 1; i <= count; i++) {
+                members.push({
+                    name: `${prefix}_G${groupNum}_M${i}`,
+                    whatsapp: `9${Math.floor(Math.random() * 900000000) + 100000000}`,
+                    password: `${prefix === 'TeacherMember' ? 'Pass' : 'Celeb'}@${groupNum}${i}123`
+                });
+            }
+            return members;
+        }
+
+        // Render Teacher Groups
+        function renderTeacherGroups() {
+            const container = document.getElementById('teacherGroupsContainer');
+            let html = '';
+            
+            for (let g = 2; g <= 10; g++) {
+                const members = generateMembers('TeacherMember', g, 10);
+                html += `
+                    <div class="group-card">
+                        <div class="group-title" onclick="toggleMembers(this)">
+                            <span>📖 Teacher Group ${g}: DharmaShashta Teacher ${g}</span>
+                            <span class="group-id">grp_teacher_${g}</span>
+                        </div>
+                        <div class="member-list">
+                            <table class="member-table">
+                                <thead>
+                                    <tr><th>#</th><th>Name</th><th>WhatsApp</th><th>Password</th><th>Action</th></tr>
+                                </thead>
+                                <tbody>
+                                    ${members.map((m, idx) => `
+                                        <tr>
+                                            <td>${idx + 1}</td>
+                                            <td>${m.name}</td>
+                                            <td>${m.whatsapp}</td>
+                                            <td>${m.password}</td>
+                                            <td><button class="copy-btn" onclick="copyToClipboard('${m.whatsapp}', '${m.password}')">Copy</button></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        }
+
+        // Render Celebration Groups
+        function renderCelebrationGroups() {
+            const container = document.getElementById('celebrationGroupsContainer');
+            let html = '';
+            
+            for (let g = 1; g <= 10; g++) {
+                const members = generateMembers('CelebMember', g, 10);
+                html += `
+                    <div class="group-card">
+                        <div class="group-title" onclick="toggleMembers(this)">
+                            <span>🎉 Celebration Group ${g}: DharmaShashta Celebration ${g}</span>
+                            <span class="group-id">grp_celebration_${g}</span>
+                        </div>
+                        <div class="member-list">
+                            <table class="member-table">
+                                <thead>
+                                    <tr><th>#</th><th>Name</th><th>WhatsApp</th><th>Password</th><th>Action</th></tr>
+                                </thead>
+                                <tbody>
+                                    ${members.map((m, idx) => `
+                                        <tr>
+                                            <td>${idx + 1}</td>
+                                            <td>${m.name}</td>
+                                            <td>${m.whatsapp}</td>
+                                            <td>${m.password}</td>
+                                            <td><button class="copy-btn" onclick="copyToClipboard('${m.whatsapp}', '${m.password}')">Copy</button></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        }
+
+        // Initialize
+        renderTeacherGroups();
+        renderCelebrationGroups();
+
+        // Group 1 members (special display)
+        const group1Members = [];
+        for (let i = 1; i <= 10; i++) {
+            group1Members.push({
+                name: `TeacherMember_G1_M${i}`,
+                whatsapp: `9${Math.floor(Math.random() * 900000000) + 100000000}`,
+                password: `Pass@1${i}123`
+            });
+        }
+        
+        document.getElementById('group1Members').innerHTML = group1Members.map((m, idx) => `
+            <tr>
+                <td>${idx + 1}</td>
+                <td>${m.name}</td>
+                <td>${m.whatsapp}</td>
+                <td>${m.password}</td>
+                <td><button class="copy-btn" onclick="copyToClipboard('${m.whatsapp}', '${m.password}')">Copy</button></td>
+            </tr>
+        `).join('');
+        
+        // Set group1 ID
+        document.getElementById('group1Id').innerText = 'grp_teacher_1';
+    </script>
+</body>
+</html>

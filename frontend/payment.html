@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Your Payment — Campus Central</title>
+
+    <!-- Master Config -->
+    <script src="js/config.js"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <!-- Razorpay Config (contains RAZORPAY_KEY_ID) -->
+    <script src="js/razorpay-config.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f4c5c, #0a3a46);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .payment-container {
+            background: white;
+            border-radius: 32px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .payment-icon {
+            font-size: 3rem;
+            color: #e67e22;
+            margin-bottom: 0.5rem;
+        }
+
+        .payment-container h2 {
+            color: #0f4c5c;
+            font-size: 1.5rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .payment-container .subhead {
+            color: #5a6e7a;
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .amount-box {
+            background: #fef9e6;
+            border-radius: 24px;
+            padding: 1.5rem;
+            border: 2px solid #f4b942;
+            margin-bottom: 1.5rem;
+        }
+
+        .amount-box .label {
+            font-size: 0.8rem;
+            color: #5a6e7a;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .amount-box .amount {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #e67e22;
+            margin: 0.3rem 0;
+        }
+
+        .amount-box .service-name {
+            font-size: 0.9rem;
+            color: #0f4c5c;
+            font-weight: 600;
+        }
+
+        .details-box {
+            background: #f8f9fc;
+            border-radius: 20px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            text-align: left;
+            font-size: 0.85rem;
+            color: #1e2a2e;
+        }
+
+        .details-box .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.4rem 0;
+            border-bottom: 1px solid #e0e5e7;
+        }
+
+        .details-box .row:last-child {
+            border-bottom: none;
+        }
+
+        .details-box .label {
+            color: #5a6e7a;
+        }
+
+        .details-box .value {
+            font-weight: 600;
+            color: #0f4c5c;
+        }
+
+        .pay-btn {
+            background: #2ecc71;
+            color: white;
+            border: none;
+            padding: 0.9rem;
+            border-radius: 40px;
+            font-size: 1rem;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .pay-btn:hover:not(:disabled) {
+            background: #27ae60;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
+        }
+
+        .pay-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .payment-note {
+            font-size: 0.7rem;
+            color: #5a6e7a;
+            margin-top: 1rem;
+            padding: 0.8rem;
+            background: #e8f4f8;
+            border-radius: 16px;
+        }
+
+        .payment-note i {
+            color: #e67e22;
+        }
+
+        #paymentResult {
+            margin-top: 1rem;
+            padding: 0.8rem;
+            border-radius: 16px;
+            display: none;
+        }
+
+        .success-msg {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .error-msg {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 1rem;
+            color: #0f4c5c;
+            text-decoration: none;
+            font-size: 0.8rem;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 500px) {
+            body {
+                padding: 1rem;
+            }
+            .payment-container {
+                padding: 1.2rem;
+            }
+            .amount-box .amount {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="payment-container" id="paymentContainer">
+
+        <div class="payment-icon">
+            <i class="fas fa-credit-card"></i>
+        </div>
+
+        <h2>Complete Your Payment</h2>
+        <p class="subhead">One-time fee to activate your service</p>
+
+        <!-- Amount Box -->
+        <div class="amount-box">
+            <div class="label">Total Amount</div>
+            <div class="amount">₹<span id="displayAmount">0</span></div>
+            <div class="service-name" id="displayService">—</div>
+        </div>
+
+        <!-- Order Details -->
+        <div class="details-box">
+            <div class="row">
+                <span class="label">Service</span>
+                <span class="value" id="detailService">—</span>
+            </div>
+            <div class="row">
+                <span class="label">Group / Job ID</span>
+                <span class="value" id="detailGroupId">—</span>
+            </div>
+            <div class="row">
+                <span class="label">Status</span>
+                <span class="value" id="detailStatus" style="color: #e67e22;">Pending</span>
+            </div>
+        </div>
+
+        <!-- Pay Button -->
+        <button class="pay-btn" id="payBtn" onclick="initiatePayment()">
+            <i class="fas fa-lock"></i> Pay Now
+        </button>
+
+        <div class="payment-note">
+            <i class="fas fa-info-circle"></i>
+            Pay via Credit Card, Debit Card, UPI (GPay/PhonePe/Paytm), or NetBanking.
+            <br><small>Your payment is secure and encrypted.</small>
+        </div>
+
+        <div id="paymentResult"></div>
+
+        <a href="javascript:history.back()" class="back-link">
+            <i class="fas fa-arrow-left"></i> Go Back
+        </a>
+    </div>
+
+    <script>
+        // ============================================================
+        // CONFIGURATION
+        // ============================================================
+        const API_BASE = window.ACTIVE_CONFIG?.API_BASE_URL || 'http://localhost:8000/api';
+
+        // ============================================================
+        // GET URL PARAMETERS
+        // ============================================================
+        function getParam(name) {
+            const url = new URL(window.location.href);
+            return url.searchParams.get(name);
+        }
+
+        const amount = parseInt(getParam('amount')) || 0;
+        const groupId = getParam('group_id') || getParam('groupId') || null;
+        const groupType = getParam('type') || getParam('group_type') || 'service';
+        const serviceName = getParam('service') || getParam('name') || 'Service Activation';
+        const successUrl = getParam('success_url') || 'student_dashboard.html';
+        const cancelUrl = getParam('cancel_url') || 'javascript:history.back()';
+
+        // ============================================================
+        // DOM ELEMENTS
+        // ============================================================
+        const displayAmount = document.getElementById('displayAmount');
+        const displayService = document.getElementById('displayService');
+        const detailService = document.getElementById('detailService');
+        const detailGroupId = document.getElementById('detailGroupId');
+        const detailStatus = document.getElementById('detailStatus');
+        const payBtn = document.getElementById('payBtn');
+        const resultDiv = document.getElementById('paymentResult');
+
+        // ============================================================
+        // RENDER PAGE
+        // ============================================================
+        function renderPage() {
+            displayAmount.innerText = amount || '0';
+            displayService.innerText = serviceName || '—';
+            detailService.innerText = serviceName || '—';
+            detailGroupId.innerText = groupId || 'N/A';
+            detailStatus.innerText = 'Pending';
+            detailStatus.style.color = '#e67e22';
+
+            if (!amount || amount <= 0) {
+                payBtn.disabled = true;
+                payBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Invalid Amount';
+                showResult('Invalid payment amount. Please go back and try again.', 'error');
+            }
+
+            if (!groupId) {
+                payBtn.disabled = true;
+                payBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Missing Group ID';
+                showResult('Group ID not found. Please go back and try again.', 'error');
+            }
+        }
+
+        // ============================================================
+        // HELPER FUNCTIONS
+        // ============================================================
+        function getAuthToken() {
+            return localStorage.getItem('authToken');
+        }
+
+        function showResult(message, type) {
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = message;
+            resultDiv.className = type === 'error' ? 'error-msg' : 'success-msg';
+        }
+
+        function createConfetti() {
+            const emojis = ['🎉', '✨', '🎊', '🎈', '🌸', '🍾', '🎂'];
+            for (let i = 0; i < 40; i++) {
+                setTimeout(() => {
+                    const el = document.createElement('div');
+                    el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                    el.style.position = 'fixed';
+                    el.style.left = Math.random() * 100 + '%';
+                    el.style.top = '-20px';
+                    el.style.fontSize = (Math.random() * 15 + 12) + 'px';
+                    el.style.pointerEvents = 'none';
+                    el.style.zIndex = '9999';
+                    el.style.transition = 'transform 2.5s linear, opacity 2.5s linear';
+                    document.body.appendChild(el);
+                    requestAnimationFrame(() => {
+                        el.style.transform = `translateY(${window.innerHeight + 20}px) rotate(${Math.random() * 720}deg)`;
+                        el.style.opacity = '0';
+                    });
+                    setTimeout(() => el.remove(), 2500);
+                }, Math.random() * 300);
+            }
+        }
+
+        // ============================================================
+        // LOAD RAZORPAY SCRIPT
+        // ============================================================
+        function loadRazorpayScript() {
+            return new Promise((resolve, reject) => {
+                if (window.Razorpay) {
+                    resolve(true);
+                    return;
+                }
+                const script = document.createElement('script');
+                script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+                script.onload = () => resolve(true);
+                script.onerror = () => reject(new Error('Failed to load Razorpay SDK'));
+                document.body.appendChild(script);
+            });
+        }
+
+        // ============================================================
+        // INITIATE PAYMENT
+        // ============================================================
+        async function initiatePayment() {
+            if (!amount || amount <= 0) {
+                alert('Invalid payment amount');
+                return;
+            }
+
+            if (!groupId) {
+                alert('Group ID missing. Please go back and try again.');
+                return;
+            }
+
+            const token = getAuthToken();
+            if (!token) {
+                alert('Please login first');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            payBtn.disabled = true;
+            payBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Initializing...';
+
+            try {
+                // Step 1: Create Razorpay Order
+                const orderRes = await fetch(`${API_BASE}/payment/create-order`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        amount: amount,
+                        group_id: groupId,
+                        group_type: groupType
+                    })
+                });
+
+                if (!orderRes.ok) {
+                    const err = await orderRes.json();
+                    throw new Error(err.detail || 'Order creation failed');
+                }
+
+                const orderData = await orderRes.json();
+
+                // Step 2: Load Razorpay SDK
+                await loadRazorpayScript();
+
+                // Step 3: Get current user
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+
+                // Step 4: Open Razorpay Checkout
+                const options = {
+                    key: orderData.key,
+                    amount: orderData.amount * 100,
+                    currency: 'INR',
+                    name: 'Campus Central',
+                    description: `${serviceName} - Activation Fee`,
+                    order_id: orderData.order_id,
+                    prefill: {
+                        name: currentUser.full_name || '',
+                        email: currentUser.email || '',
+                        contact: currentUser.whatsapp || ''
+                    },
+                    theme: { color: '#e67e22' },
+                    handler: async function(response) {
+                        showResult('⏳ Verifying payment...', 'success');
+
+                        try {
+                            const verifyRes = await fetch(`${API_BASE}/payment/verify-payment`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${token}`
+                                },
+                                body: JSON.stringify({
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_order_id: response.razorpay_order_id,
+                                    razorpay_signature: response.razorpay_signature,
+                                    group_id: groupId,
+                                    group_type: groupType
+                                })
+                            });
+
+                            const verifyData = await verifyRes.json();
+
+                            if (verifyData.success) {
+                                showResult('✅ Payment successful! Redirecting...', 'success');
+                                createConfetti();
+
+                                setTimeout(() => {
+                                    window.location.href = successUrl;
+                                }, 2000);
+                            } else {
+                                throw new Error(verifyData.message || 'Verification failed');
+                            }
+                        } catch (err) {
+                            showResult(`❌ Payment verification failed: ${err.message}`, 'error');
+                            payBtn.disabled = false;
+                            payBtn.innerHTML = '<i class="fas fa-credit-card"></i> Retry Payment';
+                        }
+                    }
+                };
+
+                const razorpay = new Razorpay(options);
+                razorpay.open();
+
+                payBtn.disabled = false;
+                payBtn.innerHTML = '<i class="fas fa-credit-card"></i> Pay Now';
+
+            } catch (err) {
+                showResult(`❌ Error: ${err.message}`, 'error');
+                payBtn.disabled = false;
+                payBtn.innerHTML = '<i class="fas fa-credit-card"></i> Retry Payment';
+            }
+        }
+
+        // ============================================================
+        // INIT
+        // ============================================================
+        renderPage();
+
+        // Expose for inline onclick
+        window.initiatePayment = initiatePayment;
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Campus Central — Find Groups & Events</title>
+    
+    <!-- Master Configuration -->
+    <script src="js/config.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* ========== INDEX.HTML DESIGN SYSTEM ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+        }
+
+        :root {
+            --primary: #0f4c5c;
+            --primary-dark: #0a3a46;
+            --secondary: #e67e22;
+            --accent: #ffb347;
+            --gold: #f4b942;
+            --light: #fef9e6;
+            --dark: #1e2a2e;
+            --gray-bg: #f8f9fc;
+            --success: #2ecc71;
+            --coffee: #6f4e2e;
+        }
+
+        body {
+            background-color: var(--gray-bg);
+            color: var(--dark);
+            line-height: 1.5;
+        }
+
+        /* Header styles (identical to index.html) */
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 0.8rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .logo {
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .logo-main {
+            font-size: 1.4rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-main i {
+            color: var(--gold);
+            font-size: 1.4rem;
+        }
+
+        .brand-parent {
+            font-size: 0.55rem;
+            opacity: 0.8;
+            letter-spacing: 1px;
+        }
+
+        nav {
+            flex: 1;
+            text-align: center;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.3rem 0.5rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            transition: 0.2s;
+            cursor: pointer;
+        }
+
+        nav a:hover {
+            background-color: rgba(255,255,255,0.15);
+            color: var(--accent);
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: white;
+            min-width: 170px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 12px;
+            top: 100%;
+            left: 0;
+        }
+
+        .dropdown-content a {
+            color: var(--primary);
+            padding: 6px 10px;
+            text-decoration: none;
+            display: block;
+            font-size: 0.7rem;
+            text-align: left;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .btn-primary {
+            background-color: var(--secondary);
+            color: white;
+            padding: 0.3rem 0.7rem;
+            border-radius: 40px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid white;
+            color: white;
+            padding: 0.3rem 0.7rem;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.7rem;
+        }
+
+        .btn-outline:hover {
+            background: white;
+            color: var(--primary);
+        }
+
+        .hidden { display: none; }
+                /* Main container */
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        /* Page header */
+        .page-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .page-header h1 i {
+            color: var(--gold);
+            margin-right: 0.5rem;
+        }
+
+        .page-header p {
+            color: #5a6e7a;
+            font-size: 0.9rem;
+        }
+
+        /* Search card */
+        .search-card {
+            background: white;
+            border-radius: 24px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border-top: 3px solid var(--gold);
+        }
+
+        .search-row {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .search-input, .district-select {
+            flex: 2;
+            padding: 0.8rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+
+        .district-select { flex: 1; }
+
+        .search-input:focus, .district-select:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 2px rgba(230,126,34,0.1);
+        }
+
+        .search-btn {
+            background: var(--secondary);
+            color: white;
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .search-btn:hover {
+            background: #d35400;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(230,126,34,0.3);
+        }
+
+        /* Filter buttons */
+        .filter-buttons {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .filter-btn {
+            background: #eef2f3;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .filter-btn.active {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .filter-btn:hover:not(.active) {
+            background: #e0e5e7;
+        }
+
+        /* Results count */
+        .results-count {
+            margin: 1rem 0;
+            color: #5a6e7a;
+            font-size: 0.85rem;
+        }
+
+        /* Groups grid */
+        .groups-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .group-card {
+            background: white;
+            border-radius: 24px;
+            padding: 1.2rem;
+            transition: all 0.3s;
+            border-top: 3px solid var(--gold);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .group-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+        }
+
+        .group-type {
+            display: inline-block;
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .type-teacher {
+            background: #ffe0b3;
+            color: #cc7000;
+        }
+
+        .type-celebrate {
+            background: #e0b3ff;
+            color: #6c3483;
+        }
+
+        .group-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .group-details {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+        }
+
+        .group-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.8rem;
+            padding-top: 0.8rem;
+            border-top: 1px solid #eee;
+        }
+
+        .member-count {
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        .status-badge {
+            padding: 0.2rem 0.7rem;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .join-btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 0.4rem 1rem;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .join-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .join-btn:hover:not(:disabled) {
+            background: #d35400;
+            transform: translateY(-2px);
+        }
+
+        .empty-state, .loading-state {
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: 24px;
+            color: #999;
+        }
+
+        .empty-state i, .loading-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        /* Footer styles */
+        footer {
+            background: var(--dark);
+            color: white;
+            padding: 2rem 2rem 1rem;
+            margin-top: 3rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-content h3 {
+            font-size: 1rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-content ul li, .footer-content p {
+            font-size: 0.75rem;
+            list-style: none;
+        }
+
+        .copyright {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.7rem;
+        }
+
+        @media (max-width: 700px) {
+            body { padding: 0; }
+            .container { padding: 0 1rem; margin: 1rem auto; }
+            .search-row { flex-direction: column; }
+            .groups-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 900px) {
+            nav ul { gap: 0.3rem; }
+            nav a { font-size: 0.65rem; padding: 0.25rem 0.4rem; }
+            .nav-container { flex-direction: column; }
+            .header-buttons { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+        <!-- Header exactly matching index.html -->
+    <header>
+        <div class="nav-container">
+            <div class="logo">
+                <div class="logo-main">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>Campus Central</span>
+                </div>
+                <div class="brand-parent">
+                    <i class="fas fa-water"></i> A JetStream Initiative
+                </div>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="teacher_group_creation_start.html">Thank Teacher</a></li>
+                    <li><a href="celebration_group_creation_start.html">Celebrate Together</a></li>
+                    <li><a href="find_groups.html">Find Groups</a></li>
+                    <li><a href="student_dashboard.html">My Groups</a></li>
+                    <li><a href="index.html">Success Stories</a></li>
+                    <li class="dropdown">
+                        <a href="#">✨ Explore All Features ▼</a>
+                        <div class="dropdown-content">
+                            <a href="find_my_friend.html">🔍 Find My Friend</a>
+                            <a href="avatar_studio.html">🎨 Avatar Studio</a>
+                            <a href="crush_quiz.html">💕 Crush Corner</a>
+                            <a href="family_business.html">🧵 Family Business</a>
+                            <a href="ants_startup.html">🐜 Startup Nest</a>
+                            <a href="keep_hive_buzzing.html">🍯 Keep the Hive</a>
+                            <a href="teen_space.html">👥 Teen Space</a>
+                            <a href="marriage_staffing.html">💒 Marriage Staffing</a>
+                        </div>
+                    </li>
+                </ul>
+            </nav>
+            <div class="header-buttons" id="authButtons">
+                <button class="btn-outline" onclick="window.location.href='login.html'">Login</button>
+                <button class="btn-primary" onclick="window.location.href='signup.html'">Sign Up →</button>
+            </div>
+            <div id="userMenu" class="hidden">
+                <span id="userName" style="margin-right: 0.8rem; font-size: 0.7rem;"></span>
+                <button class="btn-outline" onclick="logout()" style="font-size: 0.7rem; padding: 0.25rem 0.6rem;">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="page-header">
+            <h1><i class="fas fa-search"></i> Find Groups & Events</h1>
+            <p>Discover teacher surprises and reunions happening near you</p>
+        </div>
+
+        <div class="search-card">
+            <div class="search-row">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search by teacher name, event title, or college...">
+                <select id="districtFilter" class="district-select">
+                    <option value="">All Districts</option>
+                    <option value="Bengaluru Urban">Bengaluru Urban</option>
+                    <option value="Bengaluru Rural">Bengaluru Rural</option>
+                    <option value="Mysuru">Mysuru</option>
+                    <option value="Dakshina Kannada">Dakshina Kannada</option>
+                    <option value="Udupi">Udupi</option>
+                    <option value="Dharwad">Dharwad</option>
+                    <option value="Belagavi">Belagavi</option>
+                    <option value="Kalaburagi">Kalaburagi</option>
+                    <option value="Ballari">Ballari</option>
+                    <option value="Vijayapura">Vijayapura</option>
+                    <option value="Tumakuru">Tumakuru</option>
+                    <option value="Shivamogga">Shivamogga</option>
+                    <option value="Raichur">Raichur</option>
+                    <option value="Bidar">Bidar</option>
+                    <option value="Hassan">Hassan</option>
+                    <option value="Mandya">Mandya</option>
+                    <option value="Chitradurga">Chitradurga</option>
+                    <option value="Kolar">Kolar</option>
+                    <option value="Davanagere">Davanagere</option>
+                    <option value="Gadag">Gadag</option>
+                    <option value="Haveri">Haveri</option>
+                    <option value="Koppal">Koppal</option>
+                    <option value="Bagalkot">Bagalkot</option>
+                    <option value="Chikkamagaluru">Chikkamagaluru</option>
+                    <option value="Kodagu">Kodagu</option>
+                    <option value="Ramanagara">Ramanagara</option>
+                    <option value="Chikkaballapur">Chikkaballapur</option>
+                    <option value="Yadgir">Yadgir</option>
+                </select>
+                <button class="search-btn" onclick="searchGroups()"><i class="fas fa-search"></i> Search</button>
+            </div>
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">All</button>
+                <button class="filter-btn" data-filter="teacher" onclick="setFilter('teacher')">📖 Teacher Gifts</button>
+                <button class="filter-btn" data-filter="celebration" onclick="setFilter('celebration')">🎉 Celebrations</button>
+                <button class="filter-btn" data-filter="active" onclick="setFilter('active')">✅ Active</button>
+            </div>
+        </div>
+
+        <div class="results-count" id="resultsCount">Loading groups...</div>
+        <div id="groupsGrid" class="groups-grid"></div>
+    </div>
+        <footer>
+        <div class="footer-content">
+            <div>
+                <h3>Campus Central</h3>
+                <p>A JetStream Initiative — Bring people together.</p>
+                <a class="coffee-button" style="margin-top:0.5rem; display:inline-flex; background-color: var(--coffee); color: white; padding: 0.3rem 0.8rem; border-radius: 30px; text-decoration: none; font-size: 0.7rem;" onclick="alert('Thank you for your support! ❤️ UPI: campuscentral@okhdfcbank')">
+                    <i class="fas fa-coffee"></i> Support Our Mission
+                </a>
+            </div>
+            <div>
+                <h3>Tools</h3>
+                <ul>
+                    <li>Thank Teacher</li>
+                    <li>Celebrate Together</li>
+                    <li>Find Groups</li>
+                    <li>My Groups</li>
+                    <li><a href="batchmate_finder.html" style="color:white; text-decoration:none;">Batchmate Finder</a></li>
+                    <li><a href="avatar_studio.html" style="color:white; text-decoration:none;">Avatar Studio</a></li>
+                    <li><a href="crush_quiz.html" style="color:white; text-decoration:none;">Crush Corner</a></li>
+                    <li><a href="family_business.html" style="color:white; text-decoration:none;">Family Business</a></li>
+                    <li><a href="ants_startup.html" style="color:white; text-decoration:none;">Startup Nest</a></li>
+                    <li><a href="keep_hive_buzzing.html" style="color:white; text-decoration:none;">Keep the Hive</a></li>
+                    <li><a href="teen_space.html" style="color:white; text-decoration:none;">Teen Space</a></li>
+                    <li><a href="marriage_staffing.html" style="color:white; text-decoration:none;">Marriage Staffing</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3>Coming Soon</h3>
+                <ul>
+                    <li>Campus Legend</li>
+                    <li>Batchmates</li>
+                    <li>Fest Hunter</li>
+                    <li>Hostel Hero</li>
+                    <li>Project Partner</li>
+                    <li>Campus Gully</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Legal</h3>
+                <ul>
+                    <li><a onclick="showLegalPage('disclaimer')" style="color: white; text-decoration: none; cursor: pointer;">Disclaimer</a></li>
+                    <li><a onclick="showLegalPage('privacy')" style="color: white; text-decoration: none; cursor: pointer;">Privacy Policy</a></li>
+                    <li><a onclick="showLegalPage('terms')" style="color: white; text-decoration: none; cursor: pointer;">Terms of Service</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3>Contact</h3>
+                <ul>
+                    <li>hello@campuscentral.in</li>
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>© 2026 Campus Central — A JetStream Initiative. For students across Karnataka.</p>
+            <p style="font-size:0.65rem;">⚠️ Platform fee only. Actual gift money collected offline among friends.</p>
+        </div>
+    </footer>
+        <script src="js/config.js"></script>
+    <script>
+        // ========== SHARED FUNCTIONS FOR HEADER ==========
+        function showLegalPage(type) {
+            const texts = {
+                disclaimer: '⚠️ Campus Central is a facilitation platform only. Platform fee keeps the service running. Actual gift money is collected offline among friends.',
+                privacy: '🔒 We collect your name, email, phone number, and college information for coordination. We do not sell your data.',
+                terms: '📜 By using Campus Central, you agree to be 18 years or older and use the platform responsibly.'
+            };
+            alert(texts[type]);
+        }
+
+        function logout() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('token');
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('user');
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = 'index.html';
+        }
+
+        // Update header based on login state
+        function updateHeaderUI() {
+            const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+            const userData = localStorage.getItem('currentUser') || localStorage.getItem('user');
+            const authDiv = document.getElementById('authButtons');
+            const userMenu = document.getElementById('userMenu');
+            const userNameSpan = document.getElementById('userName');
+
+            if (token && userData) {
+                try {
+                    const user = JSON.parse(userData);
+                    if (authDiv) authDiv.classList.add('hidden');
+                    if (userMenu) userMenu.classList.remove('hidden');
+                    if (userNameSpan) userNameSpan.innerText = user.full_name || (user.email ? user.email.split('@')[0] : 'User');
+                } catch(e) { console.error(e); }
+            } else {
+                if (authDiv) authDiv.classList.remove('hidden');
+                if (userMenu) userMenu.classList.add('hidden');
+            }
+        }
+
+        // ========== FIND GROUPS LOGIC (unchanged) ==========
+        const API_BASE = window.ACTIVE_CONFIG ? window.ACTIVE_CONFIG.API_BASE_URL : 'http://localhost:8000/api';
+        let currentFilter = "all";
+
+        function getAuthToken() {
+            return localStorage.getItem('authToken') || localStorage.getItem('token');
+        }
+
+        async function fetchWithAuth(url, options = {}) {
+            const token = getAuthToken();
+            const headers = { 'Content-Type': 'application/json', ...options.headers };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+            const response = await fetch(url, { ...options, headers });
+            return response;
+        }
+
+        async function loadDistricts() {
+            try {
+                const response = await fetchWithAuth(`${API_BASE}/search/districts`);
+                if (response.ok) {
+                    const districts = await response.json();
+                    const districtSelect = document.getElementById('districtFilter');
+                    if (districts && districts.length > 0) {
+                        while (districtSelect.options.length > 1) districtSelect.remove(1);
+                        districts.forEach(d => {
+                            if (d.district) {
+                                const option = document.createElement('option');
+                                option.value = d.district;
+                                option.textContent = `${d.district} (${d.count} groups)`;
+                                districtSelect.appendChild(option);
+                            }
+                        });
+                    }
+                }
+            } catch (error) { console.error('Error loading districts:', error); }
+        }
+
+        async function searchGroups() {
+            const searchTerm = document.getElementById('searchInput').value.trim();
+            const district = document.getElementById('districtFilter').value;
+            let url = `${API_BASE}/search/groups?`;
+            const params = [];
+            if (searchTerm) params.push(`q=${encodeURIComponent(searchTerm)}`);
+            if (district && district !== "") params.push(`district=${encodeURIComponent(district)}`);
+            if (currentFilter === 'teacher') params.push(`group_type=teacher`);
+            else if (currentFilter === 'celebration') params.push(`group_type=celebration`);
+            url += params.join('&');
+            
+            const grid = document.getElementById('groupsGrid');
+            const resultsCount = document.getElementById('resultsCount');
+            resultsCount.innerHTML = '🔄 Loading groups...';
+            grid.innerHTML = '<div class="loading-state"><i class="fas fa-spinner fa-spin"></i> Loading groups...</div>';
+            
+            try {
+                const response = await fetchWithAuth(url);
+                if (response.status === 401) {
+                    resultsCount.innerHTML = '🔐 Please login to see groups';
+                    grid.innerHTML = `<div class="empty-state"><i class="fas fa-lock"></i><h3>Login Required</h3><p>Please <a href="login.html" style="color: #e67e22;">login</a> to search and join groups.</p></div>`;
+                    return;
+                }
+                if (response.ok) {
+                    let groups = await response.json();
+                    if (currentFilter === 'active') groups = groups.filter(g => g.status === 'active');
+                    renderGroups(groups);
+                } else {
+                    resultsCount.innerHTML = '❌ Failed to load groups';
+                    grid.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h3>Error loading groups</h3><p>Please try again later.</p></div>';
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+                resultsCount.innerHTML = '❌ Network error';
+                grid.innerHTML = '<div class="empty-state"><i class="fas fa-wifi"></i><h3>Connection Error</h3><p>Unable to reach the server.</p></div>';
+            }
+        }
+
+        function renderGroups(groups) {
+            const resultsCount = document.getElementById('resultsCount');
+            const grid = document.getElementById('groupsGrid');
+            if (!groups || groups.length === 0) {
+                resultsCount.innerHTML = '📌 No groups found';
+                grid.innerHTML = `<div class="empty-state"><i class="fas fa-folder-open"></i><h3>No groups found</h3><p>Try adjusting your search or create a new group!</p></div>`;
+                return;
+            }
+            resultsCount.innerHTML = `📌 Found ${groups.length} group${groups.length !== 1 ? 's' : ''}`;
+            grid.innerHTML = groups.map(g => {
+                const displayName = g.name || (g.type === 'teacher' ? g.teacher_name : g.title);
+                const location = g.location || g.college || 'Location TBD';
+                const isActive = g.status === 'active';
+                const typeLabel = g.type === 'teacher' ? '📖 Teacher Gift' : '🎉 Celebration';
+                const typeClass = g.type === 'teacher' ? 'type-teacher' : 'type-celebrate';
+                const memberCount = g.member_count || 0;
+                const eventDate = g.event_date || 'Date TBD';
+                const groupId = g.group_id || g.id;
+                return `
+                    <div class="group-card" data-group-id="${escapeHtml(groupId)}" data-group-type="${escapeHtml(g.type)}">
+                        <span class="group-type ${typeClass}">${typeLabel}</span>
+                        <div class="group-title">${escapeHtml(displayName)}</div>
+                        <div class="group-details">
+                            <span>📍 ${escapeHtml(location)}</span>
+                            <span>📅 ${escapeHtml(eventDate)}</span>
+                        </div>
+                        <div class="group-meta">
+                            <span class="member-count">👥 ${memberCount} members</span>
+                            <span class="status-badge ${isActive ? 'status-active' : 'status-pending'}">${isActive ? '✅ Active' : '⏳ Pending'}</span>
+                            <button class="join-btn" ${!isActive ? 'disabled' : ''} onclick="joinGroup('${escapeHtml(groupId)}', '${escapeHtml(g.type)}')">${isActive ? 'Join →' : 'Not Active'}</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+                async function joinGroup(groupId, groupType) {
+            const token = getAuthToken();
+            if (!token) {
+                const confirmLogin = confirm('You need to login first to join a group. Click OK to login.');
+                if (confirmLogin) window.location.href = `login.html?redirect=${encodeURIComponent(window.location.href)}`;
+                return;
+            }
+            const joinBtn = event?.target;
+            if (joinBtn) { joinBtn.disabled = true; joinBtn.innerText = 'Joining...'; }
+            try {
+                const response = await fetchWithAuth(`${API_BASE}/groups/join`, {
+                    method: 'POST',
+                    body: JSON.stringify({ group_id: groupId, group_type: groupType })
+                });
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    alert(`✅ Successfully joined the group!`);
+                    window.location.href = `student_dashboard.html?highlight=${groupId}`;
+                } else if (data.already_member) {
+                    alert(`ℹ️ You are already a member of this group.`);
+                    window.location.href = `student_dashboard.html?highlight=${groupId}`;
+                } else {
+                    alert(`❌ Failed to join: ${data.detail || data.message || 'Unknown error'}`);
+                    if (joinBtn) { joinBtn.disabled = false; joinBtn.innerText = 'Join →'; }
+                }
+            } catch (error) {
+                console.error('Join error:', error);
+                alert('❌ Network error. Please try again.');
+                if (joinBtn) { joinBtn.disabled = false; joinBtn.innerText = 'Join →'; }
+            }
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.filter === filter) btn.classList.add('active');
+            });
+            searchGroups();
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function init() {
+            console.log('🚀 Initializing Find Groups page');
+            updateHeaderUI();
+            await loadDistricts();
+            await searchGroups();
+        }
+
+        window.searchGroups = searchGroups;
+        window.setFilter = setFilter;
+        window.joinGroup = joinGroup;
+        
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+    <script src="js/auth-guard.js"></script>
+</body>
+</html>

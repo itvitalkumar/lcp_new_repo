@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Campus Central — Reveal Your Fortune | Activate Your Group</title>
+    
+    <!-- Master Configuration Reference -->
+    <script src="js/config.js"></script>
+    
+    <!-- QR Code Library -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- Razorpay Config -->
+    <script src="js/razorpay-config.js"></script>
+    
+    <style>
+        /* ========== INDEX.HTML DESIGN SYSTEM (PRESERVED) ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+        }
+
+        :root {
+            --primary: #0f4c5c;
+            --primary-dark: #0a3a46;
+            --secondary: #e67e22;
+            --accent: #ffb347;
+            --gold: #f4b942;
+            --light: #fef9e6;
+            --dark: #1e2a2e;
+            --gray-bg: #f8f9fc;
+            --success: #2ecc71;
+            --coffee: #6f4e2e;
+            --error: #e74c3c;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            min-height: 100vh;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* WIDER CONTAINER - matching index.html */
+        .game-container {
+            background: white;
+            border-radius: 32px;
+            padding: 2rem;
+            max-width: 1000px;
+            width: 100%;
+            margin: 0 auto;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            max-height: 95vh;
+            overflow-y: auto;
+        }
+
+        .game-container h2 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 0.3rem;
+            font-size: 1.8rem;
+        }
+
+        .game-container h2 i {
+            color: var(--gold);
+        }
+
+        .subhead {
+            text-align: center;
+            color: #5a6e7a;
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* Step Title */
+        .step-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .step-title i {
+            color: var(--gold);
+        }
+
+        /* Friends Input Area */
+        .friends-input-area {
+            background: var(--gray-bg);
+            border-radius: 24px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .friends-list-container {
+            background: white;
+            border-radius: 20px;
+            border: 1px solid #e0e5e7;
+            margin-bottom: 0.8rem;
+            min-height: 60px;
+            max-height: 120px;
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+
+        .friend-tag {
+            display: inline-flex;
+            align-items: center;
+            background: #e8f4f8;
+            padding: 0.3rem 0.7rem;
+            margin: 0.2rem;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            gap: 8px;
+        }
+
+        .friend-tag .remove {
+            cursor: pointer;
+            color: #999;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .friend-tag .remove:hover {
+            color: var(--error);
+        }
+
+        .add-friend-row {
+            display: flex;
+            gap: 0.8rem;
+            margin-top: 0.8rem;
+        }
+
+        .add-friend-row input {
+            flex: 1;
+            padding: 0.6rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 40px;
+            font-size: 0.85rem;
+        }
+
+        .add-friend-row button {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .add-friend-row button:hover {
+            background: #d35400;
+            transform: translateY(-2px);
+        }
+
+        .friend-count {
+            font-size: 0.75rem;
+            color: #5a6e7a;
+            margin-top: 0.8rem;
+        }
+
+        /* Reveal Button */
+        .reveal-btn {
+            background: linear-gradient(135deg, var(--secondary), #d35400);
+            color: white;
+            padding: 0.8rem;
+            border-radius: 40px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .reveal-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(230,126,34,0.3);
+        }
+
+        .reveal-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* Lottery Card - Beautiful Design */
+        .lottery-card {
+            text-align: center;
+            padding: 1rem;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .lottery-ball {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 0.5rem;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .ball-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .ball-label {
+            font-size: 0.6rem;
+            opacity: 0.9;
+        }
+
+        /* Lottery Ball Themes */
+        .lottery-ball.sun {
+            background: radial-gradient(circle at 30% 30%, #ffd700, #ff8c00);
+            box-shadow: 0 0 30px rgba(255,215,0,0.7);
+        }
+
+        .lottery-ball.moon {
+            background: radial-gradient(circle at 30% 30%, #e0e0e0, #a0a0a0);
+            box-shadow: 0 0 20px rgba(192,192,192,0.5);
+        }
+
+        .lottery-ball.earth {
+            background: radial-gradient(circle at 30% 30%, #90ee90, #3cb371);
+            box-shadow: 0 0 15px rgba(144,238,144,0.4);
+        }
+
+        /* Aura Rings Animation */
+        .aura-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            animation: auraPulse 3s ease-in-out infinite;
+        }
+
+        .aura-ring.ring1 {
+            border: 2px solid;
+            animation-delay: 0s;
+        }
+
+        .aura-ring.ring2 {
+            border: 2px solid;
+            width: 115%;
+            height: 115%;
+            animation-delay: 1s;
+        }
+
+        .aura-ring.ring3 {
+            border: 2px solid;
+            width: 130%;
+            height: 130%;
+            animation-delay: 2s;
+        }
+
+        .aura-ring.gold { border-color: #ffd700; }
+        .aura-ring.silver { border-color: #c0c0c0; }
+        .aura-ring.green { border-color: #90ee90; }
+
+        @keyframes auraPulse {
+            0% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 0.2; transform: translate(-50%, -50%) scale(1.1); }
+            100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+        }
+                /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+
+        .badge-ultra {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #4a3000;
+        }
+
+        .badge-luckier {
+            background: linear-gradient(135deg, #c0c0c0, #a0a0a0);
+            color: #333;
+        }
+
+        .badge-lucky {
+            background: linear-gradient(135deg, #90ee90, #3cb371);
+            color: #1a4d1a;
+        }
+
+        .lucky-friend-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin: 0.5rem 0;
+        }
+
+        /* Result Boxes */
+        .result-box, .contribution-box {
+            background: var(--gray-bg);
+            border-radius: 20px;
+            padding: 1rem;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .result-label, .contribution-label {
+            font-size: 0.8rem;
+            color: #5a6e7a;
+            margin-bottom: 0.3rem;
+        }
+
+        .result-amount, .contribution-amount {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--secondary);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn-tryagain, .btn-lock {
+            flex: 1;
+            padding: 0.7rem;
+            border-radius: 40px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-tryagain {
+            background: #eef2f3;
+            color: var(--primary);
+        }
+
+        .btn-tryagain:hover {
+            background: #e0e5e7;
+            transform: translateY(-2px);
+        }
+
+        .btn-lock {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-lock:hover {
+            background: #d35400;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(230,126,34,0.3);
+        }
+
+        /* Extra Details Form */
+        .extra-details-form {
+            background: var(--gray-bg);
+            border-radius: 24px;
+            padding: 1rem;
+            margin: 1rem 0;
+            border: 1px solid #e0e5e7;
+        }
+
+        .extra-details-form h4 {
+            font-size: 0.9rem;
+            color: var(--primary);
+            margin-bottom: 0.8rem;
+        }
+
+        .extra-details-form .form-group {
+            margin-bottom: 0.8rem;
+        }
+
+        .extra-details-form input {
+            width: 100%;
+            padding: 0.6rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 40px;
+            font-size: 0.85rem;
+        }
+
+        .extra-details-form label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--primary);
+            display: block;
+            margin-bottom: 0.3rem;
+        }
+        
+        /* Privacy Checkbox */
+        .privacy-checkbox {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.8rem;
+            margin: 1rem 0;
+            padding: 0.8rem;
+            background: var(--light);
+            border-radius: 20px;
+            border-left: 4px solid var(--success);
+        }
+
+        .privacy-checkbox input {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            margin-top: 0.2rem;
+        }
+
+        .privacy-checkbox label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--primary);
+            cursor: pointer;
+        }
+
+        .privacy-checkbox small {
+            font-size: 0.65rem;
+            color: #666;
+            display: block;
+            margin-top: 0.3rem;
+        }
+                /* Payment Section */
+        .payment-section {
+            background: var(--light);
+            border-radius: 28px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            text-align: center;
+            border: 2px solid var(--gold);
+        }
+
+        .payment-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 0.8rem;
+        }
+
+        .payment-amount {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--secondary);
+            margin: 0.8rem 0;
+        }
+
+        .payment-instruction {
+            font-size: 0.8rem;
+            color: #5a6e7a;
+            margin-bottom: 1.2rem;
+        }
+
+        .razorpay-pay-btn {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 0.9rem;
+            border-radius: 40px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            transition: all 0.3s;
+        }
+
+        .razorpay-pay-btn:hover {
+            background: #27ae60;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(46,204,113,0.3);
+        }
+
+        .razorpay-pay-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Instruction Note */
+        .instruction-note {
+            background: #e8f4f8;
+            border-radius: 20px;
+            padding: 0.8rem;
+            font-size: 0.7rem;
+            color: var(--primary);
+            text-align: center;
+            margin-top: 0.8rem;
+        }
+
+        /* Group Info & Invite Section */
+        .group-info, .invite-section {
+            background: var(--gray-bg);
+            border-radius: 20px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .invite-link-box {
+            display: flex;
+            gap: 0.8rem;
+            margin: 0.8rem 0;
+            flex-wrap: wrap;
+        }
+
+        .invite-link-box input {
+            flex: 1;
+            padding: 0.6rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            background: white;
+        }
+
+        .copy-link-btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .copy-link-btn:hover {
+            background: #d35400;
+        }
+
+        #qrcode {
+            display: flex;
+            justify-content: center;
+            margin: 0.8rem 0;
+        }
+
+        #qrcode img {
+            width: 100px;
+            height: 100px;
+            border-radius: 16px;
+            border: 2px solid var(--gold);
+        }
+
+        /* Chat Options */
+        .chat-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            margin: 1rem 0;
+        }
+
+        .chat-primary-btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 0.7rem;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            width: 100%;
+            transition: 0.2s;
+        }
+
+        .chat-primary-btn:hover {
+            background: #d35400;
+            transform: translateY(-2px);
+        }
+
+        .whatsapp-backup-btn {
+            background: #25D366;
+            color: white;
+            border: none;
+            padding: 0.7rem;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .whatsapp-backup-btn:hover {
+            background: #128C7E;
+            transform: translateY(-2px);
+        }
+                /* Success Modal */
+        .success-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .success-modal-content {
+            background: white;
+            border-radius: 32px;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .success-modal-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--success);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 2.5rem;
+            color: white;
+        }
+
+        .success-modal h3 {
+            color: var(--primary);
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .success-modal p {
+            color: #666;
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .success-modal-btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 0.7rem 1.5rem;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .success-modal-btn:hover {
+            background: #d35400;
+        }
+
+        /* Confetti */
+        .confetti-particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 10001;
+            font-size: 1rem;
+            animation: confettiFall 2.5s linear forwards;
+        }
+
+        @keyframes confettiFall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* Utility */
+        .hidden { display: none; }
+        .success-msg { background: #d4edda; color: #155724; padding: 1rem; border-radius: 20px; text-align: center; }
+
+        /* Responsive */
+        @media (max-width: 700px) {
+            body { padding: 1rem; }
+            .game-container { padding: 1.2rem; max-width: 96%; }
+            .lottery-ball { width: 90px; height: 90px; }
+            .ball-number { font-size: 1.8rem; }
+            .action-buttons { flex-direction: column; }
+            .invite-link-box { flex-direction: column; }
+            .copy-link-btn { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+        <div class="game-container" id="gameContainer">
+        <h2><i class="fas fa-dice-d6"></i> Reveal Your Fortune</h2>
+        <div class="subhead">Add your friends. Find your lucky points! Together, surprise your teacher.</div>
+
+        <!-- STEP 1: ADD FRIENDS -->
+        <div id="step1">
+            <div class="step-title"><i class="fas fa-users"></i> Add Your Gang</div>
+            <div class="friends-input-area">
+                <div class="friends-list-container" id="friendsTagsContainer">
+                    <div style="padding: 0.8rem; color: #999; text-align: center;">No friends added yet</div>
+                </div>
+                <div class="add-friend-row">
+                    <input type="text" id="friendNameInput" placeholder="Type friend's name and press Enter">
+                    <button id="addFriendBtn">+ Add Friend</button>
+                </div>
+                <div class="friend-count" id="friendCount">Add 3 to 9 friends</div>
+            </div>
+            <button class="reveal-btn" id="revealBtn" onclick="revealFirstNumber()" disabled>✨ REVEAL YOUR FORTUNE →</button>
+        </div>
+
+        <!-- STEP 2: REVEAL RESULTS -->
+        <div id="step2" class="hidden">
+            <div class="lottery-card">
+                <div class="lottery-ball" id="lotteryBall">
+                    <div class="ball-number" id="luckyPoints">--</div>
+                    <div class="ball-label">LUCKY POINTS</div>
+                </div>
+                <div id="luckBadge" class="badge"></div>
+                <div class="lucky-friend-name" id="luckyFriendName">---</div>
+            </div>
+
+            <div class="result-box">
+                <div class="result-label">⭐ Your Fortune Points</div>
+                <div class="result-amount" id="resultAmount">-- Points</div>
+            </div>
+
+            <div class="contribution-box">
+                <div class="contribution-label">🎯 Your Contribution Amount</div>
+                <div class="contribution-amount" id="contributionAmount">₹0</div>
+            </div>
+
+            <div id="extraDetailsForm" class="extra-details-form hidden">
+                <h4><i class="fas fa-calendar-alt"></i> One More Step</h4>
+                <div class="form-group">
+                    <label>📅 Event Date (Optional)</label>
+                    <input type="date" id="eventDate" placeholder="Select date">
+                </div>
+                <div class="form-group">
+                    <label>📍 Venue (Optional)</label>
+                    <input type="text" id="venue" placeholder="e.g., College Auditorium, Restaurant">
+                </div>
+
+                <div class="privacy-checkbox">
+                    <input type="checkbox" id="makePublicCheckbox">
+                    <label for="makePublicCheckbox">
+                        🌐 Make this group public
+                        <small>Enable to allow other students to discover and join this group</small>
+                    </label>
+                </div>
+
+                <button class="btn-lock" id="continueToPaymentBtn" onclick="continueToPayment()" style="margin-top: 0.5rem;">✨ PROCEED TO PAYMENT →</button>
+            </div>
+
+            <div class="action-buttons" id="actionButtons">
+                <button class="btn-tryagain" id="tryAgainBtn" onclick="tryAgain()">🔄 TRY AGAIN</button>
+                <button class="btn-lock" id="lockBtn" onclick="showExtraDetails()">🎉 LOCK & ADD DETAILS →</button>
+            </div>
+        </div>
+                <!-- STEP 3: PAYMENT -->
+        <div id="paymentPage" class="hidden">
+            <div class="payment-section">
+                <div class="payment-title">💳 Complete Your Contribution</div>
+                <div class="payment-amount">🎯 ₹<span id="paymentAmountDisplay">0</span></div>
+                <div class="payment-instruction">
+                    ✨ Your lucky contribution amount is <strong>₹<span id="paymentAmountInstruction">0</span></strong><br>
+                    This one-time fee activates your group and keeps Campus Central running.
+                </div>
+
+                <button class="razorpay-pay-btn" id="razorpayPayBtn" onclick="processRazorpayPayment()">
+                    <i class="fas fa-credit-card"></i> Pay via Card, UPI, NetBanking →
+                </button>
+
+                <div class="instruction-note">
+                    <i class="fas fa-info-circle"></i> <strong>Payment Options:</strong> Credit/Debit Card, UPI (GPay/PhonePe/Paytm), NetBanking
+                </div>
+
+                <div class="instruction-note" style="background: #d4edda; margin-top: 0.8rem;">
+                    <i class="fas fa-check-circle"></i> <strong>✅ After payment:</strong> Your group activates automatically.
+                </div>
+
+                <div id="paymentResult" style="display:none; margin-top:1rem;"></div>
+            </div>
+        </div>
+
+        <!-- STEP 4: SUCCESS -->
+        <div id="step3" class="hidden">
+            <div class="success-msg">
+                <i class="fas fa-check-circle" style="font-size: 1.8rem;"></i>
+                <h3 style="margin: 0.5rem 0;">✨ Group Activated!</h3>
+                <p>Your group is now active. Share the invite link with your friends — they join for FREE!</p>
+
+                <div class="group-info" id="groupInfo">
+                    <div class="group-name-display" id="groupNameDisplay" style="font-weight: 600;">Loading group details...</div>
+                    <div class="member-count-display" id="memberCountDisplay">👥 Members: --</div>
+                </div>
+
+                <div class="invite-section">
+                    <div class="invite-link-box">
+                        <input type="text" id="inviteLinkInput" readonly>
+                        <button class="copy-link-btn" onclick="copyInviteLinkNew()">📋 Copy Link</button>
+                    </div>
+                    <div id="qrcode"></div>
+                </div>
+
+                <div class="chat-options">
+                    <button class="chat-primary-btn" onclick="goToDashboardNew()">💬 Go to Campus Central Chat →</button>
+                    <button class="whatsapp-backup-btn" onclick="createWhatsAppBackup()">
+                        <i class="fab fa-whatsapp"></i> Create WhatsApp Group Link (Backup)
+                    </button>
+                </div>
+
+                <div class="instruction-note" style="background: #d4edda; margin-top: 0.8rem;">
+                    <i class="fas fa-heart"></i> <strong>Thank you for contributing!</strong> Your teacher will be so happy. 🎉
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="success-modal">
+        <div class="success-modal-content">
+            <div class="success-modal-icon"><i class="fas fa-check-circle"></i></div>
+            <h3>✨ Ready for Payment!</h3>
+            <p id="modalMessage">Your contribution amount is ready. Click "Proceed to Payment" to continue.</p>
+            <button class="success-modal-btn" onclick="closeSuccessModalAndShowPayment()">Proceed to Payment →</button>
+        </div>
+    </div>
+            <script>
+        // ============================================================
+        // API BASE URL - FROM MASTER CONFIGURATION
+        // ============================================================
+        // // const API_BASE = ACTIVE_CONFIG.API_BASE_URL; // Duplicate - using window.ACTIVE_CONFIG instead
+
+        // ========== GLOBAL VARIABLES ==========
+        let friends = [];
+        let currentPoints = 0;
+        let currentLuckyFriend = "";
+        let inviteLink = '';
+        let groupData = {};
+
+        // ========== GROUP ID MANAGEMENT ==========
+        function getAndStoreGroupId() {
+            const urlParams = new URLSearchParams(window.location.search);
+            let id = urlParams.get('groupId');
+            
+            if (id) {
+                sessionStorage.setItem('campus_group_id', id);
+                localStorage.setItem('campus_group_id_backup', id);
+                console.log('✅ Stored groupId from URL:', id);
+                return id;
+            }
+            
+            id = sessionStorage.getItem('campus_group_id');
+            if (id) return id;
+            
+            id = localStorage.getItem('campus_group_id_backup');
+            if (id) sessionStorage.setItem('campus_group_id', id);
+            
+            id = localStorage.getItem('currentGroupId');
+            if (id) {
+                sessionStorage.setItem('campus_group_id', id);
+                localStorage.setItem('campus_group_id_backup', id);
+            }
+            
+            return id;
+        }
+        
+        function getStoredGroupId() {
+            let id = sessionStorage.getItem('campus_group_id');
+            if (id) return id;
+            id = localStorage.getItem('campus_group_id_backup');
+            if (id) sessionStorage.setItem('campus_group_id', id);
+            return id;
+        }
+        
+        getAndStoreGroupId();
+
+        function getAuthToken() {
+            return localStorage.getItem('authToken');
+        }
+
+        // ========== LOAD GROUP DATA ==========
+        async function loadGroupData() {
+            const currentGroupId = getStoredGroupId();
+            if (!currentGroupId) return;
+            try {
+                const token = getAuthToken();
+                if (!token) return;
+                const response = await fetch(`${ACTIVE_CONFIG.API_BASE_URL}/groups/my-groups`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    const groups = data.groups || [];
+                    const thisGroup = groups.find(g => g.id === currentGroupId);
+                    if (thisGroup) {
+                        groupData = {
+                            teacherName: thisGroup.teacher_name || thisGroup.name,
+                            college: thisGroup.college || "",
+                            photos: thisGroup.photos || []
+                        };
+                        const groupNameElem = document.getElementById('groupNameDisplay');
+                        if (groupNameElem) groupNameElem.innerText = groupData.teacherName || 'Your Group';
+                        const memberCountElem = document.getElementById('memberCountDisplay');
+                        if (memberCountElem) memberCountElem.innerHTML = `👥 Members: ${thisGroup.member_count || 1}`;
+                    }
+                }
+            } catch (error) {
+                console.error("Error loading group data:", error);
+            }
+        }
+                // ========== FRIEND MANAGEMENT ==========
+        const friendInput = document.getElementById('friendNameInput');
+        
+        function addFriend() {
+            const name = friendInput.value.trim();
+            if (!name) { alert("Please enter a friend's name"); return; }
+            if (friends.includes(name)) { alert("Friend already added"); return; }
+            if (friends.length >= 9) { alert("Maximum 9 friends allowed"); return; }
+            friends.push(name);
+            friendInput.value = '';
+            renderFriendsTags();
+            updateRevealButton();
+        }
+
+        function removeFriend(index) {
+            friends.splice(index, 1);
+            renderFriendsTags();
+            updateRevealButton();
+        }
+
+        function renderFriendsTags() {
+            const container = document.getElementById('friendsTagsContainer');
+            const countSpan = document.getElementById('friendCount');
+            if (friends.length === 0) {
+                container.innerHTML = '<div style="padding: 0.8rem; color: #999; text-align: center;">No friends added yet</div>';
+                countSpan.innerHTML = 'Add 3 to 9 friends';
+                return;
+            }
+            const tagsHtml = friends.map((friend, idx) => `
+                <span class="friend-tag">
+                    👤 ${escapeHtml(friend)}
+                    <span class="remove" onclick="removeFriend(${idx})">✖</span>
+                </span>
+            `).join('');
+            container.innerHTML = `<div style="padding: 0.5rem;">${tagsHtml}</div>`;
+            countSpan.innerHTML = `👥 ${friends.length}/9 friends added. ${friends.length < 3 ? `Need ${3 - friends.length} more.` : 'Ready to reveal your fortune!'}`;
+        }
+
+        function updateRevealButton() {
+            const revealBtn = document.getElementById('revealBtn');
+            revealBtn.disabled = !(friends.length >= 3 && friends.length <= 9);
+        }
+        
+        // ========== FORTUNE REVEAL ==========
+        function generateRandomPoints() {
+            return Math.floor(Math.random() * (81 - 18 + 1) + 18);
+        }
+
+        function getRandomFriend() {
+            return friends[Math.floor(Math.random() * friends.length)];
+        }
+
+        function getLuckLabel(points) {
+            if (points <= 40) return { text: "👑 ULTRA LUCKY! 👑", class: "badge-ultra", level: "ultra" };
+            if (points <= 60) return { text: "🌟 LUCKIER! 🌟", class: "badge-luckier", level: "luckier" };
+            return { text: "🍀 LUCKY! 🍀", class: "badge-lucky", level: "lucky" };
+        }
+
+        function updateBallStyle(points) {
+            const ball = document.getElementById('lotteryBall');
+            ball.classList.remove('sun', 'moon', 'earth');
+            const existingRings = ball.querySelectorAll('.aura-ring');
+            existingRings.forEach(ring => ring.remove());
+            
+            let shapeClass, ringColor, ringCount;
+            if (points <= 40) {
+                shapeClass = 'sun';
+                ringColor = 'gold';
+                ringCount = 3;
+            } else if (points <= 60) {
+                shapeClass = 'moon';
+                ringColor = 'silver';
+                ringCount = 2;
+            } else {
+                shapeClass = 'earth';
+                ringColor = 'green';
+                ringCount = 2;
+            }
+            
+            ball.classList.add(shapeClass);
+            for (let i = 1; i <= ringCount; i++) {
+                const ring = document.createElement('div');
+                ring.className = `aura-ring ring${i} ${ringColor}`;
+                ball.appendChild(ring);
+            }
+            triggerCelebration(points <= 40 ? 'ultra' : points <= 60 ? 'luckier' : 'lucky');
+        }
+
+        function triggerCelebration(level) {
+            const count = level === 'ultra' ? 40 : level === 'luckier' ? 20 : 10;
+            for(let i = 0; i < count; i++) createConfetti();
+        }
+
+        function createConfetti() {
+            setTimeout(() => {
+                const confetti = document.createElement('div');
+                confetti.innerHTML = ['🎉', '✨', '🎊', '🎈', '🌸'][Math.floor(Math.random() * 5)];
+                confetti.className = 'confetti-particle';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.top = '-20px';
+                confetti.style.fontSize = (Math.random() * 15 + 12) + 'px';
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 2000);
+            }, Math.random() * 100);
+        }
+
+        async function revealFirstNumber() {
+            if (friends.length < 3) { alert("Please add at least 3 friends"); return; }
+            const revealBtn = document.getElementById('revealBtn');
+            revealBtn.innerText = '✨ Revealing...';
+            revealBtn.disabled = true;
+            try {
+                const token = getAuthToken();
+                if (!token) { alert('Please login first'); window.location.href = 'login.html'; return; }
+                const response = await fetch(`${ACTIVE_CONFIG.API_BASE_URL}/groups/lucky-game`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ friends: friends, group_type: 'teacher' })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    currentPoints = data.contribution;
+                    currentLuckyFriend = data.lucky_friend;
+                    const luckInfo = getLuckLabel(currentPoints);
+                    document.getElementById('luckyPoints').innerText = currentPoints;
+                    document.getElementById('luckyFriendName').innerHTML = `🎲 ${escapeHtml(currentLuckyFriend)}`;
+                    document.getElementById('resultAmount').innerHTML = `${currentPoints} Points`;
+                    document.getElementById('contributionAmount').innerHTML = `₹${currentPoints}`;
+                    document.getElementById('luckBadge').innerHTML = luckInfo.text;
+                    document.getElementById('luckBadge').className = `badge ${luckInfo.class}`;
+                    updateBallStyle(currentPoints);
+                    document.getElementById('step1').classList.add('hidden');
+                    document.getElementById('step2').classList.remove('hidden');
+                } else {
+                    fallbackLuckyNumber();
+                }
+            } catch (error) {
+                fallbackLuckyNumber();
+            } finally {
+                revealBtn.innerText = '✨ REVEAL YOUR FORTUNE →';
+            }
+        }
+
+        function fallbackLuckyNumber() {
+            currentPoints = generateRandomPoints();
+            currentLuckyFriend = getRandomFriend();
+            const luckInfo = getLuckLabel(currentPoints);
+            document.getElementById('luckyPoints').innerText = currentPoints;
+            document.getElementById('luckyFriendName').innerHTML = `🎲 ${escapeHtml(currentLuckyFriend)}`;
+            document.getElementById('resultAmount').innerHTML = `${currentPoints} Points`;
+            document.getElementById('contributionAmount').innerHTML = `₹${currentPoints}`;
+            document.getElementById('luckBadge').innerHTML = luckInfo.text;
+            document.getElementById('luckBadge').className = `badge ${luckInfo.class}`;
+            updateBallStyle(currentPoints);
+            document.getElementById('step1').classList.add('hidden');
+            document.getElementById('step2').classList.remove('hidden');
+        }
+
+        function tryAgain() {
+            currentPoints = generateRandomPoints();
+            currentLuckyFriend = getRandomFriend();
+            const luckInfo = getLuckLabel(currentPoints);
+            document.getElementById('luckyPoints').innerText = currentPoints;
+            document.getElementById('luckyFriendName').innerHTML = `🎲 ${escapeHtml(currentLuckyFriend)}`;
+            document.getElementById('resultAmount').innerHTML = `${currentPoints} Points`;
+            document.getElementById('contributionAmount').innerHTML = `₹${currentPoints}`;
+            document.getElementById('luckBadge').innerHTML = luckInfo.text;
+            document.getElementById('luckBadge').className = `badge ${luckInfo.class}`;
+            updateBallStyle(currentPoints);
+        }
+                // ========== PAYMENT FLOW ==========
+        function showExtraDetails() {
+            document.getElementById('actionButtons').classList.add('hidden');
+            document.getElementById('extraDetailsForm').classList.remove('hidden');
+        }
+
+        function continueToPayment() {
+            const eventDate = document.getElementById('eventDate').value;
+            const venue = document.getElementById('venue').value;
+            const isPublic = document.getElementById('makePublicCheckbox')?.checked || false;
+            
+            if (eventDate) localStorage.setItem('eventDate', eventDate);
+            if (venue) localStorage.setItem('venue', venue);
+            sessionStorage.setItem('isPublic', isPublic);
+            
+            const modalMessage = document.getElementById('modalMessage');
+            if (modalMessage) modalMessage.innerHTML = `Your contribution amount is ₹${currentPoints}. Click "Proceed to Payment" to continue.`;
+            const successModal = document.getElementById('successModal');
+            if (successModal) successModal.style.display = 'flex';
+            for(let i = 0; i < 40; i++) createConfetti();
+        }
+        
+        function closeSuccessModalAndShowPayment() {
+            const successModal = document.getElementById('successModal');
+            if (successModal) successModal.style.display = 'none';
+            const step2 = document.getElementById('step2');
+            const paymentPage = document.getElementById('paymentPage');
+            if (step2) step2.classList.add('hidden');
+            if (paymentPage) paymentPage.classList.remove('hidden');
+            
+            const paymentAmountDisplay = document.getElementById('paymentAmountDisplay');
+            const paymentAmountInstruction = document.getElementById('paymentAmountInstruction');
+            
+            if (paymentAmountDisplay) paymentAmountDisplay.innerText = currentPoints;
+            if (paymentAmountInstruction) paymentAmountInstruction.innerText = currentPoints;
+        }
+
+        // ========== RAZORPAY PAYMENT ==========
+        function loadRazorpayScript() {
+            return new Promise((resolve, reject) => {
+                if (window.Razorpay) {
+                    resolve(true);
+                    return;
+                }
+                const script = document.createElement('script');
+                script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+                script.onload = () => resolve(true);
+                script.onerror = () => reject(new Error('Failed to load Razorpay SDK'));
+                document.body.appendChild(script);
+            });
+        }
+
+        async function processRazorpayPayment() {
+            const amount = currentPoints;
+            const groupId = getStoredGroupId();
+            const groupType = 'teacher';
+            
+            if (!amount || amount <= 0) {
+                alert('Invalid payment amount');
+                return;
+            }
+            
+            if (!groupId) {
+                alert('Group ID not found. Please go back and try again.');
+                return;
+            }
+            
+            const payBtn = document.getElementById('razorpayPayBtn');
+            if (payBtn) {
+                payBtn.disabled = true;
+                payBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Initializing Payment...';
+            }
+            
+            try {
+                const token = getAuthToken();
+                if (!token) {
+                    alert('Please login first');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                const orderResponse = await fetch(`${ACTIVE_CONFIG.API_BASE_URL}/payment/create-order`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        amount: amount,
+                        group_id: groupId,
+                        group_type: groupType
+                    })
+                });
+                
+                if (!orderResponse.ok) {
+                    const error = await orderResponse.json();
+                    throw new Error(error.detail || 'Failed to create payment order');
+                }
+                
+                const orderData = await orderResponse.json();
+                
+                await loadRazorpayScript();
+                
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                
+                const options = {
+                    key: orderData.key,
+                    amount: orderData.amount * 100,
+                    currency: "INR",
+                    name: "Campus Central",
+                    description: "Teacher Group Activation Fee",
+                    order_id: orderData.order_id,
+                    prefill: {
+                        name: currentUser.full_name || '',
+                        email: currentUser.email || '',
+                        contact: currentUser.whatsapp || ''
+                    },
+                    theme: { color: "#e67e22" },
+                    handler: async function(response) {
+                        const resultDiv = document.getElementById('paymentResult');
+                        if (resultDiv) {
+                            resultDiv.style.display = 'block';
+                            resultDiv.innerHTML = '<div style="background:#d4edda; padding:0.8rem; border-radius:12px;">⏳ Verifying payment...</div>';
+                        }
+                        
+                        try {
+                            const verifyResponse = await fetch(`${ACTIVE_CONFIG.API_BASE_URL}/payment/verify-payment`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${token}`
+                                },
+                                body: JSON.stringify({
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_order_id: response.razorpay_order_id,
+                                    razorpay_signature: response.razorpay_signature,
+                                    group_id: groupId,
+                                    group_type: groupType
+                                })
+                            });
+                            
+                            const verifyResult = await verifyResponse.json();
+                            
+                            if (verifyResult.success) {
+                                if (resultDiv) {
+                                    resultDiv.innerHTML = '<div style="background:#d4edda; padding:0.8rem; border-radius:12px;">✅ Payment successful! Activating group...</div>';
+                                }
+                                
+                                for(let i = 0; i < 60; i++) createConfetti();
+                                
+                                setTimeout(() => {
+                                    window.location.href = `student_dashboard.html?highlight=${groupId}`;
+                                }, 2000);
+                            } else {
+                                throw new Error(verifyResult.message || 'Verification failed');
+                            }
+                        } catch (verifyError) {
+                            if (resultDiv) {
+                                resultDiv.innerHTML = `<div style="background:#f8d7da; padding:0.8rem; border-radius:12px;">❌ Payment verification failed: ${verifyError.message}. Please contact support.</div>`;
+                            }
+                            if (payBtn) {
+                                payBtn.disabled = false;
+                                payBtn.innerHTML = '<i class="fas fa-credit-card"></i> Pay via Card, UPI, NetBanking →';
+                            }
+                        }
+                    }
+                };
+                
+                const razorpay = new Razorpay(options);
+                razorpay.open();
+                
+                if (payBtn) {
+                    payBtn.disabled = false;
+                    payBtn.innerHTML = '<i class="fas fa-credit-card"></i> Pay via Card, UPI, NetBanking →';
+                }
+                
+            } catch (error) {
+                console.error('Payment error:', error);
+                alert('Payment initialization failed: ' + error.message);
+                if (payBtn) {
+                    payBtn.disabled = false;
+                    payBtn.innerHTML = '<i class="fas fa-credit-card"></i> Pay via Card, UPI, NetBanking →';
+                }
+            }
+        }
+        
+        // ========== INVITE & SHARE ==========
+        function generateQRCode() {
+            const qrContainer = document.getElementById('qrcode');
+            if (qrContainer) qrContainer.innerHTML = '';
+            if (typeof QRCode !== 'undefined' && inviteLink && qrContainer) {
+                new QRCode(qrContainer, { text: inviteLink, width: 100, height: 100 });
+            }
+        }
+
+        function copyInviteLinkNew() {
+            if (!inviteLink) return;
+            navigator.clipboard.writeText(inviteLink);
+            const copyBtn = document.querySelector('.copy-link-btn');
+            if (copyBtn) {
+                const originalText = copyBtn.innerText;
+                copyBtn.innerText = '✅ Copied!';
+                setTimeout(() => copyBtn.innerText = originalText, 2000);
+            }
+        }
+
+        function goToDashboardNew() {
+            const storedGroupId = getStoredGroupId();
+            window.location.href = `student_dashboard.html?highlight=${storedGroupId}`;
+        }
+
+        function createWhatsAppBackup() {
+            const message = `Join my group on Campus Central! 🎉\n\nInvite Link: ${inviteLink}\n\nShare this link with your friends.`;
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ========== INITIALIZE ==========
+        loadGroupData();
+        
+        // ========== EXPOSE GLOBALS ==========
+        window.createWhatsAppBackup = createWhatsAppBackup;
+        window.processRazorpayPayment = processRazorpayPayment;
+        window.closeSuccessModalAndShowPayment = closeSuccessModalAndShowPayment;
+        window.addFriend = addFriend;
+        window.removeFriend = removeFriend;
+        window.revealFirstNumber = revealFirstNumber;
+        window.tryAgain = tryAgain;
+        window.showExtraDetails = showExtraDetails;
+        window.continueToPayment = continueToPayment;
+        window.copyInviteLinkNew = copyInviteLinkNew;
+        window.goToDashboardNew = goToDashboardNew;
+
+        // ========== EVENT LISTENERS (PROPER PRODUCTION WAY) ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add Friend button
+            const addBtn = document.getElementById('addFriendBtn');
+            if (addBtn) {
+                addBtn.addEventListener('click', addFriend);
+            }
+            
+            // Enter key on friend input
+            const friendInput = document.getElementById('friendNameInput');
+            if (friendInput) {
+                friendInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        addFriend();
+                    }
+                });
+            }
+        });
+    </script>
+    <script src="js/auth-guard.js"></script>
+</body>
+</html>

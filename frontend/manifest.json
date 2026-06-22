@@ -1,0 +1,17 @@
+{
+  "name": "Campus Central",
+  "short_name": "CampusCentral",
+  "description": "Surprise your teacher together with classmates",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "theme_color": "#0f4c5c",
+  "background_color": "#f8f9fc",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/assets/icon-152.png",
+      "sizes": "152x152",
+      "type": "image/png"
+    }
+  ]
+}

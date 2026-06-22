@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Campus Central — Study Hub | Learn with Videos & Diagrams</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        /* ========== INDEX.HTML DESIGN SYSTEM ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+        }
+
+        :root {
+            --primary: #0f4c5c;
+            --primary-dark: #0a3a46;
+            --secondary: #e67e22;
+            --accent: #ffb347;
+            --gold: #f4b942;
+            --light: #fef9e6;
+            --dark: #1e2a2e;
+            --gray-bg: #f8f9fc;
+            --success: #2ecc71;
+            --coffee: #6f4e2e;
+        }
+
+        body {
+            background-color: var(--gray-bg);
+            color: var(--dark);
+            line-height: 1.5;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 0.8rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .logo {
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .logo-main {
+            font-size: 1.4rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-main i {
+            color: var(--gold);
+            font-size: 1.4rem;
+        }
+
+        .brand-parent {
+            font-size: 0.55rem;
+            opacity: 0.8;
+            letter-spacing: 1px;
+        }
+
+        nav {
+            flex: 1;
+            text-align: center;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.3rem 0.5rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            transition: 0.2s;
+            cursor: pointer;
+        }
+
+        nav a:hover {
+            background-color: rgba(255,255,255,0.15);
+            color: var(--accent);
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: white;
+            min-width: 170px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 12px;
+            top: 100%;
+            left: 0;
+        }
+
+        .dropdown-content a {
+            color: var(--primary);
+            padding: 6px 10px;
+            text-decoration: none;
+            display: block;
+            font-size: 0.7rem;
+            text-align: left;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .btn-primary {
+            background-color: var(--secondary);
+            color: white;
+            padding: 0.3rem 0.7rem;
+            border-radius: 40px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid white;
+            color: white;
+            padding: 0.3rem 0.7rem;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.7rem;
+        }
+
+        .btn-outline:hover {
+            background: white;
+            color: var(--primary);
+        }
+
+        .hidden { display: none; }
+
+        /* Under development banner */
+        .dev-note {
+            background: #fff3cd;
+            border-left: 4px solid #f39c12;
+            padding: 0.8rem 1rem;
+            border-radius: 12px;
+            margin: 1rem auto 0;
+            max-width: 1200px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #856404;
+        }
+        .dev-note i {
+            margin-right: 0.5rem;
+        }
+
+        .study-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .page-header h1 i {
+            color: var(--gold);
+            margin-right: 0.5rem;
+        }
+
+        .page-header p {
+            color: #5a6e7a;
+            font-size: 0.9rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0.8rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            border-radius: 40px;
+            transition: 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: var(--light);
+            color: var(--secondary);
+        }
+
+        .tab-pane {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .search-card {
+            background: white;
+            border-radius: 24px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border-top: 3px solid var(--gold);
+        }
+
+        .search-row {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 3;
+            padding: 0.8rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 40px;
+            font-size: 0.9rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 2px rgba(230,126,34,0.1);
+        }
+
+        .search-btn {
+            background: var(--secondary);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .search-btn:hover {
+            background: #d35400;
+            transform: translateY(-2px);
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.2rem;
+            margin-top: 1rem;
+        }
+
+        .video-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+
+        .video-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .video-card img {
+            width: 100%;
+            aspect-ratio: 16/9;
+            object-fit: cover;
+        }
+
+        .video-info {
+            padding: 0.8rem;
+        }
+
+        .video-title {
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 0.3rem;
+            color: var(--primary);
+        }
+
+        .video-channel {
+            font-size: 0.7rem;
+            color: #666;
+        }
+
+        .save-video {
+            background: none;
+            border: none;
+            color: var(--secondary);
+            cursor: pointer;
+            margin-top: 0.3rem;
+            font-size: 0.7rem;
+        }
+
+        .diagram-editor {
+            background: white;
+            border-radius: 24px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .diagram-editor textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            margin-bottom: 0.8rem;
+            resize: vertical;
+        }
+
+        .diagram-editor textarea:focus {
+            outline: none;
+            border-color: var(--secondary);
+        }
+
+        .diagram-preview {
+            background: #fef9e6;
+            border-radius: 20px;
+            padding: 1rem;
+            margin: 0.8rem 0;
+            overflow-x: auto;
+        }
+
+        .diagram-actions {
+            display: flex;
+            gap: 0.8rem;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-buzz {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-buzz:hover {
+            background: #d35400;
+            transform: translateY(-2px);
+        }
+
+        .diagram-examples {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            margin-top: 0.8rem;
+        }
+
+        .example-btn {
+            background: var(--light);
+            border: 1px solid var(--gold);
+            padding: 0.3rem 0.8rem;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            cursor: pointer;
+        }
+
+        .saved-resources {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .resource-item {
+            background: white;
+            border-radius: 20px;
+            padding: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            border-left: 4px solid var(--gold);
+        }
+
+        .resource-title {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .resource-type {
+            font-size: 0.7rem;
+            color: #666;
+        }
+
+        .resource-actions button {
+            background: none;
+            border: none;
+            color: var(--secondary);
+            cursor: pointer;
+            margin-left: 0.5rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: 20px;
+            color: #999;
+        }
+
+        footer {
+            background: var(--dark);
+            color: white;
+            padding: 2rem 2rem 1rem;
+            margin-top: 3rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-content h3 {
+            font-size: 1rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-content ul li, .footer-content p {
+            font-size: 0.75rem;
+            list-style: none;
+        }
+
+        .copyright {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.7rem;
+        }
+
+        @media (max-width: 700px) {
+            .study-container { padding: 0 1rem; }
+            .search-row { flex-direction: column; }
+            .results-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 900px) {
+            nav ul { gap: 0.3rem; }
+            nav a { font-size: 0.65rem; padding: 0.25rem 0.4rem; }
+            .nav-container { flex-direction: column; }
+            .header-buttons { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+        <header>
+        <div class="nav-container">
+            <div class="logo">
+                <div class="logo-main">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>Campus Central</span>
+                </div>
+                <div class="brand-parent">
+                    <i class="fas fa-water"></i> A JetStream Initiative
+                </div>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="teacher_group_creation_start.html">Thank Teacher</a></li>
+                    <li><a href="celebration_group_creation_start.html">Celebrate Together</a></li>
+                    <li><a href="find_groups.html">Find Groups</a></li>
+                    <li><a href="student_dashboard.html">My Groups</a></li>
+                    <li><a href="find_my_friend.html">Find My Friend</a></li>
+                    <li class="dropdown">
+                        <a href="#">✨ Explore More ▼</a>
+                        <div class="dropdown-content">
+                            <a href="avatar_studio.html">🎨 Avatar Studio</a>
+                            <a href="keep_hive_buzzing.html">🍯 Keep the Hive</a>
+                            <a href="success_stories.html">📖 Success Stories</a>
+                            <a href="study_hub.html">📚 Study Hub</a>
+                        </div>
+                    </li>
+                </ul>
+            </nav>
+            <div class="header-buttons" id="authButtons">
+                <button class="btn-outline" onclick="window.location.href='login.html'">Login</button>
+                <button class="btn-primary" onclick="window.location.href='signup.html'">Sign Up →</button>
+            </div>
+            <div id="userMenu" class="hidden">
+                <span id="userName" style="margin-right: 0.8rem; font-size: 0.7rem;"></span>
+                <button class="btn-outline" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Under development note -->
+    <div class="dev-note">
+        <i class="fas fa-tools"></i> Study Hub is under active development. More features (smart search, summaries, diagrams) will be added soon. Your feedback helps us improve!
+    </div>
+
+    <div class="study-container">
+        <div class="page-header">
+            <h1><i class="fas fa-graduation-cap"></i> Study Hub</h1>
+            <p>Find tutorials, create diagrams, and save resources</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="youtube">🎬 YouTube Search</button>
+            <button class="tab-btn" data-tab="diagram">📊 Create Diagram</button>
+            <button class="tab-btn" data-tab="saved">📚 Saved Resources</button>
+        </div>
+
+        <!-- YouTube Search Tab -->
+        <div id="youtube-tab" class="tab-pane active">
+            <div class="search-card">
+                <div class="search-row">
+                    <input type="text" id="searchQuery" class="search-input" placeholder="Search for tutorials, e.g., DBMS, Python, Calculus, RAAS pathway...">
+                    <button class="search-btn" onclick="searchYouTube()"><i class="fab fa-youtube"></i> Search</button>
+                </div>
+            </div>
+            <div id="youtubeResults" class="results-grid">
+                <div class="empty-state">🔍 Search for educational videos</div>
+            </div>
+        </div>
+
+        <!-- Diagram Editor Tab -->
+        <div id="diagram-tab" class="tab-pane">
+            <div class="diagram-editor">
+                <textarea id="diagramCode" rows="6" placeholder="Enter Mermaid diagram code...&#10;Example:&#10;graph TD&#10;    A[Study] --> B{Choose Tool}&#10;    B --> C[YouTube]&#10;    B --> D[Diagram]"></textarea>
+                <div class="diagram-actions">
+                    <button class="btn-buzz" onclick="renderDiagram()"><i class="fas fa-sync-alt"></i> Render Diagram</button>
+                    <button class="btn-buzz" onclick="saveDiagram()"><i class="fas fa-save"></i> Save Diagram</button>
+                </div>
+                <div class="diagram-examples">
+                    <span>Examples:</span>
+                    <button class="example-btn" onclick="loadExample('flowchart')">Flowchart</button>
+                    <button class="example-btn" onclick="loadExample('mindmap')">Mind Map</button>
+                    <button class="example-btn" onclick="loadExample('sequence')">Sequence</button>
+                </div>
+                <div class="diagram-preview" id="diagramPreview">
+                    <div id="mermaidOutput" style="text-align: center;">Your diagram will appear here</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Saved Resources Tab -->
+        <div id="saved-tab" class="tab-pane">
+            <div id="savedResourcesList" class="saved-resources">
+                <div class="empty-state">💡 Save YouTube videos or diagrams to see them here</div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div>
+                <h3>Campus Central</h3>
+                <p>A JetStream Initiative — Bring people together.</p>
+                <a class="coffee-button" style="margin-top:0.5rem; display:inline-flex; background-color: var(--coffee); color: white; padding: 0.3rem 0.8rem; border-radius: 30px; text-decoration: none; font-size: 0.7rem;" onclick="alert('Thank you for your support! ❤️ UPI: campuscentral@okhdfcbank')">
+                    <i class="fas fa-coffee"></i> Support Our Mission
+                </a>
+            </div>
+            <div>
+                <h3>Tools</h3>
+                <ul>
+                    <li>Thank Teacher</li>
+                    <li>Celebrate Together</li>
+                    <li>Find Groups</li>
+                    <li>My Groups</li>
+                    <li>Batchmate Finder</li>
+                    <li>Avatar Studio</li>
+                    <li>Crush Corner</li>
+                    <li>Family Business</li>
+                    <li>Startup Nest</li>
+                    <li>Keep the Hive</li>
+                    <li>Teen Space</li>
+                    <li>Marriage Staffing</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Coming Soon</h3>
+                <ul>
+                    <li>Campus Legend</li>
+                    <li>Batchmates</li>
+                    <li>Fest Hunter</li>
+                    <li>Hostel Hero</li>
+                    <li>Project Partner</li>
+                    <li>Campus Gully</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Legal</h3>
+                <ul>
+                    <li><a onclick="showLegalPage('disclaimer')" style="color: white; text-decoration: none; cursor: pointer;">Disclaimer</a></li>
+                    <li><a onclick="showLegalPage('privacy')" style="color: white; text-decoration: none; cursor: pointer;">Privacy Policy</a></li>
+                    <li><a onclick="showLegalPage('terms')" style="color: white; text-decoration: none; cursor: pointer;">Terms of Service</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3>Contact</h3>
+                <ul>
+                    <li>hello@campuscentral.in</li>
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>© 2026 Campus Central — A JetStream Initiative. For students across Karnataka.</p>
+            <p style="font-size:0.65rem;">⚠️ Platform fee only. Actual gift money collected offline among friends.</p>
+        </div>
+    </footer>
+        <script src="js/config.js"></script>
+    <script>
+        // ========== SHARED FUNCTIONS ==========
+        function showLegalPage(type) {
+            const texts = {
+                disclaimer: '⚠️ Campus Central is a facilitation platform only. Platform fee keeps the service running. Actual gift money is collected offline among friends.',
+                privacy: '🔒 We collect your name, email, phone number, and college information for coordination. We do not sell your data.',
+                terms: '📜 By using Campus Central, you agree to be 18 years or older and use the platform responsibly.'
+            };
+            alert(texts[type]);
+        }
+
+        function logout() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('token');
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('user');
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = 'index.html';
+        }
+
+        function updateHeaderUI() {
+            const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+            const userData = localStorage.getItem('currentUser') || localStorage.getItem('user');
+            const authDiv = document.getElementById('authButtons');
+            const userMenu = document.getElementById('userMenu');
+            const userNameSpan = document.getElementById('userName');
+            if (token && userData) {
+                try {
+                    const user = JSON.parse(userData);
+                    if (authDiv) authDiv.classList.add('hidden');
+                    if (userMenu) userMenu.classList.remove('hidden');
+                    if (userNameSpan) userNameSpan.innerText = user.full_name || (user.email ? user.email.split('@')[0] : 'User');
+                } catch(e) {}
+            } else {
+                if (authDiv) authDiv.classList.remove('hidden');
+                if (userMenu) userMenu.classList.add('hidden');
+            }
+        }
+
+        // ========== YOUTUBE REAL SEARCH (requires API key) ==========
+        // 🔑 REPLACE 'YOUR_YOUTUBE_API_KEY' with your actual YouTube Data API v3 key
+        const YOUTUBE_API_KEY = 'YOUR_YOUTUBE_API_KEY';
+
+        async function searchYouTube() {
+            const query = document.getElementById('searchQuery').value.trim();
+            if (!query) { alert('Enter a search term'); return; }
+            const resultsDiv = document.getElementById('youtubeResults');
+            resultsDiv.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i> Searching...</div>';
+
+            if (YOUTUBE_API_KEY === 'YOUR_YOUTUBE_API_KEY') {
+                // No API key provided – show mock results so the page is useful
+                setTimeout(() => {
+                    const mockResults = [
+                        { id: { videoId: 'mock1' }, snippet: { title: `${query} - Complete Tutorial`, channelTitle: 'Campus Central Learning', thumbnails: { medium: { url: 'https://via.placeholder.com/320x180?text=Tutorial' } } } },
+                        { id: { videoId: 'mock2' }, snippet: { title: `Learn ${query} in 10 Minutes`, channelTitle: 'Study Hub Academy', thumbnails: { medium: { url: 'https://via.placeholder.com/320x180?text=Fast+Learning' } } } }
+                    ];
+                    displayYouTubeResults(mockResults);
+                }, 500);
+                return;
+            }
+
+            try {
+                const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(query)}&type=video&key=${YOUTUBE_API_KEY}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                if (data.error) {
+                    throw new Error(data.error.message);
+                }
+                displayYouTubeResults(data.items);
+            } catch (err) {
+                resultsDiv.innerHTML = `<div class="empty-state">❌ Error: ${err.message}. Please try again later.</div>`;
+            }
+        }
+
+        function displayYouTubeResults(videos) {
+            const resultsDiv = document.getElementById('youtubeResults');
+            if (!videos || videos.length === 0) {
+                resultsDiv.innerHTML = '<div class="empty-state">No videos found.</div>';
+                return;
+            }
+            resultsDiv.innerHTML = videos.map(v => {
+                const videoId = v.id.videoId || v.id;
+                const title = v.snippet.title;
+                const channel = v.snippet.channelTitle;
+                const thumb = v.snippet.thumbnails?.medium?.url || 'https://via.placeholder.com/320x180';
+                return `
+                    <div class="video-card">
+                        <a href="https://www.youtube.com/watch?v=${videoId}" target="_blank">
+                            <img src="${thumb}" alt="${escapeHtml(title)}">
+                        </a>
+                        <div class="video-info">
+                            <div class="video-title">${escapeHtml(title)}</div>
+                            <div class="video-channel">${escapeHtml(channel)}</div>
+                            <button class="save-video" onclick="saveResource('video', '${escapeHtml(title)}', '${videoId}')"><i class="fas fa-bookmark"></i> Save</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ========== DIAGRAM FUNCTIONS ==========
+        mermaid.initialize({ startOnLoad: false, theme: 'base', themeVariables: { primaryColor: '#0f4c5c', primaryBorderColor: '#e67e22' } });
+
+        function renderDiagram() {
+            const code = document.getElementById('diagramCode').value;
+            if (!code.trim()) { alert('Enter some diagram code'); return; }
+            const element = document.getElementById('mermaidOutput');
+            element.innerHTML = '<div style="text-align:center;">Rendering...</div>';
+            mermaid.render('mermaid-diagram', code).then(result => {
+                element.innerHTML = result.svg;
+            }).catch(err => {
+                element.innerHTML = `<div style="color:red;">Error: ${err.message}</div>`;
+            });
+        }
+
+        function saveDiagram() {
+            const code = document.getElementById('diagramCode').value;
+            if (!code.trim()) { alert('Enter diagram code to save'); return; }
+            const saved = JSON.parse(localStorage.getItem('study_saved') || '[]');
+            saved.push({
+                id: Date.now(),
+                type: 'diagram',
+                title: 'Diagram ' + (saved.filter(i=>i.type==='diagram').length+1),
+                content: code,
+                timestamp: Date.now()
+            });
+            localStorage.setItem('study_saved', JSON.stringify(saved));
+            alert('Diagram saved!');
+            loadSavedResources();
+        }
+
+        function saveResource(type, title, identifier) {
+            const saved = JSON.parse(localStorage.getItem('study_saved') || '[]');
+            saved.push({
+                id: Date.now(),
+                type: type,
+                title: title,
+                identifier: identifier,
+                timestamp: Date.now()
+            });
+            localStorage.setItem('study_saved', JSON.stringify(saved));
+            alert('Saved to your resources!');
+        }
+                function loadSavedResources() {
+            const saved = JSON.parse(localStorage.getItem('study_saved') || '[]');
+            const container = document.getElementById('savedResourcesList');
+            if (saved.length === 0) {
+                container.innerHTML = '<div class="empty-state">💡 No saved resources yet. Save YouTube videos or diagrams.</div>';
+                return;
+            }
+            container.innerHTML = saved.map(item => `
+                <div class="resource-item">
+                    <div>
+                        <div class="resource-title">${escapeHtml(item.title)}</div>
+                        <div class="resource-type">${item.type === 'video' ? '📹 YouTube Video' : '📊 Diagram'}</div>
+                    </div>
+                    <div class="resource-actions">
+                        ${item.type === 'diagram' ? `<button onclick="loadDiagram('${item.id}')"><i class="fas fa-eye"></i> View</button>` : `<button onclick="window.open('https://www.youtube.com/watch?v=${item.identifier}', '_blank')"><i class="fas fa-external-link-alt"></i> Watch</button>`}
+                        <button onclick="deleteResource('${item.id}')"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function loadDiagram(id) {
+            const saved = JSON.parse(localStorage.getItem('study_saved') || '[]');
+            const item = saved.find(i => i.id == id);
+            if (item && item.type === 'diagram') {
+                document.getElementById('diagramCode').value = item.content;
+                switchTab('diagram');
+                renderDiagram();
+            }
+        }
+
+        function deleteResource(id) {
+            let saved = JSON.parse(localStorage.getItem('study_saved') || '[]');
+            saved = saved.filter(i => i.id != id);
+            localStorage.setItem('study_saved', JSON.stringify(saved));
+            loadSavedResources();
+        }
+
+        function loadExample(type) {
+            let example = '';
+            if (type === 'flowchart') {
+                example = `graph TD\n    A[Start Studying] --> B{Choose Topic}\n    B --> C[Watch Video]\n    B --> D[Make Notes]\n    C --> E[Practice]\n    D --> E\n    E --> F[Success!]`;
+            } else if (type === 'mindmap') {
+                example = `mindmap\n  root((Study Plan))\n    Mathematics\n      Calculus\n      Algebra\n    Science\n      Physics\n      Chemistry\n    Languages\n      English\n      Kannada`;
+            } else if (type === 'sequence') {
+                example = `sequenceDiagram\n    participant Student\n    participant Teacher\n    Student->>Teacher: I need help\n    Teacher-->>Student: Here is a resource\n    Student->>Teacher: Thank you!`;
+            }
+            document.getElementById('diagramCode').value = example;
+            renderDiagram();
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+            document.getElementById(`${tabId}-tab`).classList.add('active');
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('active');
+            if (tabId === 'saved') loadSavedResources();
+        }
+
+        // Initialize
+        updateHeaderUI();
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.dataset.tab;
+                switchTab(tab);
+            });
+        });
+        // Preload example diagram
+        document.getElementById('diagramCode').value = `graph TD\n    A[Study] --> B{Choose}\n    B --> C[Videos]\n    B --> D[Diagrams]\n    C --> E[Success]\n    D --> E`;
+        renderDiagram();
+        loadSavedResources();
+    </script>
+    <script src="js/auth-guard.js"></script>
+</body>
+</html>

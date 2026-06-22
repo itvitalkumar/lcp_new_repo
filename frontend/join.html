@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Join Group - Campus Central</title>
+    
+    <!-- Master Configuration -->
+    <script src="js/config.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+
+        :root {
+            --primary: #0f4c5c;
+            --primary-dark: #0a3a46;
+            --secondary: #e67e22;
+            --gold: #f4b942;
+            --success: #2ecc71;
+            --error: #e74c3c;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            min-height: 100vh;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .join-container {
+            max-width: 650px;
+            width: 100%;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .group-card {
+            background: white;
+            border-radius: 40px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+        }
+
+        .group-icon {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .group-name {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            word-break: break-word;
+        }
+
+        .group-type-badge {
+            display: inline-block;
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .badge-teacher {
+            background: #ffe0b3;
+            color: #cc7000;
+        }
+
+        .badge-celebration {
+            background: #e0b3ff;
+            color: #6c3483;
+        }
+
+        .group-details {
+            background: #f8f9fc;
+            border-radius: 24px;
+            padding: 1.2rem;
+            margin: 1rem 0;
+            text-align: left;
+        }
+
+        .detail-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.8rem;
+            margin-bottom: 0.8rem;
+            font-size: 0.85rem;
+            color: #555;
+            flex-wrap: wrap;
+        }
+
+        .detail-icon {
+            min-width: 24px;
+            color: var(--secondary);
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: var(--primary);
+            min-width: 100px;
+        }
+
+        .detail-value {
+            flex: 1;
+            color: #333;
+            word-break: break-word;
+        }
+
+        .member-count {
+            display: inline-block;
+            background: #d4edda;
+            color: #155724;
+            padding: 0.2rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.2rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .memory-box {
+            background: #fef9e6;
+            border-radius: 16px;
+            padding: 0.8rem;
+            margin-top: 0.5rem;
+            font-style: italic;
+            font-size: 0.8rem;
+            border-left: 3px solid var(--gold);
+        }
+
+        .photo-gallery {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+
+        .photo-thumb {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 2px solid var(--gold);
+        }
+
+        .action-buttons {
+            margin-top: 1.5rem;
+        }
+
+        .btn-primary {
+            background: var(--secondary);
+            color: white;
+            width: 100%;
+            padding: 0.9rem;
+            border: none;
+            border-radius: 40px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            background: #d35400;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #eef2f3;
+            color: var(--primary);
+            width: 100%;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 0.8rem;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e5e7;
+        }
+
+        .login-prompt {
+            background: #e8f4f8;
+            border-radius: 20px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .login-prompt p {
+            font-size: 0.8rem;
+            color: var(--primary);
+            margin-bottom: 0.8rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--secondary);
+        }
+
+        .error-msg {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        footer {
+            margin-top: 1rem;
+            text-align: center;
+            font-size: 0.7rem;
+            color: white;
+            opacity: 0.7;
+        }
+
+        @media (max-width: 550px) {
+            body { padding: 1rem; }
+            .group-card { padding: 1.2rem; }
+            .group-name { font-size: 1.3rem; }
+            .detail-row { flex-direction: column; gap: 0.3rem; }
+            .detail-label { min-width: auto; }
+        }
+    </style>
+</head>
+<body>
+    <div class="join-container">
+        <div class="group-card" id="groupCard">
+            <!-- Loading State -->
+            <div id="loadingState" class="loading">
+                <i class="fas fa-spinner fa-spin"></i> Loading group details...
+            </div>
+
+            <!-- Group Details (Hidden until loaded) -->
+            <div id="groupDetails" class="hidden">
+                <div class="group-icon" id="groupIcon">📖</div>
+                <div class="group-name" id="groupName">--</div>
+                <div id="groupTypeBadge" class="group-type-badge">--</div>
+
+                <div class="group-details">
+                    <div class="detail-row">
+                        <span class="detail-icon">📍</span>
+                        <span class="detail-label">Location/College:</span>
+                        <span class="detail-value" id="groupLocation">--</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-icon">📅</span>
+                        <span class="detail-label">Event Date:</span>
+                        <span class="detail-value" id="groupDate">--</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-icon">📍</span>
+                        <span class="detail-label">Venue:</span>
+                        <span class="detail-value" id="groupVenue">--</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-icon">👥</span>
+                        <span class="detail-label">Members Joined:</span>
+                        <span class="detail-value" id="memberCountDisplay">--</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-icon">📌</span>
+                        <span class="detail-label">Status:</span>
+                        <span class="detail-value" id="groupStatus">--</span>
+                    </div>
+                    <div id="memoryRow" class="hidden">
+                        <div class="memory-box" id="memoryText"></div>
+                    </div>
+                    <div id="petNamesRow" class="hidden">
+                        <div class="detail-row">
+                            <span class="detail-icon">🥰</span>
+                            <span class="detail-label">Pet Names:</span>
+                            <span class="detail-value" id="petNames">--</span>
+                        </div>
+                    </div>
+                    <div id="secretCodeRow" class="hidden">
+                        <div class="detail-row">
+                            <span class="detail-icon">🤫</span>
+                            <span class="detail-label">Secret Code:</span>
+                            <span class="detail-value" id="secretCode">--</span>
+                        </div>
+                    </div>
+                    <div id="dressCodeRow" class="hidden">
+                        <div class="detail-row">
+                            <span class="detail-icon">👕</span>
+                            <span class="detail-label">Dress Code:</span>
+                            <span class="detail-value" id="dressCode">--</span>
+                        </div>
+                    </div>
+                    <div id="bringRow" class="hidden">
+                        <div class="detail-row">
+                            <span class="detail-icon">🎁</span>
+                            <span class="detail-label">Bring:</span>
+                            <span class="detail-value" id="bring">--</span>
+                        </div>
+                    </div>
+                    <div id="surpriseRow" class="hidden">
+                        <div class="detail-row">
+                            <span class="detail-icon">🎉</span>
+                            <span class="detail-label">Surprise:</span>
+                            <span class="detail-value" id="surprise">--</span>
+                        </div>
+                    </div>
+                    <div id="noteRow" class="hidden">
+                        <div class="detail-row">
+                            <span class="detail-icon">💌</span>
+                            <span class="detail-label">Note:</span>
+                            <span class="detail-value" id="note">--</span>
+                        </div>
+                    </div>
+                    <div id="photosRow" class="hidden">
+                        <div class="detail-row">
+                            <span class="detail-icon">📸</span>
+                            <span class="detail-label">Photos:</span>
+                            <div class="detail-value" id="photoGallery"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="loginRequiredSection" class="login-prompt">
+                    <p>🔐 <strong>Join this group for FREE</strong></p>
+                    <p style="font-size: 0.75rem; margin-bottom: 0.5rem;">You need to login or sign up to join this group. It takes 30 seconds!</p>
+                    <button class="btn-primary" id="loginJoinBtn" onclick="redirectToLogin()">
+                        📱 Login / Sign Up with WhatsApp → FREE
+                    </button>
+                    <button class="btn-secondary" onclick="redirectToSignup()">
+                        ✨ New User? Sign Up Here
+                    </button>
+                </div>
+
+                <div id="alreadyMemberSection" class="login-prompt hidden">
+                    <p>✅ <strong>You are already a member of this group!</strong></p>
+                    <button class="btn-primary" onclick="goToDashboard()">
+                        💬 Go to Dashboard & Chat →
+                    </button>
+                </div>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorState" class="hidden">
+                <div class="error-msg">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p id="errorMessage">Group not found. The invite link may be invalid or the group has been deleted.</p>
+                </div>
+                <button class="btn-secondary" onclick="goToHome()">
+                    ← Go to Homepage
+                </button>
+            </div>
+        </div>
+        <footer>
+            Campus Central — A JetStream Initiative
+        </footer>
+    </div>
+
+    <script>
+        // ============================================================
+        // API BASE URL - FROM MASTER CONFIGURATION
+        // ============================================================
+        const API_BASE = window.ACTIVE_CONFIG ? window.ACTIVE_CONFIG.API_BASE_URL : 'http://localhost:8000/api';
+        
+        // Get groupId from URL
+        function getGroupIdFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('groupId');
+        }
+
+        const GROUP_ID = getGroupIdFromUrl();
+        let groupData = null;
+        let isLoggedIn = false;
+        let currentUser = null;
+        let alreadyMember = false;
+
+        // ========== CHECK LOGIN STATUS ==========
+        function checkLoginStatus() {
+            const token = localStorage.getItem('authToken');
+            const userStr = localStorage.getItem('currentUser');
+            
+            if (token && userStr) {
+                try {
+                    currentUser = JSON.parse(userStr);
+                    isLoggedIn = true;
+                    console.log('✅ User is logged in:', currentUser.full_name);
+                    return true;
+                } catch(e) {
+                    console.error('Error parsing user:', e);
+                }
+            }
+            isLoggedIn = false;
+            console.log('❌ User is not logged in');
+            return false;
+        }
+
+        // ========== FETCH GROUP DETAILS FROM PUBLIC API ==========
+        async function fetchGroupDetails() {
+            if (!GROUP_ID) {
+                showError('No group ID provided in the link.');
+                return false;
+            }
+
+            try {
+                console.log('🔍 Fetching group details for:', GROUP_ID);
+                const response = await fetch(`${API_BASE}/public/group/${GROUP_ID}`);
+                
+                if (response.ok) {
+                    groupData = await response.json();
+                    console.log('✅ Group details fetched:', groupData);
+                    displayGroupDetails();
+                    return true;
+                } else {
+                    const errorData = await response.json();
+                    console.error('❌ Failed to fetch group:', errorData);
+                    showError(errorData.detail || 'Group not found');
+                    return false;
+                }
+            } catch (error) {
+                console.error('❌ Error fetching group:', error);
+                showError('Cannot connect to server. Please check your internet connection.');
+                return false;
+            }
+        }
+
+        // ========== DISPLAY GROUP DETAILS ==========
+        function displayGroupDetails() {
+            if (!groupData) return;
+
+            // Set icon based on type
+            const icon = groupData.type === 'teacher' ? '📖' : '🎉';
+            document.getElementById('groupIcon').innerHTML = icon;
+            
+            // Group name
+            document.getElementById('groupName').innerText = groupData.name || 'Our Group';
+            
+            // Type badge
+            const typeBadge = document.getElementById('groupTypeBadge');
+            if (groupData.type === 'teacher') {
+                typeBadge.innerText = '📖 Teacher Thank You Group';
+                typeBadge.className = 'group-type-badge badge-teacher';
+            } else {
+                typeBadge.innerText = '🎉 Celebration / Reunion';
+                typeBadge.className = 'group-type-badge badge-celebration';
+            }
+            
+            // Location/College
+            const location = groupData.type === 'teacher' ? groupData.college : groupData.location;
+            document.getElementById('groupLocation').innerText = location || 'Location TBD';
+            
+            // Event date
+            document.getElementById('groupDate').innerText = groupData.event_date || 'Date TBD';
+            
+            // Venue
+            document.getElementById('groupVenue').innerText = groupData.venue || 'Venue TBD';
+            
+            // Member count
+            const memberCount = groupData.member_count || 1;
+            document.getElementById('memberCountDisplay').innerHTML = `<span class="member-count">👥 ${memberCount} members joined</span>`;
+            
+            // Status
+            const statusSpan = document.getElementById('groupStatus');
+            if (groupData.is_active) {
+                statusSpan.innerHTML = '<span class="status-badge status-active">✅ Active - You can join!</span>';
+            } else {
+                statusSpan.innerHTML = '<span class="status-badge status-pending">⏳ Pending - Group not yet activated</span>';
+            }
+            
+            // Memory
+            if (groupData.memory) {
+                document.getElementById('memoryRow').classList.remove('hidden');
+                document.getElementById('memoryText').innerHTML = `💭 "${escapeHtml(groupData.memory)}"`;
+            }
+            
+            // Pet names
+            if (groupData.pet_names) {
+                document.getElementById('petNamesRow').classList.remove('hidden');
+                document.getElementById('petNames').innerText = groupData.pet_names;
+            }
+            
+            // Secret code
+            if (groupData.secret_code) {
+                document.getElementById('secretCodeRow').classList.remove('hidden');
+                document.getElementById('secretCode').innerText = groupData.secret_code;
+            }
+            
+            // Dress code
+            if (groupData.dress_code) {
+                document.getElementById('dressCodeRow').classList.remove('hidden');
+                document.getElementById('dressCode').innerText = groupData.dress_code;
+            }
+            
+            // Bring
+            if (groupData.bring) {
+                document.getElementById('bringRow').classList.remove('hidden');
+                document.getElementById('bring').innerText = groupData.bring;
+            }
+            
+            // Surprise
+            if (groupData.surprise) {
+                document.getElementById('surpriseRow').classList.remove('hidden');
+                document.getElementById('surprise').innerText = groupData.surprise;
+            }
+            
+            // Note
+            if (groupData.note) {
+                document.getElementById('noteRow').classList.remove('hidden');
+                document.getElementById('note').innerText = groupData.note;
+            }
+            
+            // Photos
+            if (groupData.photos && groupData.photos.length > 0) {
+                document.getElementById('photosRow').classList.remove('hidden');
+                const photoGallery = document.getElementById('photoGallery');
+                photoGallery.innerHTML = '<div class="photo-gallery"></div>';
+                const galleryDiv = photoGallery.querySelector('.photo-gallery');
+                groupData.photos.slice(0, 4).forEach(photo => {
+                    galleryDiv.innerHTML += `<img src="${photo}" class="photo-thumb" alt="Memory photo">`;
+                });
+            }
+            
+            // Hide loading, show details
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('groupDetails').classList.remove('hidden');
+            
+            // Update UI based on login status and membership
+            updateUIBasedOnLogin();
+        }
+
+        // ========== CHECK IF USER IS ALREADY A MEMBER ==========
+        async function checkMembership() {
+            if (!isLoggedIn || !currentUser || !groupData) return false;
+            
+            try {
+                // First, try to get user's groups from /my-groups
+                const token = localStorage.getItem('authToken');
+                const response = await fetch(`${API_BASE}/groups/my-groups`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const groups = data.groups || [];
+                    const isMember = groups.some(g => g.id === GROUP_ID);
+                    alreadyMember = isMember;
+                    return isMember;
+                }
+            } catch (error) {
+                console.error('Error checking membership:', error);
+            }
+            return false;
+        }
+
+        // ========== UPDATE UI BASED ON LOGIN STATUS ==========
+        async function updateUIBasedOnLogin() {
+            const loginSection = document.getElementById('loginRequiredSection');
+            const alreadyMemberSection = document.getElementById('alreadyMemberSection');
+            
+            if (isLoggedIn) {
+                const isMember = await checkMembership();
+                if (isMember) {
+                    loginSection.classList.add('hidden');
+                    alreadyMemberSection.classList.remove('hidden');
+                } else {
+                    loginSection.classList.remove('hidden');
+                    alreadyMemberSection.classList.add('hidden');
+                    // Update button text for logged-in user
+                    document.getElementById('loginJoinBtn').innerHTML = '🔓 Join This Group for FREE →';
+                }
+            } else {
+                loginSection.classList.remove('hidden');
+                alreadyMemberSection.classList.add('hidden');
+                document.getElementById('loginJoinBtn').innerHTML = '📱 Login / Sign Up with WhatsApp → FREE';
+            }
+        }
+
+        // ========== JOIN THE GROUP ==========
+        async function joinGroup() {
+            if (!isLoggedIn || !currentUser) {
+                redirectToLogin();
+                return;
+            }
+            
+            if (!groupData || !groupData.is_active) {
+                alert('This group is not active yet. Please wait for the organizer to activate it.');
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem('authToken');
+                console.log('🔍 Joining group:', GROUP_ID, groupData.type);
+                
+                const response = await fetch(`${API_BASE}/groups/join`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        group_id: GROUP_ID,
+                        group_type: groupData.type
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    console.log('✅ Successfully joined group!');
+                    alert(`🎉 You have successfully joined "${groupData.name}"!`);
+                    // Redirect to dashboard with group highlighted
+                    window.location.href = `student_dashboard.html?highlight=${GROUP_ID}`;
+                } else {
+                    console.error('❌ Join failed:', data);
+                    alert(data.detail || data.message || 'Failed to join group. Please try again.');
+                }
+            } catch (error) {
+                console.error('❌ Join error:', error);
+                alert('Network error. Please try again.');
+            }
+        }
+
+        // ========== REDIRECT FUNCTIONS ==========
+        function redirectToLogin() {
+            const returnUrl = encodeURIComponent(`join.html?groupId=${GROUP_ID}`);
+            window.location.href = `login.html?redirect=${returnUrl}`;
+        }
+        
+        function redirectToSignup() {
+            const returnUrl = encodeURIComponent(`join.html?groupId=${GROUP_ID}`);
+            window.location.href = `signup.html?redirect=${returnUrl}`;
+        }
+        
+        function goToDashboard() {
+            window.location.href = `student_dashboard.html?highlight=${GROUP_ID}`;
+        }
+        
+        function goToHome() {
+            window.location.href = 'index.html';
+        }
+
+        // ========== SHOW ERROR ==========
+        function showError(message) {
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('groupDetails').classList.add('hidden');
+            document.getElementById('errorState').classList.remove('hidden');
+            document.getElementById('errorMessage').innerText = message;
+        }
+
+        // ========== ESCAPE HTML ==========
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ========== INITIALIZE ==========
+        async function init() {
+            checkLoginStatus();
+            await fetchGroupDetails();
+            
+            // If user is logged in and group is active, update button to show "Join Group"
+            if (isLoggedIn && groupData && groupData.is_active && !alreadyMember) {
+                const joinBtn = document.getElementById('loginJoinBtn');
+                if (joinBtn) {
+                    joinBtn.innerHTML = '🔓 Join This Group for FREE →';
+                    joinBtn.onclick = () => joinGroup();
+                }
+            }
+        }
+        
+        // Make joinGroup globally available for button
+        window.joinGroup = joinGroup;
+        window.redirectToLogin = redirectToLogin;
+        window.redirectToSignup = redirectToSignup;
+        window.goToDashboard = goToDashboard;
+        window.goToHome = goToHome;
+        
+        // Start initialization
+        init();
+    </script>
+    <script src="js/auth-guard.js"></script>
+</body>
+</html>

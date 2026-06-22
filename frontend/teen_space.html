@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teen Space - Campus Central</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f4c5c, #0a3a46);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header h1 i {
+            color: #f4b942;
+        }
+
+        .header p {
+            opacity: 0.9;
+        }
+
+        .age-verification {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem;
+            text-align: center;
+            max-width: 450px;
+            margin: 0 auto 2rem;
+        }
+
+        .age-verification h2 {
+            color: #0f4c5c;
+            margin-bottom: 1rem;
+        }
+
+        .age-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .btn-age-yes {
+            background: #2ecc71;
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-age-no {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .teen-content {
+            display: none;
+        }
+
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            color: #0f4c5c;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .forum-post {
+            background: #f8f9fc;
+            border-radius: 16px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 3px solid #f4b942;
+        }
+
+        .post-title {
+            font-weight: bold;
+            color: #0f4c5c;
+            margin-bottom: 0.3rem;
+        }
+
+        .post-meta {
+            font-size: 0.7rem;
+            color: #999;
+            margin-bottom: 0.5rem;
+        }
+
+        .post-content {
+            font-size: 0.85rem;
+            color: #555;
+            margin-bottom: 0.5rem;
+        }
+
+        .post-reply {
+            background: white;
+            border-radius: 12px;
+            padding: 0.5rem;
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            border: 1px solid #eee;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: #0f4c5c;
+            margin-bottom: 0.3rem;
+            font-size: 0.85rem;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 0.7rem;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: #e67e22;
+            color: white;
+            border: none;
+            padding: 0.7rem;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            background: #d35400;
+            transform: translateY(-2px);
+        }
+
+        .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .resource-card {
+            background: #f8f9fc;
+            border-radius: 16px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .resource-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .resource-card i {
+            font-size: 1.8rem;
+            color: #e67e22;
+            margin-bottom: 0.5rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: #eef2f3;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .tab-btn.active {
+            background: #e67e22;
+            color: white;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            color: white;
+            opacity: 0.7;
+            font-size: 0.7rem;
+        }
+
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 0.8rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        @media (max-width: 700px) {
+            body { padding: 1rem; }
+            .resources-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-users"></i> 👥 Teen Space</h1>
+            <p>A safe, respectful space for students 18+ to connect, share, and learn</p>
+        </div>
+
+        <!-- Age Verification -->
+        <div id="ageVerification" class="age-verification">
+            <h2>🔞 Age Verification Required</h2>
+            <p>Teen Space is for students 18 years and older. Please confirm your age to continue.</p>
+            <div class="age-buttons">
+                <button class="btn-age-yes" onclick="verifyAge(true)">✅ I am 18 or older</button>
+                <button class="btn-age-no" onclick="verifyAge(false)">❌ I am under 18</button>
+            </div>
+        </div>
+
+        <!-- Teen Content (Hidden until age verification) -->
+        <div id="teenContent" class="teen-content">
+            <div class="warning">
+                <i class="fas fa-shield-alt"></i> This is a moderated, respectful space. Be kind. No harassment. No bullying.
+            </div>
+
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('forum')">💬 Discussion Forum</button>
+                <button class="tab-btn" onclick="switchTab('resources')">📚 Student Resources</button>
+                <button class="tab-btn" onclick="switchTab('events')">🎪 Upcoming Events</button>
+            </div>
+
+            <!-- Forum Tab -->
+            <div id="forumTab">
+                <div class="card">
+                    <h2>💬 Discussion Forum</h2>
+                    <div id="forumPosts"></div>
+
+                    <div style="margin-top: 1.5rem;">
+                        <h3>Start a New Discussion</h3>
+                        <div class="form-group">
+                            <input type="text" id="postTitle" placeholder="Topic title">
+                        </div>
+                        <div class="form-group">
+                            <textarea id="postContent" rows="3" placeholder="What's on your mind?"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <select id="postCategory">
+                                <option value="General">General Discussion</option>
+                                <option value="Career">Career & Jobs</option>
+                                <option value="Academics">Academics & Exams</option>
+                                <option value="Mental Health">Mental Health & Wellness</option>
+                                <option value="Relationships">Friends & Relationships</option>
+                                <option value="Skills">Skills & Learning</option>
+                            </select>
+                        </div>
+                        <button class="btn-primary" onclick="createPost()">📝 Post Discussion</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resources Tab -->
+            <div id="resourcesTab" style="display: none;">
+                <div class="card">
+                    <h2>📚 Free Student Resources</h2>
+                    <div class="resources-grid">
+                        <div class="resource-card" onclick="window.open('https://www.coursera.org', '_blank')">
+                            <i class="fas fa-laptop-code"></i>
+                            <h4>Coursera</h4>
+                            <p style="font-size:0.7rem;">Free courses from top universities</p>
+                        </div>
+                        <div class="resource-card" onclick="window.open('https://www.khanacademy.org', '_blank')">
+                            <i class="fas fa-chalkboard-user"></i>
+                            <h4>Khan Academy</h4>
+                            <p style="font-size:0.7rem;">Free learning for all subjects</p>
+                        </div>
+                        <div class="resource-card" onclick="window.open('https://www.udemy.com', '_blank')">
+                            <i class="fas fa-graduation-cap"></i>
+                            <h4>Udemy</h4>
+                            <p style="font-size:0.7rem;">Affordable courses & freebies</p>
+                        </div>
+                        <div class="resource-card" onclick="window.open('https://www.codecademy.com', '_blank')">
+                            <i class="fas fa-code"></i>
+                            <h4>Codecademy</h4>
+                            <p style="font-size:0.7rem;">Learn to code for free</p>
+                        </div>
+                        <div class="resource-card" onclick="window.open('https://www.placementpreparation.in', '_blank')">
+                            <i class="fas fa-briefcase"></i>
+                            <h4>Placement Prep</h4>
+                            <p style="font-size:0.7rem;">Aptitude & interview prep</p>
+                        </div>
+                        <div class="resource-card" onclick="window.open('https://www.ted.com', '_blank')">
+                            <i class="fas fa-lightbulb"></i>
+                            <h4>TED Talks</h4>
+                            <p style="font-size:0.7rem;">Inspiration & ideas</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Events Tab -->
+            <div id="eventsTab" style="display: none;">
+                <div class="card">
+                    <h2>🎪 Upcoming Events for Students</h2>
+                    <div id="eventsList"></div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            Campus Central — A JetStream Initiative | Safe, moderated space for students 18+
+        </footer>
+    </div>
+
+    <script>
+        let forumPosts = [];
+        let eventsList = [];
+
+        function verifyAge(isAdult) {
+            if (isAdult) {
+                document.getElementById('ageVerification').style.display = 'none';
+                document.getElementById('teenContent').style.display = 'block';
+                loadForum();
+                loadEvents();
+            } else {
+                alert('❌ Teen Space is only for students 18 years and older. Please come back when you turn 18!');
+                window.location.href = 'index.html';
+            }
+        }
+
+        function loadForum() {
+            const saved = localStorage.getItem('teenForumPosts');
+            if (saved) {
+                forumPosts = JSON.parse(saved);
+            } else {
+                forumPosts = [
+                    { id: 1, title: "Tips for cracking placements?", content: "I'm in my 3rd year. Any advice for placement preparation?", category: "Career", author: "Priya", timestamp: Date.now() - 86400000, replies: [] },
+                    { id: 2, title: "Best free resources for ML/AI", content: "Looking for free ML courses. Suggestions?", category: "Skills", author: "Amit", timestamp: Date.now() - 172800000, replies: [] }
+                ];
+                saveForum();
+            }
+            renderForum();
+        }
+
+        function saveForum() {
+            localStorage.setItem('teenForumPosts', JSON.stringify(forumPosts));
+        }
+
+        function renderForum() {
+            const container = document.getElementById('forumPosts');
+            if (forumPosts.length === 0) {
+                container.innerHTML = '<div class="card" style="text-align: center;">No discussions yet. Start the first one!</div>';
+                return;
+            }
+
+            // Sort by newest first
+            const sorted = [...forumPosts].sort((a, b) => b.timestamp - a.timestamp);
+
+            container.innerHTML = sorted.map(post => `
+                <div class="forum-post">
+                    <div class="post-title">${escapeHtml(post.title)}</div>
+                    <div class="post-meta">
+                        <span>📂 ${escapeHtml(post.category)}</span> • 
+                        <span>👤 ${escapeHtml(post.author)}</span> • 
+                        <span>📅 ${new Date(post.timestamp).toLocaleDateString()}</span>
+                    </div>
+                    <div class="post-content">${escapeHtml(post.content)}</div>
+                    <div class="post-reply">
+                        <strong>💬 Replies (${post.replies.length})</strong>
+                        ${post.replies.map(r => `<div style="margin-top: 0.3rem; padding-left: 0.5rem; border-left: 2px solid #f4b942;"><strong>${escapeHtml(r.author)}</strong>: ${escapeHtml(r.content)}<br><span style="font-size:0.6rem; color:#999;">${new Date(r.timestamp).toLocaleString()}</span></div>`).join('')}
+                        <div style="margin-top: 0.5rem;">
+                            <input type="text" id="reply-${post.id}" placeholder="Write a reply..." style="width: 70%; padding: 0.3rem; border-radius: 20px; border: 1px solid #ddd;">
+                            <button class="btn-primary" style="width: 25%; padding: 0.3rem; margin-top: 0;" onclick="addReply(${post.id})">Reply</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function createPost() {
+            const title = document.getElementById('postTitle').value.trim();
+            const content = document.getElementById('postContent').value.trim();
+            const category = document.getElementById('postCategory').value;
+            const author = localStorage.getItem('currentUserName') || 'Student';
+
+            if (!title || !content) {
+                alert('Please enter title and content');
+                return;
+            }
+
+            const newPost = {
+                id: Date.now(),
+                title: title,
+                content: content,
+                category: category,
+                author: author,
+                timestamp: Date.now(),
+                replies: []
+            };
+
+            forumPosts.unshift(newPost);
+            saveForum();
+            renderForum();
+
+            document.getElementById('postTitle').value = '';
+            document.getElementById('postContent').value = '';
+        }
+
+        function addReply(postId) {
+            const replyText = document.getElementById(`reply-${postId}`).value.trim();
+            if (!replyText) {
+                alert('Please enter a reply');
+                return;
+            }
+
+            const post = forumPosts.find(p => p.id === postId);
+            if (post) {
+                post.replies.push({
+                    author: localStorage.getItem('currentUserName') || 'Student',
+                    content: replyText,
+                    timestamp: Date.now()
+                });
+                saveForum();
+                renderForum();
+            }
+        }
+
+        function loadEvents() {
+            eventsList = [
+                { title: "Virtual Career Fair", date: "June 15, 2026", location: "Online", register: "https://forms.gle/example1" },
+                { title: "AI/ML Workshop", date: "June 20, 2026", location: "Bangalore (Hybrid)", register: "https://forms.gle/example2" },
+                { title: "Startup Pitch Competition", date: "July 5, 2026", location: "Online", register: "https://forms.gle/example3" },
+                { title: "Mental Health Awareness Session", date: "July 12, 2026", location: "Online", register: "https://forms.gle/example4" }
+            ];
+
+            const container = document.getElementById('eventsList');
+            container.innerHTML = eventsList.map(event => `
+                <div class="forum-post">
+                    <div class="post-title">🎪 ${escapeHtml(event.title)}</div>
+                    <div class="post-meta">📅 ${event.date} • 📍 ${event.location}</div>
+                    <button class="btn-primary" style="margin-top: 0.5rem; width: auto; padding: 0.3rem 1rem;" onclick="window.open('${event.register}', '_blank')">Register →</button>
+                </div>
+            `).join('');
+        }
+
+        function switchTab(tab) {
+            const forumTab = document.getElementById('forumTab');
+            const resourcesTab = document.getElementById('resourcesTab');
+            const eventsTab = document.getElementById('eventsTab');
+            const btns = document.querySelectorAll('.tab-btn');
+
+            forumTab.style.display = 'none';
+            resourcesTab.style.display = 'none';
+            eventsTab.style.display = 'none';
+
+            btns.forEach(btn => btn.classList.remove('active'));
+
+            if (tab === 'forum') {
+                forumTab.style.display = 'block';
+                btns[0].classList.add('active');
+            } else if (tab === 'resources') {
+                resourcesTab.style.display = 'block';
+                btns[1].classList.add('active');
+            } else if (tab === 'events') {
+                eventsTab.style.display = 'block';
+                btns[2].classList.add('active');
+            }
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+    <script src="js/auth-guard.js"></script>`n</body>
+</html>

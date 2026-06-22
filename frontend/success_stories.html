@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Central - Success Stories</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+
+        :root {
+            --primary: #0f4c5c;
+            --primary-dark: #0a3a46;
+            --secondary: #e67e22;
+            --gold: #f4b942;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 2rem;
+        }
+
+        .header p {
+            color: rgba(255,255,255,0.8);
+            margin-top: 0.5rem;
+        }
+
+        .story-form {
+            background: white;
+            border-radius: 24px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .story-form h3 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 16px;
+            font-size: 0.9rem;
+        }
+
+        .submit-btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .stories-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .story-card {
+            background: white;
+            border-radius: 20px;
+            padding: 1.2rem;
+            border-left: 4px solid var(--gold);
+        }
+
+        .story-text {
+            font-style: italic;
+            margin-bottom: 0.8rem;
+            color: #333;
+        }
+
+        .story-author {
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .story-type {
+            display: inline-block;
+            background: #e8f4f8;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            margin-top: 0.5rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: 20px;
+            color: #999;
+        }
+
+        @media (max-width: 700px) {
+            body { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💬 Success Stories</h1>
+            <p>Real moments from students across Karnataka</p>
+        </div>
+
+        <div class="story-form">
+            <h3>✨ Share Your Story</h3>
+            <div class="form-group">
+                <textarea id="storyText" rows="3" placeholder="Tell us about your teacher surprise or reunion..."></textarea>
+            </div>
+            <div class="form-group">
+                <input type="text" id="storyAuthor" placeholder="Your name / College">
+            </div>
+            <button class="submit-btn" onclick="submitStory()">Share Story →</button>
+        </div>
+
+        <div id="storiesList" class="stories-grid"></div>
+    </div>
+
+    <script>
+        let stories = [];
+
+        function loadStories() {
+            const saved = localStorage.getItem('success_stories');
+            if (saved) {
+                stories = JSON.parse(saved);
+            } else {
+                stories = [
+                    { text: "We surprised our professor on Teacher's Day. 15 of us contributed. She cried tears of joy. Best decision ever.", author: "Meera S., RVCE", type: "teacher" },
+                    { text: "Found 8 batchmates through this platform. We gifted our school teacher a silver plaque. She still keeps it on her desk after 2 years!", author: "Priya M., PES University", type: "teacher" },
+                    { text: "Our class teacher retired last year. We used this platform to collect funds and throw a farewell party. Unforgettable moment for all of us.", author: "Ankit S., BMS College", type: "teacher" }
+                ];
+                localStorage.setItem('success_stories', JSON.stringify(stories));
+            }
+            renderStories();
+        }
+
+        function submitStory() {
+            const text = document.getElementById('storyText').value.trim();
+            const author = document.getElementById('storyAuthor').value.trim();
+            
+            if (!text || !author) {
+                alert("Please fill both story and author name");
+                return;
+            }
+            
+            const newStory = { text, author, type: "general", date: new Date().toISOString() };
+            stories.unshift(newStory);
+            localStorage.setItem('success_stories', JSON.stringify(stories));
+            
+            document.getElementById('storyText').value = '';
+            document.getElementById('storyAuthor').value = '';
+            
+            renderStories();
+            alert("✨ Thank you for sharing your story!");
+        }
+
+        function renderStories() {
+            const container = document.getElementById('storiesList');
+            
+            if (stories.length === 0) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-book-open"></i><h3>No stories yet</h3><p>Be the first to share your experience!</p></div>';
+                return;
+            }
+            
+            container.innerHTML = stories.map(s => `
+                <div class="story-card">
+                    <div class="story-text">"${escapeHtml(s.text)}"</div>
+                    <div class="story-author">— ${escapeHtml(s.author)}</div>
+                    <span class="story-type">📖 Heartfelt Moment</span>
+                </div>
+            `).join('');
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        loadStories();
+    </script>
+    <script src="js/auth-guard.js"></script>`n</body>
+</html>

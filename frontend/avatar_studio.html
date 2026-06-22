@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Campus Central — Avatar Studio | Create Your Campus Identity</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ========== INDEX.HTML DESIGN SYSTEM (unchanged) ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+        }
+
+        :root {
+            --primary: #0f4c5c;
+            --primary-dark: #0a3a46;
+            --secondary: #e67e22;
+            --accent: #ffb347;
+            --gold: #f4b942;
+            --light: #fef9e6;
+            --dark: #1e2a2e;
+            --gray-bg: #f8f9fc;
+            --success: #2ecc71;
+        }
+
+        body {
+            background-color: var(--gray-bg);
+            color: var(--dark);
+            line-height: 1.5;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 0.8rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .logo {
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .logo-main {
+            font-size: 1.4rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-main i {
+            color: var(--gold);
+            font-size: 1.4rem;
+        }
+
+        .brand-parent {
+            font-size: 0.55rem;
+            opacity: 0.8;
+            letter-spacing: 1px;
+        }
+
+        nav {
+            flex: 1;
+            text-align: center;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.3rem 0.5rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            transition: 0.2s;
+            cursor: pointer;
+        }
+
+        nav a:hover {
+            background-color: rgba(255,255,255,0.15);
+            color: var(--accent);
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: white;
+            min-width: 170px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 12px;
+            top: 100%;
+            left: 0;
+        }
+
+        .dropdown-content a {
+            color: var(--primary);
+            padding: 6px 10px;
+            text-decoration: none;
+            display: block;
+            font-size: 0.7rem;
+            text-align: left;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .btn-primary {
+            background-color: var(--secondary);
+            color: white;
+            padding: 0.3rem 0.7rem;
+            border-radius: 40px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid white;
+            color: white;
+            padding: 0.3rem 0.7rem;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.7rem;
+        }
+
+        .btn-outline:hover {
+            background: white;
+            color: var(--primary);
+        }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+        <!-- Header (identical to index.html) -->
+    <header>
+        <div class="nav-container">
+            <div class="logo">
+                <div class="logo-main">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>Campus Central</span>
+                </div>
+                <div class="brand-parent">
+                    <i class="fas fa-water"></i> A JetStream Initiative
+                </div>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="teacher_group_creation_start.html">Thank Teacher</a></li>
+                    <li><a href="celebration_group_creation_start.html">Celebrate Together</a></li>
+                    <li><a href="find_groups.html">Find Groups</a></li>
+                    <li><a href="student_dashboard.html">My Groups</a></li>
+                    <li><a href="find_my_friend.html">Find My Friend</a></li>
+                    <li class="dropdown">
+                        <a href="#">✨ Explore More ▼</a>
+                        <div class="dropdown-content">
+                            <a href="avatar_studio.html">🎨 Avatar Studio</a>
+                            <a href="keep_hive_buzzing.html">🍯 Keep the Hive</a>
+                            <a href="success_stories.html">📖 Success Stories</a>
+                            <a href="study_hub.html">📚 Study Hub</a>
+                        </div>
+                    </li>
+                </ul>
+            </nav>
+            <div class="header-buttons" id="authButtons">
+                <button class="btn-outline" onclick="window.location.href='login.html'">Login</button>
+                <button class="btn-primary" onclick="window.location.href='signup.html'">Sign Up →</button>
+            </div>
+            <div id="userMenu" class="hidden">
+                <span id="userName" style="margin-right: 0.8rem; font-size: 0.7rem;"></span>
+                <button class="btn-outline" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="studio-container">
+        <div class="page-header">
+            <h1><i class="fas fa-paintbrush"></i> Avatar Studio</h1>
+            <p>Create your unique campus identity. Share it on your profile and Campus Wall.</p>
+        </div>
+
+        <div class="studio-grid">
+            <div class="avatar-canvas-area">
+                <canvas id="avatarCanvas" width="200" height="200"></canvas>
+                <p style="color: #5a6e7a; font-size: 0.8rem; margin-top: 0.5rem;">Your custom avatar</p>
+            </div>
+
+            <div class="avatar-controls">
+                <div class="control-group">
+                    <label><i class="fas fa-smile"></i> Face Color</label>
+                    <div class="color-options" id="faceColors">
+                        <div class="color-btn" style="background: #FDBF6F;" data-color="#FDBF6F"></div>
+                        <div class="color-btn" style="background: #F5C48E;" data-color="#F5C48E"></div>
+                        <div class="color-btn" style="background: #E8B87A;" data-color="#E8B87A"></div>
+                        <div class="color-btn" style="background: #DBA16A;" data-color="#DBA16A"></div>
+                        <div class="color-btn" style="background: #C68642;" data-color="#C68642"></div>
+                        <div class="color-btn" style="background: #A5724B;" data-color="#A5724B"></div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label><i class="fas fa-eye"></i> Eye Style</label>
+                    <select id="eyeStyle">
+                        <option value="normal">👀 Normal</option>
+                        <option value="happy">😊 Happy</option>
+                        <option value="glasses">👓 With Glasses</option>
+                        <option value="cool">😎 Cool</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label><i class="fas fa-smile"></i> Mouth Style</label>
+                    <select id="mouthStyle">
+                        <option value="smile">😊 Smile</option>
+                        <option value="happy">😃 Happy</option>
+                        <option value="neutral">😐 Neutral</option>
+                        <option value="laugh">😆 Laugh</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label><i class="fas fa-user-graduate"></i> Accessory</label>
+                    <select id="accessory">
+                        <option value="none">None</option>
+                        <option value="cap">🎓 Graduation Cap</option>
+                        <option value="headphones">🎧 Headphones</option>
+                        <option value="book">📚 Book</option>
+                        <option value="guitar">🎸 Guitar</option>
+                    </select>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn-save" id="saveAvatarBtn"><i class="fas fa-save"></i> Save My Avatar</button>
+                    <button class="btn-reset" id="resetAvatarBtn"><i class="fas fa-undo"></i> Reset</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="saved-avatars" id="savedAvatarsSection">
+            <h3><i class="fas fa-history"></i> My Saved Avatars</h3>
+            <div id="avatarsList" class="avatars-grid"></div>
+        </div>
+    </div>
+
+    <style>
+        /* additional styles for avatar studio (unchanged) */
+        .studio-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .page-header h1 i {
+            color: var(--secondary);
+            margin-right: 0.5rem;
+        }
+
+        .page-header p {
+            color: #5a6e7a;
+            font-size: 0.9rem;
+        }
+
+        .studio-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .avatar-canvas-area {
+            background: white;
+            border-radius: 24px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        canvas {
+            background: linear-gradient(135deg, #fef9e6, #fff5e0);
+            border-radius: 50%;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+        }
+
+        .avatar-controls {
+            background: white;
+            border-radius: 24px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .control-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .control-group label {
+            display: block;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .control-group select {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            background: white;
+        }
+
+        .color-options {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .color-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: 2px solid #ddd;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .color-btn:hover {
+            transform: scale(1.1);
+            border-color: var(--secondary);
+        }
+
+        .color-btn.selected {
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 2px var(--gold);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-save {
+            background: var(--secondary);
+            color: white;
+            padding: 0.7rem 1.5rem;
+            border-radius: 40px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .btn-reset {
+            background: #e74c3c;
+            color: white;
+            padding: 0.7rem 1.5rem;
+            border-radius: 40px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .saved-avatars {
+            margin-top: 2rem;
+            background: white;
+            border-radius: 24px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .saved-avatars h3 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .avatars-grid {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .saved-avatar-item {
+            text-align: center;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 16px;
+            transition: 0.2s;
+        }
+
+        .saved-avatar-item:hover {
+            background: var(--light);
+        }
+
+        .saved-avatar-item img {
+            border-radius: 50%;
+            margin-bottom: 0.3rem;
+        }
+
+        .success-msg {
+            background: #d4edda;
+            color: #155724;
+            padding: 0.8rem;
+            border-radius: 12px;
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        @media (max-width: 800px) {
+            .studio-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 900px) {
+            nav ul { gap: 0.3rem; }
+            nav a { font-size: 0.65rem; padding: 0.25rem 0.4rem; }
+            .nav-container { flex-direction: column; }
+            .header-buttons { justify-content: center; }
+        }
+    </style>
+        <script>
+        // ========== AUTHENTICATION GUARD ==========
+        // Redirect to login if user is not authenticated
+        const authToken = localStorage.getItem('authToken') || localStorage.getItem('token');
+        const userData = localStorage.getItem('currentUser') || localStorage.getItem('user');
+        const currentPath = window.location.pathname;
+
+        if (!authToken || !userData) {
+            // Redirect to login with return URL
+            window.location.href = `login.html?redirect=${encodeURIComponent(currentPath)}`;
+            // Stop execution immediately
+            throw new Error('Not authenticated');
+        }
+
+        // ========== Avatar drawing logic ==========
+        const canvas = document.getElementById('avatarCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let currentFaceColor = '#FDBF6F';
+        let currentEyeStyle = 'normal';
+        let currentMouthStyle = 'smile';
+        let currentAccessory = 'none';
+
+        function drawAvatar() {
+            ctx.clearRect(0, 0, 200, 200);
+            
+            // Draw face (circle)
+            ctx.beginPath();
+            ctx.arc(100, 100, 75, 0, Math.PI * 2);
+            ctx.fillStyle = currentFaceColor;
+            ctx.fill();
+            ctx.strokeStyle = '#8B5E3C';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw eyes based on style
+            if (currentEyeStyle === 'normal') {
+                ctx.fillStyle = '#2C1810';
+                ctx.beginPath();
+                ctx.arc(68, 80, 9, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(132, 80, 9, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.arc(65, 77, 4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(129, 77, 4, 0, Math.PI * 2);
+                ctx.fill();
+            } else if (currentEyeStyle === 'happy') {
+                ctx.fillStyle = '#2C1810';
+                ctx.beginPath();
+                ctx.arc(65, 78, 8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(135, 78, 8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(65, 73, 3, 0, Math.PI);
+                ctx.fillStyle = '#2C1810';
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(135, 73, 3, 0, Math.PI);
+                ctx.fill();
+            } else if (currentEyeStyle === 'glasses') {
+                ctx.fillStyle = '#2C1810';
+                ctx.beginPath();
+                ctx.arc(70, 80, 8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(130, 80, 8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#1a1a2e';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(55, 68, 35, 28);
+                ctx.strokeRect(110, 68, 35, 28);
+                ctx.beginPath();
+                ctx.moveTo(90, 82);
+                ctx.lineTo(110, 82);
+                ctx.stroke();
+            } else if (currentEyeStyle === 'cool') {
+                ctx.fillStyle = '#2C1810';
+                ctx.fillRect(58, 75, 28, 8);
+                ctx.fillRect(114, 75, 28, 8);
+            }
+
+            // Draw mouth
+            if (currentMouthStyle === 'smile') {
+                ctx.beginPath();
+                ctx.arc(100, 128, 22, 0.1, Math.PI - 0.1);
+                ctx.strokeStyle = '#8B4513';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+            } else if (currentMouthStyle === 'happy') {
+                ctx.beginPath();
+                ctx.arc(100, 128, 18, 0, Math.PI);
+                ctx.fillStyle = '#8B4513';
+                ctx.fill();
+            } else if (currentMouthStyle === 'neutral') {
+                ctx.beginPath();
+                ctx.moveTo(82, 125);
+                ctx.lineTo(118, 125);
+                ctx.stroke();
+            } else if (currentMouthStyle === 'laugh') {
+                ctx.beginPath();
+                ctx.arc(100, 132, 22, 0.1, Math.PI - 0.1);
+                ctx.stroke();
+                ctx.fillStyle = '#e74c3c';
+                ctx.beginPath();
+                ctx.arc(100, 128, 6, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Accessory drawing
+            if (currentAccessory === 'cap') {
+                ctx.fillStyle = '#0f4c5c';
+                ctx.beginPath();
+                ctx.rect(70, 30, 60, 12);
+                ctx.fill();
+                ctx.fillStyle = '#f4b942';
+                ctx.beginPath();
+                ctx.rect(85, 18, 30, 14);
+                ctx.fill();
+                ctx.fillStyle = '#e67e22';
+                ctx.beginPath();
+                ctx.rect(95, 12, 10, 6);
+                ctx.fill();
+            } else if (currentAccessory === 'headphones') {
+                ctx.fillStyle = '#2C3E50';
+                ctx.beginPath();
+                ctx.rect(58, 45, 84, 10);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(70, 55, 12, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(130, 55, 12, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#1a252f';
+                ctx.beginPath();
+                ctx.arc(70, 55, 6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(130, 55, 6, 0, Math.PI * 2);
+                ctx.fill();
+            } else if (currentAccessory === 'book') {
+                ctx.fillStyle = '#e67e22';
+                ctx.beginPath();
+                ctx.rect(65, 148, 30, 20);
+                ctx.fill();
+                ctx.fillStyle = '#f39c12';
+                ctx.beginPath();
+                ctx.rect(105, 148, 30, 20);
+                ctx.fill();
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.rect(95, 152, 10, 14);
+                ctx.fill();
+                ctx.fillStyle = '#333';
+                ctx.beginPath();
+                ctx.rect(97, 154, 6, 10);
+                ctx.fill();
+                for(let i = 0; i < 3; i++) {
+                    ctx.fillStyle = '#999';
+                    ctx.beginPath();
+                    ctx.rect(70 + i*7, 152, 2, 12);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.rect(110 + i*7, 152, 2, 12);
+                    ctx.fill();
+                }
+            } else if (currentAccessory === 'guitar') {
+                ctx.fillStyle = '#8B4513';
+                ctx.beginPath();
+                ctx.rect(140, 120, 12, 40);
+                ctx.fill();
+                ctx.fillStyle = '#D2B48C';
+                ctx.beginPath();
+                ctx.arc(146, 120, 10, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#5D3A1A';
+                for(let i = 0; i < 4; i++) {
+                    ctx.beginPath();
+                    ctx.rect(143, 125 + i*6, 6, 2);
+                    ctx.fill();
+                }
+                ctx.beginPath();
+                ctx.moveTo(146, 160);
+                ctx.lineTo(142, 168);
+                ctx.lineTo(150, 168);
+                ctx.fill();
+            }
+        }
+
+        // Event listeners for controls
+        document.querySelectorAll('.color-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                currentFaceColor = btn.dataset.color;
+                drawAvatar();
+            });
+        });
+        
+        document.getElementById('eyeStyle').addEventListener('change', (e) => {
+            currentEyeStyle = e.target.value;
+            drawAvatar();
+        });
+        
+        document.getElementById('mouthStyle').addEventListener('change', (e) => {
+            currentMouthStyle = e.target.value;
+            drawAvatar();
+        });
+        
+        document.getElementById('accessory').addEventListener('change', (e) => {
+            currentAccessory = e.target.value;
+            drawAvatar();
+        });
+        
+        document.getElementById('resetAvatarBtn').addEventListener('click', () => {
+            currentFaceColor = '#FDBF6F';
+            currentEyeStyle = 'normal';
+            currentMouthStyle = 'smile';
+            currentAccessory = 'none';
+            document.querySelector('.color-btn').click();
+            document.getElementById('eyeStyle').value = 'normal';
+            document.getElementById('mouthStyle').value = 'smile';
+            document.getElementById('accessory').value = 'none';
+            drawAvatar();
+        });
+
+        // Save avatar
+        document.getElementById('saveAvatarBtn').addEventListener('click', () => {
+            const avatarData = canvas.toDataURL();
+            const saved = JSON.parse(localStorage.getItem('campus_avatars') || '[]');
+            saved.push({
+                id: Date.now(),
+                data: avatarData,
+                createdAt: new Date().toISOString()
+            });
+            while(saved.length > 20) saved.shift();
+            localStorage.setItem('campus_avatars', JSON.stringify(saved));
+            loadSavedAvatars();
+            const btn = document.getElementById('saveAvatarBtn');
+            btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fas fa-save"></i> Save My Avatar';
+            }, 2000);
+        });
+        
+        function loadSavedAvatars() {
+            const saved = JSON.parse(localStorage.getItem('campus_avatars') || '[]');
+            const container = document.getElementById('avatarsList');
+            if (saved.length === 0) {
+                container.innerHTML = '<p style="color: #5a6e7a;">No avatars saved yet. Create and save your first avatar!</p>';
+                return;
+            }
+            container.innerHTML = saved.slice().reverse().map(avatar => `
+                <div class="saved-avatar-item" onclick="useAvatar('${avatar.data}')">
+                    <img src="${avatar.data}" width="65" height="65" style="border-radius: 50%;">
+                    <small style="display: block; font-size: 0.65rem;">${new Date(avatar.createdAt).toLocaleDateString()}</small>
+                </div>
+            `).join('');
+        }
+        
+        window.useAvatar = function(avatarData) {
+            const img = new Image();
+            img.onload = () => {
+                ctx.clearRect(0, 0, 200, 200);
+                ctx.drawImage(img, 0, 0, 200, 200);
+                localStorage.setItem('campus_profile_avatar', avatarData);
+                alert('✨ Avatar loaded as your profile picture!');
+            };
+            img.src = avatarData;
+        };
+        
+        // Set default selected color
+        document.querySelector('.color-btn').classList.add('selected');
+        
+        // User menu logic
+        const token = localStorage.getItem('authToken');
+        const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        if (token && user.full_name) {
+            document.getElementById('userName').innerText = user.full_name;
+            document.getElementById('authButtons').classList.add('hidden');
+            document.getElementById('userMenu').classList.remove('hidden');
+        }
+        
+        window.logout = function() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        };
+        
+        // Initial draw and load
+        drawAvatar();
+        loadSavedAvatars();
+    </script>
+</body>
+</html>

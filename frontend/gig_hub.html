@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎪 Campus Gig Hub - Event Staffing & More</title>
+    <script src="js/config.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+        :root { --primary: #0f4c5c; --primary-dark: #0a3a46; --secondary: #e67e22; --gold: #f4b942; --light: #fef9e6; --dark: #1e2a2e; --gray-bg: #f8f9fc; --success: #2ecc71; --error: #e74c3c; }
+        body { background: linear-gradient(135deg, #f8f9fc 0%, #f0f4f8 100%); color: var(--dark); min-height: 100vh; }
+        header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 0.8rem 2rem; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+        .nav-container { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; flex-wrap: wrap; gap: 0.5rem; }
+        .logo { display: flex; flex-direction: column; flex-shrink: 0; }
+        .logo-main { font-size: 1.4rem; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+        .logo-main i { color: var(--gold); font-size: 1.4rem; }
+        .brand-parent { font-size: 0.55rem; opacity: 0.8; letter-spacing: 1px; }
+        nav { flex: 1; text-align: center; }
+        nav ul { display: flex; list-style: none; gap: 0.4rem; flex-wrap: wrap; justify-content: center; }
+        nav a { color: white; text-decoration: none; font-weight: 500; padding: 0.3rem 0.5rem; border-radius: 8px; font-size: 0.75rem; transition: 0.2s; cursor: pointer; }
+        nav a:hover { background-color: rgba(255,255,255,0.15); color: var(--gold); }
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-content { display: none; position: absolute; background: white; min-width: 170px; box-shadow: 0 8px 16px rgba(0,0,0,0.2); border-radius: 12px; z-index: 1; top: 100%; left: 0; }
+        .dropdown-content a { color: var(--primary); padding: 6px 10px; display: block; font-size: 0.7rem; text-align: left; }
+        .dropdown-content a:hover { background-color: #f1f1f1; }
+        .dropdown:hover .dropdown-content { display: block; }
+        .header-buttons { display: flex; gap: 0.5rem; flex-shrink: 0; }
+        .btn-primary { background: var(--secondary); color: white; padding: 0.3rem 0.7rem; border-radius: 40px; font-weight: 600; border: none; cursor: pointer; font-size: 0.7rem; }
+        .btn-primary:hover { background: #d35400; transform: scale(1.02); }
+        .btn-outline { background: transparent; border: 2px solid white; color: white; padding: 0.3rem 0.7rem; border-radius: 40px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.7rem; }
+        .btn-outline:hover { background: white; color: var(--primary); }
+        .hidden { display: none; }
+        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem; }
+        .page-header { text-align: center; margin-bottom: 2rem; }
+        .page-header h1 { font-size: 2.5rem; color: var(--primary); }
+        .page-header h1 i { color: var(--gold); margin-right: 0.5rem; }
+        .page-header p { color: #5a6e7a; font-size: 1rem; }
+        .tabs { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+        .tab-btn { background: rgba(255,255,255,0.8); border: none; padding: 0.6rem 1.5rem; border-radius: 40px; color: var(--primary); font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .tab-btn.active { background: var(--secondary); color: white; box-shadow: 0 4px 12px rgba(230,126,34,0.3); }
+        .tab-btn:hover:not(.active) { background: var(--light); transform: translateY(-2px); }
+        .card { background: white; border-radius: 24px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-top: 4px solid var(--gold); }
+        .card h2 { color: var(--primary); margin-bottom: 1rem; font-size: 1.3rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-weight: 600; color: var(--primary); margin-bottom: 0.3rem; font-size: 0.85rem; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.7rem; border: 1px solid #ddd; border-radius: 12px; font-size: 0.9rem; transition: all 0.2s; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--secondary); box-shadow: 0 0 0 2px rgba(230,126,34,0.1); }
+        .btn-submit { background: var(--secondary); color: white; border: none; padding: 0.8rem; border-radius: 40px; font-weight: 600; cursor: pointer; width: 100%; font-size: 1rem; transition: all 0.3s; }
+        .btn-submit:hover { background: #d35400; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(230,126,34,0.3); }
+        .gigs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.5rem; margin-top: 1rem; }
+        .gig-card { background: white; border-radius: 20px; padding: 1.2rem; border-left: 4px solid var(--gold); box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: all 0.3s; }
+        .gig-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+        .gig-title { font-size: 1.1rem; font-weight: bold; color: var(--primary); margin-bottom: 0.3rem; }
+        .gig-category { display: inline-block; background: #e8f4f8; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.7rem; color: var(--secondary); margin-bottom: 0.5rem; }
+        .gig-detail { font-size: 0.8rem; color: #666; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+        .price-badge { display: inline-block; background: var(--success); color: white; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.7rem; }
+        .apply-btn { background: #25D366; color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 20px; cursor: pointer; font-size: 0.7rem; margin-top: 0.5rem; }
+        .apply-btn:hover { background: #128C7E; transform: scale(1.02); }
+        .empty-state { text-align: center; padding: 3rem; background: white; border-radius: 20px; color: #999; }
+        .loading { text-align: center; padding: 2rem; color: var(--secondary); }
+        footer { background: var(--dark); color: white; padding: 2rem 2rem 1rem; margin-top: 3rem; }
+        .footer-content { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem; max-width: 1200px; margin: 0 auto; }
+        .footer-content h3 { font-size: 0.9rem; margin-bottom: 0.6rem; }
+        .footer-content ul li, .footer-content p { font-size: 0.7rem; list-style: none; }
+        .copyright { text-align: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.65rem; }
+        @media (max-width: 700px) { body { padding: 0; } .container { padding: 0 1rem; } .gigs-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <!-- Header (copy from index.html) -->
+    <header>
+        <div class="nav-container">
+            <div class="logo">
+                <div class="logo-main"><i class="fas fa-graduation-cap"></i><span>Campus Central</span></div>
+                <div class="brand-parent"><i class="fas fa-water"></i> A JetStream Initiative</div>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="teacher_group_creation_start.html">Thank Teacher</a></li>
+                    <li><a href="celebration_group_creation_start.html">Celebrate Together</a></li>
+                    <li><a href="find_groups.html">Find Groups</a></li>
+                    <li><a href="student_dashboard.html">My Groups</a></li>
+                    <li><a href="index.html">Success Stories</a></li>
+                    <li class="dropdown">
+                        <a href="#">✨ Explore All Features ▼</a>
+                        <div class="dropdown-content">
+                            <a href="find_my_friend.html">🔍 Find My Friend</a>
+                            <a href="gig_hub.html">🎪 Event Staffing & Gig Hub</a>
+                            <a href="sell_bike.html">🚲 Sell Bike</a>
+                            <a href="sell_car.html">🚗 Sell Car</a>
+                            <a href="exchange_items.html">📚 Exchange Items</a>
+                            <a href="avatar_studio.html">🎨 Avatar Studio</a>
+                            <a href="crush_quiz.html">💕 Crush Corner</a>
+                            <a href="family_business.html">🧵 Family Business</a>
+                            <a href="ants_startup.html">🐜 Startup Nest</a>
+                            <a href="keep_hive_buzzing.html">🍯 Keep the Hive</a>
+                            <a href="teen_space.html">👥 Teen Space</a>
+                        </div>
+                    </li>
+                </ul>
+            </nav>
+            <div class="header-buttons" id="authButtons">
+                <button class="btn-outline" onclick="window.location.href='login.html'">Login</button>
+                <button class="btn-primary" onclick="window.location.href='signup.html'">Sign Up →</button>
+            </div>
+            <div id="userMenu" class="hidden">
+                <span id="userName" style="margin-right: 0.8rem; font-size: 0.7rem;"></span>
+                <button class="btn-outline" onclick="logout()" style="font-size: 0.7rem; padding: 0.25rem 0.6rem;">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="page-header">
+            <h1><i class="fas fa-hands-helping"></i> Campus Gig Hub</h1>
+            <p>Find event staff, earn ₹300-₹1000 per gig, or post your own opportunity!</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('browse')">📋 Browse Gigs</button>
+            <button class="tab-btn" onclick="switchTab('post')">📝 Post a Gig</button>
+            <button class="tab-btn" onclick="switchTab('profile')">👤 My Profile</button>
+        </div>
+
+        <!-- Browse Gigs Tab -->
+        <div id="browseTab">
+            <div class="card">
+                <h2>🔍 Available Gigs</h2>
+                <div id="gigsList" class="gigs-grid">
+                    <div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading gigs...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Post Gig Tab -->
+        <div id="postTab" style="display: none;">
+            <div class="card">
+                <h2>📝 Post a New Gig</h2>
+                <p style="color: #666; margin-bottom: 1rem;">Platform fee: ₹99 per posting (one-time). Students pay nothing to apply.</p>
+                <form id="gigForm">
+                    <div class="form-group"><label>📅 Event Date *</label><input type="date" id="eventDate" required></div>
+                    <div class="form-group"><label>📍 Location *</label><input type="text" id="eventLocation" placeholder="City, Venue" required></div>
+                    <div class="form-group"><label>🎭 Gig Type *</label>
+                        <select id="gigType"><option value="wedding">Wedding Staff</option><option value="tutoring">Tutoring</option><option value="photography">Photography</option><option value="delivery">Delivery</option><option value="cleaning">Cleaning</option><option value="decoration">Decoration</option><option value="other">Other</option></select>
+                    </div>
+                    <div class="form-group"><label>👥 Number of Staff Needed *</label><input type="number" id="staffCount" min="1" max="50" required></div>
+                    <div class="form-group"><label>💰 Pay per Staff (₹) *</label><input type="number" id="payPerStaff" placeholder="300-1000" required></div>
+                    <div class="form-group"><label>📝 Description</label><textarea id="gigDescription" rows="2" placeholder="Any special requirements?"></textarea></div>
+                    <div class="form-group"><label>📞 Contact WhatsApp *</label><input type="tel" id="contactWhatsapp" placeholder="10-digit number" required></div>
+                    <button type="submit" class="btn-submit">📢 Post Gig (₹99) →</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Profile Tab -->
+        <div id="profileTab" style="display: none;">
+            <div class="card">
+                <h2>👤 My Gig Profile</h2>
+                <form id="profileForm">
+                    <div class="form-group"><label>🛠️ Your Skills</label>
+                        <select id="skills" multiple><option>Serving</option><option>Dancing</option><option>Cleaning</option><option>Decoration</option><option>Photography</option><option>Tutoring</option></select>
+                        <small>Ctrl+Click to select multiple</small>
+                    </div>
+                    <div class="form-group"><label>📅 Availability</label>
+                        <select id="availability"><option>full_time</option><option>weekend_only</option><option>flexible</option></select>
+                    </div>
+                    <div class="form-group"><label>💼 Experience</label><textarea id="experience" rows="2" placeholder="Any previous event experience?"></textarea></div>
+                    <div class="form-group"><label>📞 WhatsApp *</label><input type="tel" id="studentWhatsapp" required></div>
+                    <button type="submit" class="btn-submit">💾 Save Profile</button>
+                </form>
+            </div>
+        </div>
+        <footer>Campus Central — A JetStream Initiative | Platform fee: ₹99/post</footer>
+    </div>
+
+    <script>
+        // ========== AUTHENTICATION GUARD ==========
+        const authToken = localStorage.getItem('authToken') || localStorage.getItem('token');
+        const userData = localStorage.getItem('currentUser') || localStorage.getItem('user');
+        const currentPath = window.location.pathname;
+        if (!authToken || !userData) { window.location.href = `login.html?redirect=${encodeURIComponent(currentPath)}`; throw new Error('Not authenticated'); }
+
+        function logout() { localStorage.removeItem('authToken'); localStorage.removeItem('token'); localStorage.removeItem('currentUser'); localStorage.removeItem('user'); localStorage.removeItem('isLoggedIn'); window.location.href = 'index.html'; }
+
+        function updateHeaderUI() {
+            const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+            const userData = localStorage.getItem('currentUser') || localStorage.getItem('user');
+            const authDiv = document.getElementById('authButtons');
+            const userMenu = document.getElementById('userMenu');
+            const userNameSpan = document.getElementById('userName');
+            if (token && userData) {
+                try { const user = JSON.parse(userData); if (authDiv) authDiv.classList.add('hidden'); if (userMenu) userMenu.classList.remove('hidden'); if (userNameSpan) userNameSpan.innerText = user.full_name || (user.email ? user.email.split('@')[0] : 'User'); } catch(e) { console.error(e); }
+            } else { if (authDiv) authDiv.classList.remove('hidden'); if (userMenu) userMenu.classList.add('hidden'); }
+        }
+        updateHeaderUI();
+
+        const API_BASE = window.ACTIVE_CONFIG ? window.ACTIVE_CONFIG.API_BASE_URL : 'http://localhost:8000/api';
+        let authTokenForAPI = localStorage.getItem('authToken');
+
+        async function apiCall(endpoint, method, body = null, requiresAuth = true) {
+            const headers = { 'Content-Type': 'application/json' };
+            if (requiresAuth && authTokenForAPI) headers['Authorization'] = `Bearer ${authTokenForAPI}`;
+            const options = { method, headers };
+            if (body) options.body = JSON.stringify(body);
+            const response = await fetch(`${API_BASE}${endpoint}`, options);
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.detail || 'API call failed');
+            return data;
+        }
+
+        async function loadGigs() {
+            try { const gigs = await apiCall('/marriage/jobs', 'GET', null, false); const container = document.getElementById('gigsList'); if (gigs.length === 0) { container.innerHTML = '<div class="empty-state">No gigs posted yet. Be the first to post!</div>'; return; } container.innerHTML = gigs.map(g => `<div class="gig-card"><div class="gig-title">${g.event_type.toUpperCase()} at ${g.event_location}</div><div class="gig-detail">📅 ${g.event_date} | 👥 Need ${g.number_of_staff} staff</div><div class="gig-detail">💰 ₹${g.pay_per_staff}/person | 👔 Role: ${g.role_needed}</div><div class="gig-detail">📞 Contact: ${g.contact_whatsapp}</div><div class="gig-detail"><span class="price-badge">${g.applicants_count} applied</span></div><button class="apply-btn" onclick="applyForGig(${g.id})">🤝 Apply Now</button></div>`).join(''); } catch (error) { console.error(error); } }
+
+        document.getElementById('gigForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!authTokenForAPI) { alert('Please login first'); window.location.href='login.html'; return; }
+            try {
+                const result = await apiCall('/marriage/post-job', 'POST', {
+                    event_date: document.getElementById('eventDate').value,
+                    event_location: document.getElementById('eventLocation').value,
+                    event_type: document.getElementById('gigType').value,
+                    role_needed: document.getElementById('gigType').value,
+                    number_of_staff: parseInt(document.getElementById('staffCount').value),
+                    pay_per_staff: parseInt(document.getElementById('payPerStaff').value),
+                    description: document.getElementById('gigDescription').value,
+                    contact_whatsapp: document.getElementById('contactWhatsapp').value
+                }, true);
+                const payment = await apiCall(`/marriage/activate/${result.id}`, 'POST', {}, true);
+                if (confirm(`Pay ₹${payment.amount} to activate your gig posting?`)) window.location.href = payment.payment_link;
+                alert('Gig posted! Please complete payment to activate.');
+                document.getElementById('gigForm').reset();
+                switchTab('browse');
+            } catch (error) { alert('Error: ' + error.message); }
+        });
+
+        document.getElementById('profileForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!authTokenForAPI) { alert('Please login first'); window.location.href='login.html'; return; }
+            try {
+                const skillsSelect = document.getElementById('skills');
+                const skills = Array.from(skillsSelect.selectedOptions).map(opt => opt.value);
+                await apiCall('/marriage/student/profile', 'POST', { skills, availability: document.getElementById('availability').value, experience: document.getElementById('experience').value, whatsapp: document.getElementById('studentWhatsapp').value }, true);
+                alert('Profile saved successfully!');
+            } catch (error) { alert('Error: ' + error.message); }
+        });
+
+        async function applyForGig(jobId) {
+            if (!authTokenForAPI) { alert('Please login first'); window.location.href='login.html'; return; }
+            try { await apiCall('/marriage/apply', 'POST', { job_id: jobId }, true); alert('Application submitted! The organizer will contact you.'); loadGigs(); } catch (error) { alert('Error: ' + error.message); }
+        }
+
+        function switchTab(tab) {
+            document.getElementById('browseTab').style.display = 'none'; document.getElementById('postTab').style.display = 'none'; document.getElementById('profileTab').style.display = 'none';
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            if (tab === 'browse') { document.getElementById('browseTab').style.display = 'block'; document.querySelector('.tab-btn').classList.add('active'); loadGigs(); }
+            else if (tab === 'post') { document.getElementById('postTab').style.display = 'block'; document.querySelectorAll('.tab-btn')[1].classList.add('active'); }
+            else { document.getElementById('profileTab').style.display = 'block'; document.querySelectorAll('.tab-btn')[2].classList.add('active'); }
+        }
+        loadGigs();
+    </script>
+    <script src="js/auth-guard.js"></script>
+</body>
+</html>

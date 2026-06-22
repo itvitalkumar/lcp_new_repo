@@ -1,0 +1,698 @@
+<script>
+    const API_BASE_URL = window.ACTIVE_CONFIG ? window.ACTIVE_CONFIG.API_BASE_URL : 'http://localhost:8000/api';
+    
+    console.log('🔍 LocalStorage on index.html load:', {
+        authToken: localStorage.getItem('authToken'),
+        token: localStorage.getItem('token'),
+        isLoggedIn: localStorage.getItem('isLoggedIn'),
+        currentUser: localStorage.getItem('currentUser')
+    });
+
+    let currentUser = null;
+    let authToken = localStorage.getItem('authToken') || localStorage.getItem('token');
+    let pendingTeacherData = null;
+    let teacherFriendsList = [];
+    let teacherFriendAmounts = [];
+    let pendingCelebrateData = null;
+    let celebrateFriendsList = [];
+    let celebrateGeneratedAmount = null;
+
+    const specializations = {
+        engineering: ["Computer Science Engineering (CSE)", "Information Science Engineering (ISE)", "Electronics & Communication (ECE)", "Electrical Engineering (EE)", "Mechanical Engineering (ME)", "Civil Engineering (CE)", "Artificial Intelligence & ML (AI/ML)", "Data Science", "Cyber Security", "Aerospace Engineering", "Biotechnology", "Chemical Engineering", "Instrumentation Technology", "Industrial Engineering", "Automobile Engineering", "Robotics & Automation"],
+        medical: ["MBBS - Bachelor of Medicine", "BDS - Dental Surgery", "BAMS - Ayurveda", "BHMS - Homeopathy", "BNYS - Naturopathy", "BUMS - Unani Medicine", "BPT - Physiotherapy", "BSc Nursing", "BSc Medical Lab Technology", "BSc Radiology", "BSc Optometry", "Pharmacy (B.Pharm)", "Veterinary Science (BVSc)"],
+        management: ["MBA - Master of Business Administration", "BBM - Bachelor of Business Management", "BBA - Business Administration", "PGDM - Post Graduate Diploma in Management", "Hospital Management", "Event Management", "Sports Management", "Retail Management", "Logistics & Supply Chain", "International Business", "Human Resources (HR)", "Marketing Management", "Finance Management", "Business Analytics"],
+        commerce: ["BCom - Bachelor of Commerce", "MCom - Master of Commerce", "BCom Professional", "BCom Accounting & Finance", "BCom Banking & Insurance", "BCom Taxation", "BCom Computer Applications", "BCom Corporate Secretaryship", "CA - Chartered Accountancy", "CMA - Cost Management Accountancy", "CS - Company Secretary", "CFA - Financial Analyst"],
+        science: ["BSc Physics", "BSc Chemistry", "BSc Mathematics", "BSc Biology/Zoology/Botany", "BSc Computer Science", "BSc Information Technology", "BSc Biotechnology", "BSc Microbiology", "BSc Biochemistry", "BSc Environmental Science", "BSc Forensic Science", "BSc Psychology", "BSc Statistics", "BSc Electronics", "MSc in various fields"],
+        arts: ["BA - Bachelor of Arts", "BA History", "BA Political Science", "BA Sociology", "BA Psychology", "BA Economics", "BA Journalism", "BA English Literature", "BA Kannada Literature", "BA Hindi Literature", "BA Philosophy", "BA Public Administration", "MA - Master of Arts", "Fine Arts (BFA)", "Performing Arts", "Visual Arts"],
+        law: ["BA LLB - 5 Years Integrated", "BBA LLB - 5 Years Integrated", "LLB - 3 Years", "LLM - Master of Laws", "Corporate Law", "Criminal Law", "Constitutional Law", "Intellectual Property Law", "Taxation Law", "Human Rights Law"],
+        architecture: ["BArch - Architecture", "BDes - Design", "BPlan - Planning", "Interior Design", "Fashion Design", "Product Design", "Communication Design", "Graphic Design", "Animation & Multimedia", "MArch - Master of Architecture"],
+        agriculture: ["BSc Agriculture", "BSc Horticulture", "BSc Forestry", "BSc Sericulture", "BSc Food Technology", "BSc Dairy Technology", "Agricultural Engineering", "Fisheries Science", "MSc Agriculture"],
+        education: ["BEd - Bachelor of Education", "BA BEd - Integrated", "BSc BEd - Integrated", "MEd - Master of Education", "Physical Education (BPEd)", "Special Education", "Early Childhood Education"],
+        pharmacy: ["BPharm - Bachelor of Pharmacy", "MPharm - Master of Pharmacy", "PharmD - Doctor of Pharmacy", "Pharmacology", "Pharmaceutical Chemistry", "Pharmaceutics", "Pharmacognosy", "Clinical Pharmacy"],
+        hotel: ["BHM - Hotel Management", "BSc Hospitality & Hotel Admin", "Diploma in Hotel Management", "Culinary Arts", "Bakery & Confectionery", "Tourism Management", "Aviation & Travel Management"],
+        journalism: ["BJMC - Journalism & Mass Comm", "BA Journalism", "BA Mass Communication", "MA Journalism", "Digital Media", "Advertising & PR", "Film Studies", "Event Management"],
+        socialwork: ["BSW - Bachelor of Social Work", "MSW - Master of Social Work", "Rural Development", "Urban Management", "NGO Management", "Counseling Psychology"],
+        physical: ["BPEd - Physical Education", "MPEd - Master of Physical Education", "Sports Coaching", "Yoga Science", "Sports Psychology", "Fitness Management"]
+    };
+    
+    function updateSpecializations() {
+        const mainCourse = document.getElementById('mainCourse');
+        if (!mainCourse) return;
+        const mainCourseValue = mainCourse.value;
+        const specializationGroup = document.getElementById('specializationGroup');
+        const specializationSelect = document.getElementById('specialization');
+        if (mainCourseValue && specializations[mainCourseValue]) {
+            if (specializationGroup) specializationGroup.style.display = 'block';
+            if (specializationSelect) {
+                specializationSelect.innerHTML = '<option value="">Select your specialization</option>';
+                specializations[mainCourseValue].forEach(spec => {
+                    const option = document.createElement('option');
+                    option.value = spec.toLowerCase().replace(/ /g, '_');
+                    option.textContent = spec;
+                    specializationSelect.appendChild(option);
+                });
+            }
+        } else if (mainCourseValue === 'other') {
+            if (specializationGroup) specializationGroup.style.display = 'block';
+            if (specializationSelect) {
+                specializationSelect.innerHTML = '<option value="">Please specify your course</option>';
+                specializationSelect.innerHTML += '<option value="other_course">Other Course</option>';
+            }
+        } else {
+            if (specializationGroup) specializationGroup.style.display = 'none';
+        }
+    }
+    
+    async function apiCall(endpoint, method, body = null, requiresAuth = false) {
+        const headers = { 'Content-Type': 'application/json' };
+        if (requiresAuth && authToken) headers['Authorization'] = `Bearer ${authToken}`;
+        const options = { method, headers };
+        if (body && (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE')) options.body = JSON.stringify(body);
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || 'Something went wrong');
+        return data;
+    }
+    
+    async function signup(full_name, email, whatsapp, password, college, course, specialization) {
+        const result = await apiCall('/auth/signup', 'POST', {
+            full_name: full_name,
+            email: email,
+            whatsapp: whatsapp,
+            password: password,
+            role: "student",
+            college: college || "",
+            course: course || "",
+            specialization: specialization || ""
+        });
+        authToken = result.access_token;
+        localStorage.setItem('authToken', authToken);
+        localStorage.setItem('token', authToken);
+        currentUser = result.user;
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        localStorage.setItem('user', JSON.stringify(currentUser));
+        updateUI();
+        return result;
+    }
+    
+    async function login(email, password) {
+        const result = await apiCall('/auth/login', 'POST', { email, password });
+        authToken = result.access_token;
+        localStorage.setItem('authToken', authToken);
+        localStorage.setItem('token', authToken);
+        currentUser = result.user;
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        localStorage.setItem('user', JSON.stringify(currentUser));
+        updateUI();
+        return result;
+    }
+    
+    function logout() {
+        authToken = null;
+        currentUser = null;
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('token');
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('user');
+        updateUI();
+        showPage('home');
+    }
+    
+    async function createGroup(teacher_name, college, whatsapp_link, event_date) {
+        return await apiCall('/groups/create', 'POST', { teacher_name, college, whatsapp_link, event_date }, true);
+    }
+    
+    async function searchGroupsAPI(teacher_name) {
+        return await apiCall(`/groups/search?teacher_name=${encodeURIComponent(teacher_name)}`, 'GET');
+    }
+    
+    async function joinGroup(group_id) {
+        return await apiCall('/groups/join', 'POST', { group_id }, true);
+    }
+    
+    async function getMyGroups() {
+        return await apiCall('/groups/my-groups', 'GET', null, true);
+    }
+    
+    async function deleteGroup(group_id) {
+        return await apiCall('/groups/delete', 'DELETE', { group_id }, true);
+    }
+    
+    async function leaveGroup(group_id) {
+        return await apiCall('/groups/leave', 'POST', { group_id }, true);
+    }
+    
+    async function shareSuccessStory(story, author) {
+        return await apiCall('/stories/create', 'POST', { story_text: story, author_name: author }, false);
+    }
+    
+    async function loadStats() {
+        try {
+            const groups = await apiCall('/groups/search?teacher_name=a', 'GET', null, false);
+            document.getElementById('statGroups').innerText = groups.groups?.length || 0;
+            let totalStudents = 0;
+            if (groups.groups) totalStudents = groups.groups.reduce((sum, g) => sum + (g.member_count || 1), 0);
+            document.getElementById('statStudents').innerText = totalStudents || 0;
+            const uniqueTeachers = new Set();
+            if (groups.groups) groups.groups.forEach(g => { if (g.teacher_name) uniqueTeachers.add(g.teacher_name); });
+            document.getElementById('statTeachers').innerText = uniqueTeachers.size || 0;
+            const uniqueColleges = new Set();
+            if (groups.groups) groups.groups.forEach(g => { if (g.college) uniqueColleges.add(g.college); });
+            document.getElementById('statColleges').innerText = uniqueColleges.size || 0;
+        } catch(e) { console.error('Stats error:', e); }
+    }
+    
+    function updateUI() {
+        const authDiv = document.querySelector('.header-buttons');
+        const userMenu = document.getElementById('userMenu');
+        const nameSpan = document.getElementById('userName');
+        
+        let user = currentUser;
+        if (!user) {
+            const storedUser = localStorage.getItem('currentUser') || localStorage.getItem('user');
+            if (storedUser) {
+                try {
+                    user = JSON.parse(storedUser);
+                    currentUser = user;
+                    authToken = localStorage.getItem('authToken') || localStorage.getItem('token');
+                } catch(e) {}
+            }
+        }
+        
+        if (user) {
+            if (authDiv) authDiv.classList.add('hidden');
+            if (userMenu) userMenu.classList.remove('hidden');
+            if (nameSpan) nameSpan.innerText = user.full_name || (user.email ? user.email.split('@')[0] : 'User');
+        } else {
+            if (authDiv) authDiv.classList.remove('hidden');
+            if (userMenu) userMenu.classList.add('hidden');
+        }
+        loadStats();
+    }
+    
+    function showPage(page) {
+        let pageId = page;
+        if (page === 'signup') pageId = 'signupPage';
+        if (page === 'login') pageId = 'loginPage';
+        if (page === 'home') pageId = 'homePage';
+        if (page === 'groups') pageId = 'groupsPage';
+        if (page === 'dashboard') pageId = 'dashboardPage';
+        if (page === 'thankteacher') pageId = 'thankteacherPage';
+        if (page === 'celebrate') pageId = 'celebratePage';
+        
+        var pages = ['homePage', 'signupPage', 'loginPage', 'thankteacherPage', 'celebratePage', 'groupsPage', 'dashboardPage'];
+        for (var i = 0; i < pages.length; i++) {
+            var el = document.getElementById(pages[i]);
+            if (el) el.classList.add('hidden');
+        }
+        var targetPage = document.getElementById(pageId);
+        if (targetPage) targetPage.classList.remove('hidden');
+        if (pageId === 'dashboardPage') loadDashboard();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    
+    function showThankTeacher() {
+        document.getElementById('teacherGroupStep1').style.display = 'block';
+        document.getElementById('teacherGameStep').style.display = 'none';
+        document.getElementById('createTeacherGroupForm').reset();
+        teacherFriendsList = [];
+        teacherFriendAmounts = [];
+        document.getElementById('teacherNamesList').innerHTML = '';
+        showPage('thankteacher');
+    }
+    
+    function showCelebrateTogether() {
+        document.getElementById('celebrateStep1').style.display = 'block';
+        document.getElementById('celebrateGameStep').style.display = 'none';
+        document.getElementById('createCelebrateForm').reset();
+        celebrateFriendsList = [];
+        celebrateGeneratedAmount = null;
+        document.getElementById('celebrateNamesList').innerHTML = '';
+        document.getElementById('celebrateAmountDisplay').innerHTML = '';
+        document.getElementById('celebratePayButton').style.display = 'none';
+        showPage('celebrate');
+    }
+    
+    function showLegalPage(type) {
+        const texts = {
+            disclaimer: '⚠️ Campus Central is a facilitation platform only. Platform fee keeps the service running. Actual gift money is collected offline among friends.',
+            privacy: '🔒 We collect your name, email, phone number, and college information for coordination. We do not sell your data.',
+            terms: '📜 By using Campus Central, you agree to be 18 years or older and use the platform responsibly.'
+        };
+        alert(texts[type]);
+    }
+    
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    function getInviteLink(teacherName, college) {
+        const baseUrl = window.location.origin + window.location.pathname;
+        return `${baseUrl}?join=${encodeURIComponent(teacherName)}&college=${encodeURIComponent(college || '')}`;
+    }
+    
+    function copyInviteLink(teacherName, college) {
+        const link = getInviteLink(teacherName, college);
+        navigator.clipboard.writeText(link);
+        alert('Invite link copied! Share with your friends.');
+    }
+    
+    function showTeacherNameGame() {
+        const teacherName = document.getElementById('teacherName').value.trim();
+        if (!teacherName) {
+            alert('Please enter teacher name');
+            return;
+        }
+        pendingTeacherData = {
+            teacher_name: teacherName,
+            college: document.getElementById('teacherCollege').value.trim(),
+            event_date: document.getElementById('teacherEventDate').value,
+            venue: document.getElementById('teacherVenue').value,
+            pet_names: document.getElementById('teacherPetNames').value,
+            memory: document.getElementById('teacherMemory').value,
+            bring: document.getElementById('teacherBring').value,
+            secret_code: document.getElementById('teacherSecretCode').value,
+            dress_code: document.getElementById('teacherDressCode').value,
+            surprise: document.getElementById('teacherSurprise').value,
+            note: document.getElementById('teacherNote').value,
+            email: document.getElementById('teacherEmail').value,
+            whatsapp: document.getElementById('teacherWhatsapp').value,
+            type: 'teacher'
+        };
+        
+        if (!pendingTeacherData.email || !pendingTeacherData.whatsapp) {
+            alert('Email and WhatsApp number are required');
+            return;
+        }
+        
+        document.getElementById('teacherGroupStep1').style.display = 'none';
+        document.getElementById('teacherGameStep').style.display = 'block';
+        teacherFriendsList = [];
+        teacherFriendAmounts = [];
+        document.getElementById('teacherNamesList').innerHTML = '';
+        document.getElementById('teacherAmountResults').innerHTML = '';
+        document.getElementById('teacherLowestDisplay').innerHTML = '';
+        document.getElementById('teacherPayButton').style.display = 'none';
+    }
+    
+    function addTeacherFriend() {
+        const name = document.getElementById('teacherFriendName').value.trim();
+        if (!name) {
+            alert('Please enter a name');
+            return;
+        }
+        if (teacherFriendsList.includes(name)) {
+            alert('Name already added');
+            return;
+        }
+        const amount = Math.floor(Math.random() * (81 - 18 + 1) + 18);
+        teacherFriendsList.push(name);
+        teacherFriendAmounts.push(amount);
+        
+        const namesDiv = document.getElementById('teacherNamesList');
+        namesDiv.innerHTML += `<div class="group-card" style="margin-bottom:0.5rem;">📌 ${escapeHtml(name)} - ₹${amount}</div>`;
+        document.getElementById('teacherFriendName').value = '';
+        
+        const minAmount = Math.min(...teacherFriendAmounts);
+        const minIndex = teacherFriendAmounts.indexOf(minAmount);
+        const minName = teacherFriendsList[minIndex];
+        
+        document.getElementById('teacherAmountResults').innerHTML = `<div class="info-message"><i class="fas fa-chart-line"></i> <strong>Amounts generated:</strong> ${teacherFriendsList.map((n,i) => `${n}: ₹${teacherFriendAmounts[i]}`).join(' | ')}</div>`;
+        document.getElementById('teacherLowestDisplay').innerHTML = `<div class="success-msg" style="background:#e8f4f8;"><strong>🎉 Best luck!</strong> ${escapeHtml(minName)} got the lowest amount: <span style="font-size:1.5rem; font-weight:bold;">₹${minAmount}</span><br>You will pay this amount to activate the group!</div>`;
+        document.getElementById('teacherPayButton').style.display = 'block';
+        document.getElementById('teacherPayButton').innerHTML = `💰 Pay ₹${minAmount} and Activate Group →`;
+        pendingTeacherData.amountToPay = minAmount;
+    }
+    
+    async function processTeacherPayment() {
+        if (!currentUser) {
+            alert('Please login first');
+            showPage('login');
+            return;
+        }
+        const upiId = 'campuscentral@okhdfcbank';
+        const amount = pendingTeacherData.amountToPay;
+        const payUrl = `upi://pay?pa=${upiId}&pn=Campus%20Central&am=${amount}&cu=INR`;
+        if (confirm(`Pay ₹${amount} to activate the surprise group for ${pendingTeacherData.teacher_name}?`)) {
+            window.location.href = payUrl;
+            setTimeout(async () => {
+                try {
+                    const result = await createGroup(pendingTeacherData.teacher_name, pendingTeacherData.college, '', pendingTeacherData.event_date);
+                    const groupId = result.group.id;
+                    localStorage.setItem(`group_activated_${groupId}`, 'true');
+                    localStorage.setItem(`group_payer_${groupId}`, currentUser.full_name || currentUser.email);
+                    localStorage.setItem(`group_type_${groupId}`, 'teacher');
+                    localStorage.setItem(`group_details_${groupId}`, JSON.stringify(pendingTeacherData));
+                    alert('✅ Payment recorded! Your group is now ACTIVE. Share the invite link with friends!');
+                    showPage('dashboard');
+                } catch (error) {
+                    alert('Group created but payment not recorded. Please contact support.');
+                }
+            }, 2000);
+        }
+    }
+    
+    function showCelebrateGame() {
+        const title = document.getElementById('celebrateTitle').value.trim();
+        if (!title) {
+            alert('Please enter event title');
+            return;
+        }
+        pendingCelebrateData = {
+            title: title,
+            location: document.getElementById('celebrateLocation').value.trim(),
+            event_date: document.getElementById('celebrateDate').value,
+            venue: document.getElementById('celebrateVenue').value,
+            pet_names: document.getElementById('celebratePetNames').value,
+            memory: document.getElementById('celebrateMemory').value,
+            bring: document.getElementById('celebrateBring').value,
+            secret_code: document.getElementById('celebrateSecretCode').value,
+            dress_code: document.getElementById('celebrateDressCode').value,
+            surprise: document.getElementById('celebrateSurprise').value,
+            note: document.getElementById('celebrateNote').value,
+            email: document.getElementById('celebrateEmail').value,
+            whatsapp: document.getElementById('celebrateWhatsapp').value,
+            type: 'celebrate'
+        };
+        
+        if (!pendingCelebrateData.email || !pendingCelebrateData.whatsapp) {
+            alert('Email and WhatsApp number are required');
+            return;
+        }
+        
+        document.getElementById('celebrateStep1').style.display = 'none';
+        document.getElementById('celebrateGameStep').style.display = 'block';
+        celebrateFriendsList = [];
+        document.getElementById('celebrateNamesList').innerHTML = '';
+        document.getElementById('celebrateAmountDisplay').innerHTML = '';
+        document.getElementById('celebratePayButton').style.display = 'none';
+        document.getElementById('celebrateGenerateBtn').style.display = 'block';
+    }
+    
+    function addCelebrateFriend() {
+        const name = document.getElementById('celebrateFriendName').value.trim();
+        if (!name) {
+            alert('Please enter a name');
+            return;
+        }
+        if (celebrateFriendsList.includes(name)) {
+            alert('Name already added');
+            return;
+        }
+        celebrateFriendsList.push(name);
+        
+        const namesDiv = document.getElementById('celebrateNamesList');
+        namesDiv.innerHTML += `<div class="group-card" style="margin-bottom:0.5rem;">📌 ${escapeHtml(name)}</div>`;
+        document.getElementById('celebrateFriendName').value = '';
+    }
+    
+    function generateCelebrateAmount() {
+        if (celebrateFriendsList.length === 0) {
+            alert('Please add at least one friend name first');
+            return;
+        }
+        celebrateGeneratedAmount = Math.floor(Math.random() * (63 - 36 + 1) + 36);
+        document.getElementById('celebrateAmountDisplay').innerHTML = `<div class="lucky-box"><div class="lucky-number">₹${celebrateGeneratedAmount}</div><p>Your random amount for this celebration!</p></div>`;
+        document.getElementById('celebrateGenerateBtn').style.display = 'none';
+        document.getElementById('celebratePayButton').style.display = 'block';
+        document.getElementById('celebratePayButton').innerHTML = `💰 Pay ₹${celebrateGeneratedAmount} and Activate Event →`;
+        pendingCelebrateData.amountToPay = celebrateGeneratedAmount;
+    }
+    
+    async function processCelebratePayment() {
+        if (!currentUser) {
+            alert('Please login first');
+            showPage('login');
+            return;
+        }
+        const upiId = 'campuscentral@okhdfcbank';
+        const amount = pendingCelebrateData.amountToPay;
+        const payUrl = `upi://pay?pa=${upiId}&pn=Campus%20Central&am=${amount}&cu=INR`;
+        if (confirm(`Pay ₹${amount} to activate your celebration event?`)) {
+            window.location.href = payUrl;
+            setTimeout(async () => {
+                try {
+                    const result = await createGroup(pendingCelebrateData.title, pendingCelebrateData.location, '', pendingCelebrateData.event_date);
+                    const groupId = result.group.id;
+                    localStorage.setItem(`group_activated_${groupId}`, 'true');
+                    localStorage.setItem(`group_payer_${groupId}`, currentUser.full_name || currentUser.email);
+                    localStorage.setItem(`group_type_${groupId}`, 'celebrate');
+                    localStorage.setItem(`group_details_${groupId}`, JSON.stringify(pendingCelebrateData));
+                    alert('✅ Payment recorded! Your event is now ACTIVE. Share the invite link with friends!');
+                    showPage('dashboard');
+                } catch (error) {
+                    alert('Event created but payment not recorded. Please contact support.');
+                }
+            }, 2000);
+        }
+    }
+    
+    function sendMessage(groupId) {
+        const input = document.getElementById(`chat-input-${groupId}`);
+        const message = input.value.trim();
+        if (!message || !currentUser) return;
+        
+        let messages = JSON.parse(localStorage.getItem(`chat_${groupId}`)) || [];
+        messages.push({
+            user: currentUser.full_name || currentUser.email,
+            text: message,
+            time: new Date().toLocaleTimeString()
+        });
+        localStorage.setItem(`chat_${groupId}`, JSON.stringify(messages));
+        input.value = '';
+        loadChatMessages(groupId);
+    }
+    
+    function loadChatMessages(groupId) {
+        const container = document.getElementById(`chat-messages-${groupId}`);
+        if (!container) return;
+        let messages = JSON.parse(localStorage.getItem(`chat_${groupId}`)) || [];
+        container.innerHTML = messages.map(m => `
+            <div class="chat-message">
+                <strong>${escapeHtml(m.user)}</strong><br>
+                ${escapeHtml(m.text)}
+                <small>${m.time}</small>
+            </div>
+        `).join('');
+        container.scrollTop = container.scrollHeight;
+    }
+    
+    async function loadDashboard() {
+        if (!currentUser) {
+            const dashboardDiv = document.getElementById('myGroupsList');
+            if (dashboardDiv) dashboardDiv.innerHTML = '<div class="error-msg">Please login to see your groups.</div>';
+            return;
+        }
+        try {
+            const result = await getMyGroups();
+            const groups = result.groups || [];
+            const dashboardDiv = document.getElementById('myGroupsList');
+            if (!dashboardDiv) return;
+            if (groups.length === 0) {
+                dashboardDiv.innerHTML = '<div class="error-msg">You haven\'t joined any groups yet. <a onclick="showPage(\'groups\')" style="color: var(--secondary); cursor: pointer;">Find a group or event →</a></div>';
+                return;
+            }
+            let html = '';
+            for (const group of groups) {
+                const isCreator = group.created_by === currentUser?.id;
+                const isActivated = localStorage.getItem(`group_activated_${group.id}`) === 'true';
+                const payerName = localStorage.getItem(`group_payer_${group.id}`) || 'someone';
+                const groupType = localStorage.getItem(`group_type_${group.id}`) || 'teacher';
+                const details = JSON.parse(localStorage.getItem(`group_details_${group.id}`) || '{}');
+                const displayName = groupType === 'teacher' ? group.teacher_name : (details.title || group.teacher_name);
+                const icon = groupType === 'teacher' ? '📖' : '🎉';
+                
+                html += `<div class="group-card">`;
+                html += `<div class="group-header">`;
+                html += `<div><h3>${icon} ${escapeHtml(displayName)} ${isCreator ? '<span class="organizer-badge">👑 ORGANIZER</span>' : ''}</h3>`;
+                html += `<p>🏛️ ${group.college || 'Various locations'}</p>`;
+                html += `<p>👥 ${group.member_count || 1} members</p>`;
+                if (isActivated) {
+                    html += `<p><i class="fas fa-check-circle" style="color:#2ecc71;"></i> Activated by ${escapeHtml(payerName)}</p>`;
+                } else {
+                    html += `<p><i class="fas fa-lock" style="color:#e67e22;"></i> Not yet activated - need payment</p>`;
+                }
+                
+                if (details.venue) html += `<p>📍 Venue: ${escapeHtml(details.venue)}</p>`;
+                if (details.event_date) html += `<p>📅 Date: ${escapeHtml(details.event_date)}</p>`;
+                if (details.pet_names) html += `<p>🥰 Pet names: ${escapeHtml(details.pet_names)}</p>`;
+                if (details.secret_code) html += `<p>🤫 Secret code: ${escapeHtml(details.secret_code)}</p>`;
+                if (details.dress_code) html += `<p>👕 Dress code: ${escapeHtml(details.dress_code)}</p>`;
+                if (details.memory) html += `<p>💭 Memory: "${escapeHtml(details.memory)}"</p>`;
+                if (details.note) html += `<p>💌 Note: ${escapeHtml(details.note)}</p>`;
+                html += `</div></div>`;
+                
+                if (isActivated) {
+                    html += `<div class="invite-link" style="margin-top:0.5rem;">`;
+                    html += `<span>🔗 Invite Link:</span>`;
+                    html += `<button class="btn-secondary" onclick="copyInviteLink('${escapeHtml(displayName)}', '${escapeHtml(group.college || '')}')">Copy Link</button>`;
+                    html += `</div>`;
+                    
+                    html += `<div class="chat-container">`;
+                    html += `<div class="chat-messages" id="chat-messages-${group.id}"></div>`;
+                    html += `<div class="chat-input-area">`;
+                    html += `<input type="text" id="chat-input-${group.id}" placeholder="Share your ideas, plans, or contact number...">`;
+                    html += `<button onclick="sendMessage(${group.id})">Send</button>`;
+                    html += `</div></div>`;
+                } else {
+                    html += `<div class="invite-link" style="margin-top:0.5rem; background:#ffe0e0;">`;
+                    html += `<span>🔒 Group not yet activated. First member needs to pay to unlock chat and invites.</span>`;
+                    html += `</div>`;
+                }
+                
+                html += `<div class="group-actions" style="margin-top:1rem;">`;
+                html += `${isCreator ? `<button class="btn-secondary" onclick="deleteGroupHandler('${group.id}')">Delete Group</button>` : `<button class="btn-secondary" onclick="leaveGroupHandler('${group.id}')">Leave Group</button>`}`;
+                if (!isActivated && isCreator) {
+                    if (groupType === 'teacher') {
+                        html += `<button class="btn-primary" onclick="showThankTeacher()">💰 Pay to Activate (₹18-₹81)</button>`;
+                    } else {
+                        html += `<button class="btn-primary" onclick="showCelebrateTogether()">💰 Pay to Activate (₹36-₹63)</button>`;
+                    }
+                }
+                html += `</div></div>`;
+            }
+            dashboardDiv.innerHTML = html;
+            
+            for (const group of groups) {
+                const isActivated = localStorage.getItem(`group_activated_${group.id}`) === 'true';
+                if (isActivated) {
+                    loadChatMessages(group.id);
+                }
+            }
+        } catch (error) {
+            const dashboardDiv = document.getElementById('myGroupsList');
+            if (dashboardDiv) dashboardDiv.innerHTML = `<div class="error-msg">Error: ${error.message}</div>`;
+        }
+    }
+    
+    async function searchGroups() {
+        const searchInput = document.getElementById('searchTeacherInput');
+        if (!searchInput) return;
+        const searchTerm = searchInput.value.trim();
+        const resultsDiv = document.getElementById('searchResults');
+        if (!resultsDiv) return;
+        if (!searchTerm) {
+            resultsDiv.innerHTML = '<div class="error-msg">Enter a teacher name or event title.</div>';
+            return;
+        }
+        try {
+            const result = await searchGroupsAPI(searchTerm);
+            const groups = result.groups || [];
+            if (groups.length === 0) {
+                resultsDiv.innerHTML = `<div class="error-msg">No groups found. <a onclick="showThankTeacher()" style="color: var(--secondary); cursor: pointer;">Create one →</a></div>`;
+                return;
+            }
+            let html = '<h3>🎁 Groups & Events Found:</h3>';
+            for (const group of groups) {
+                const isActivated = localStorage.getItem(`group_activated_${group.id}`) === 'true';
+                const groupType = localStorage.getItem(`group_type_${group.id}`) || 'teacher';
+                const details = JSON.parse(localStorage.getItem(`group_details_${group.id}`) || '{}');
+                const displayName = groupType === 'teacher' ? group.teacher_name : (details.title || group.teacher_name);
+                const icon = groupType === 'teacher' ? '📖' : '🎉';
+                const statusIcon = isActivated ? '✅' : '⏳';
+                const statusText = isActivated ? 'Active - You can join!' : 'Awaiting activation';
+                const statusColor = isActivated ? '#2ecc71' : '#e67e22';
+                
+                html += `<div class="group-card"><div><h3>${icon} ${escapeHtml(displayName)}</h3><p>🏛️ ${group.college || 'Various locations'}</p><p>👥 ${group.member_count || 1} members</p><p><span style="color:${statusColor};">${statusIcon} ${statusText}</span></p></div><div><button class="btn-primary" onclick="joinGroupHandler('${group.id}')" ${!isActivated ? 'disabled style="opacity:0.5;"' : ''}>${isActivated ? 'Join →' : 'Waiting for Activation'}</button></div></div>`;
+            }
+            resultsDiv.innerHTML = html;
+        } catch (error) {
+            resultsDiv.innerHTML = `<div class="error-msg">Error: ${error.message}</div>`;
+        }
+    }
+    
+    async function joinGroupHandler(groupId) {
+        if (!currentUser) { alert('Please login first'); showPage('login'); return; }
+        try {
+            await joinGroup(groupId);
+            alert('🤫 You joined the group/event!');
+            searchGroups();
+            loadDashboard();
+        } catch (error) { alert(error.message); }
+    }
+    
+    async function deleteGroupHandler(groupId) {
+        if (confirm('Are you sure? This will remove the group for everyone.')) {
+            try {
+                await deleteGroup(groupId);
+                alert('Group deleted.');
+                loadDashboard();
+            } catch (error) { alert(error.message); }
+        }
+    }
+    
+    async function leaveGroupHandler(groupId) {
+        if (confirm('Are you sure you want to leave this group?')) {
+            try {
+                await leaveGroup(groupId);
+                alert('You left the group.');
+                loadDashboard();
+            } catch (error) { alert(error.message); }
+        }
+    }
+    
+    function checkJoinLink() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const joinTerm = urlParams.get('join');
+        if (joinTerm) {
+            setTimeout(() => {
+                const searchInput = document.getElementById('searchTeacherInput');
+                if (searchInput) {
+                    searchInput.value = joinTerm;
+                    showPage('groups');
+                    searchGroups();
+                }
+            }, 500);
+        }
+    }
+    
+    // Event Listeners
+    const successStoryForm = document.getElementById('successStoryForm');
+    if (successStoryForm) {
+        successStoryForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const story = document.getElementById('successStory').value;
+            const author = document.getElementById('storyAuthor').value;
+            if (story && author) {
+                try {
+                    await shareSuccessStory(story, author);
+                    const storyResult = document.getElementById('storyResult');
+                    if (storyResult) {
+                        storyResult.innerHTML = '<div class="success-msg">Thank you for sharing! 💛</div>';
+                    }
+                    document.getElementById('successStory').value = '';
+                    document.getElementById('storyAuthor').value = '';
+                    setTimeout(() => {
+                        if (storyResult) storyResult.innerHTML = '';
+                    }, 3000);
+                } catch(error) {
+                    alert('Failed to share story. Please try again.');
+                }
+            } else {
+                alert('Please fill both fields');
+            }
+        });
+    }
+    
+    // Check for saved user on load
+    const savedUser = localStorage.getItem('currentUser') || localStorage.getItem('user');
+    if (savedUser) {
+        try {
+            currentUser = JSON.parse(savedUser);
+            authToken = localStorage.getItem('authToken') || localStorage.getItem('token');
+            updateUI();
+            if (currentUser) loadDashboard();
+        } catch(e) { console.error('Failed to parse saved user'); }
+    }
+    updateUI();
+    checkJoinLink();
+    
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js').catch(error => console.log('Service Worker registration failed:', error));
+        });
+    }
+</script>

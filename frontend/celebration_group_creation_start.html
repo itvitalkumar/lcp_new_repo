@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Campus Central — Celebrate Together | Plan a Reunion</title>
+    
+    <!-- Master Configuration Reference -->
+    <script src="js/config.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* ========== INDEX.HTML DESIGN SYSTEM (PRESERVED) ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+        }
+
+        :root {
+            --primary: #0f4c5c;
+            --primary-dark: #0a3a46;
+            --secondary: #e67e22;
+            --accent: #ffb347;
+            --gold: #f4b942;
+            --light: #fef9e6;
+            --dark: #1e2a2e;
+            --gray-bg: #f8f9fc;
+            --success: #2ecc71;
+            --coffee: #6f4e2e;
+            --error: #e74c3c;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            min-height: 100vh;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .form-container {
+            background: white;
+            border-radius: 32px;
+            padding: 2rem;
+            max-width: 1000px;
+            width: 100%;
+            margin: 0 auto;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            max-height: 95vh;
+            overflow-y: auto;
+        }
+
+        .form-container h2 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+        }
+
+        .form-container h2 i {
+            color: var(--gold);
+        }
+
+        .subhead {
+            text-align: center;
+            color: #5a6e7a;
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .info-message {
+            background: #e8f4f8;
+            border-left: 4px solid var(--secondary);
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            font-size: 0.85rem;
+        }
+
+        .info-message i {
+            color: var(--secondary);
+            margin-right: 0.5rem;
+        }
+                /* Compact voice input row - mic button on the RIGHT of the input */
+        .event-title-group {
+            margin-bottom: 1rem;
+        }
+
+        .event-title-group label {
+            display: block;
+            margin-bottom: 0.4rem;
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 0.85rem;
+        }
+
+        .input-with-mic {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .input-with-mic input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .input-with-mic input:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 2px rgba(230,126,34,0.1);
+        }
+
+        .mic-btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .mic-btn:hover {
+            background: #d35400;
+            transform: scale(1.02);
+        }
+
+        .mic-btn.listening {
+            background: var(--error);
+            animation: pulseMic 1s infinite;
+        }
+
+        @keyframes pulseMic {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .voice-status {
+            font-size: 0.7rem;
+            margin-top: 0.3rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        .voice-status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .voice-status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .voice-status.listening {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        /* Divider */
+        .divider {
+            text-align: center;
+            margin: 1rem 0;
+            position: relative;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            width: 45%;
+            height: 1px;
+            background: #eee;
+        }
+
+        .divider::before { left: 0; }
+        .divider::after { right: 0; }
+
+        .divider span {
+            background: white;
+            padding: 0 0.8rem;
+            font-size: 0.7rem;
+            color: #999;
+        }
+                /* Form layout */
+        .form-row {
+            display: flex;
+            gap: 1.2rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            flex: 1;
+            margin-bottom: 1rem;
+            min-width: 220px;
+        }
+
+        .form-group.full-width {
+            width: 100%;
+            flex: 100%;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.4rem;
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 0.85rem;
+        }
+
+        .form-group input, 
+        .form-group select, 
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .form-group input:focus, 
+        .form-group select:focus, 
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 2px rgba(230,126,34,0.1);
+        }
+
+        .tooltip-icon {
+            color: var(--secondary);
+            cursor: help;
+            margin-left: 0.2rem;
+            font-size: 0.7rem;
+        }
+
+        /* More Details Toggle */
+        .more-details {
+            display: none;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px dashed #ddd;
+        }
+
+        .more-details.show {
+            display: block;
+        }
+
+        .toggle-more {
+            background: none;
+            border: none;
+            color: var(--secondary);
+            cursor: pointer;
+            font-size: 0.85rem;
+            padding: 0.5rem 0;
+            width: 100%;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .toggle-more:hover {
+            color: var(--primary-dark);
+        }
+
+        /* Photo Upload Area */
+        .photo-upload-area {
+            border: 2px dashed #ddd;
+            border-radius: 24px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #fafafa;
+        }
+
+        .photo-upload-area:hover {
+            border-color: var(--secondary);
+            background: var(--light);
+        }
+
+        .photo-upload-area i {
+            font-size: 2rem;
+            color: var(--secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-note {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 0.5rem;
+            line-height: 1.5;
+        }
+
+        .photo-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            margin-top: 1rem;
+            justify-content: flex-start;
+        }
+
+        .photo-preview-item {
+            position: relative;
+            display: inline-block;
+        }
+
+        .photo-preview-item img {
+            width: 85px;
+            height: 85px;
+            object-fit: cover;
+            border-radius: 16px;
+            border: 2px solid var(--gold);
+        }
+
+        .remove-photo {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+                /* Primary Button */
+        .btn-primary {
+            background-color: var(--secondary);
+            color: white;
+            padding: 0.9rem;
+            border-radius: 40px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            width: 100%;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .btn-primary:hover {
+            background-color: #d35400;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(230,126,34,0.3);
+        }
+
+        /* Success Modal */
+        .success-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .success-modal-content {
+            background: white;
+            border-radius: 32px;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            animation: slideUp 0.4s ease;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .success-modal-icon {
+            width: 80px;
+            height: 80px;
+            background: #2ecc71;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 3rem;
+            color: white;
+            animation: pop 0.5s ease;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0); }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .success-modal h3 {
+            color: var(--primary);
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .success-modal p {
+            color: #666;
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .success-modal-btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 40px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .success-modal-btn:hover {
+            background: #d35400;
+            transform: scale(1.02);
+        }
+
+        .confetti-particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 10001;
+            font-size: 1.2rem;
+            animation: confettiFall linear forwards;
+        }
+
+        @keyframes confettiFall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+
+        @media (max-width: 700px) {
+            body { padding: 1rem; }
+            .form-container { padding: 1.3rem; max-width: 96%; }
+            .form-row { flex-direction: column; gap: 0; }
+            .input-with-mic { flex-wrap: wrap; }
+            .mic-btn { width: 100%; border-radius: 40px; }
+        }
+    </style>
+</head>
+<body>
+        <div class="form-container">
+        <h2><i class="fas fa-calendar-alt"></i> Celebrate Together</h2>
+        <div class="subhead">Plan an epic reunion or party with your friends! 🎉</div>
+
+        <div class="info-message">
+            <i class="fas fa-glass-cheers"></i> <strong>How it works:</strong><br>
+            • Fill in your event details<br>
+            • After filling details, you'll proceed to add friends and try your fortune<br>
+            • Meet in person and celebrate together! 🎊
+        </div>
+
+        <!-- Event Title with Microphone button on the RIGHT (compact) -->
+        <div class="event-title-group">
+            <label>🎉 Event Title <i class="fas fa-question-circle tooltip-icon" title="What are we celebrating?"></i></label>
+            <div class="input-with-mic">
+                <input type="text" id="eventTitle" placeholder="e.g., 2019 Batch Reunion, Birthday Bash, Farewell Party" required>
+                <button class="mic-btn" id="voiceMainBtn" onclick="startVoiceRecognition()" title="Speak to fill event title and location">
+                    <i class="fas fa-microphone"></i>
+                </button>
+            </div>
+            <div class="voice-status" id="voiceStatus"></div>
+        </div>
+
+        <div class="form-group full-width">
+            <label>📍 Location <i class="fas fa-question-circle tooltip-icon" title="Where is the party?"></i></label>
+            <input type="text" id="eventLocation" placeholder="e.g., Bangalore, Mangalore, Udupi">
+        </div>
+
+        <!-- PHOTO UPLOAD SECTION -->
+        <div class="form-group full-width">
+            <label>📸 Add Party Photos <span style="font-weight:normal;">(Optional - up to 4 photos)</span></label>
+            <div class="photo-upload-area" onclick="document.getElementById('photoInput').click()">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Click or drag to upload</p>
+                <div class="upload-note">
+                    🎉 Upload party pics, group selfies, or old college memories!<br>
+                    📸 The more fun photos, the more your friends will want to join!
+                </div>
+            </div>
+            <input type="file" id="photoInput" accept="image/*" multiple style="display:none;" onchange="handlePhotoSelect(event)">
+            <div id="photoPreview" class="photo-preview"></div>
+        </div>
+                <!-- MORE DETAILS (Collapsible) -->
+        <button type="button" class="toggle-more" onclick="toggleMoreDetails()">
+            ▶ MORE DETAILS (Optional)
+        </button>
+        <div id="moreDetails" class="more-details">
+            <div class="form-group full-width">
+                <label>📍 District <i class="fas fa-question-circle tooltip-icon" title="Which district?"></i></label>
+                <select id="eventDistrict">
+                    <option value="">Select District</option>
+                    <option value="Bengaluru Urban">Bengaluru Urban</option>
+                    <option value="Bengaluru Rural">Bengaluru Rural</option>
+                    <option value="Mysuru">Mysuru</option>
+                    <option value="Dakshina Kannada">Dakshina Kannada</option>
+                    <option value="Udupi">Udupi</option>
+                    <option value="Dharwad">Dharwad</option>
+                    <option value="Belagavi">Belagavi</option>
+                    <option value="Kalaburagi">Kalaburagi</option>
+                    <option value="Ballari">Ballari</option>
+                    <option value="Vijayapura">Vijayapura</option>
+                    <option value="Tumakuru">Tumakuru</option>
+                    <option value="Shivamogga">Shivamogga</option>
+                    <option value="Raichur">Raichur</option>
+                    <option value="Bidar">Bidar</option>
+                    <option value="Hassan">Hassan</option>
+                    <option value="Mandya">Mandya</option>
+                    <option value="Chitradurga">Chitradurga</option>
+                    <option value="Kolar">Kolar</option>
+                    <option value="Davanagere">Davanagere</option>
+                    <option value="Gadag">Gadag</option>
+                    <option value="Haveri">Haveri</option>
+                    <option value="Koppal">Koppal</option>
+                    <option value="Bagalkot">Bagalkot</option>
+                    <option value="Chikkamagaluru">Chikkamagaluru</option>
+                    <option value="Kodagu">Kodagu</option>
+                    <option value="Ramanagara">Ramanagara</option>
+                    <option value="Chikkaballapur">Chikkaballapur</option>
+                    <option value="Yadgir">Yadgir</option>
+                </select>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>🥰 Pet Names of Your Gang</label>
+                    <input type="text" id="eventPetNames" placeholder="e.g., Chintu, Pinku, Munna">
+                </div>
+                <div class="form-group">
+                    <label>🤫 Secret Code Word</label>
+                    <input type="text" id="eventSecretCode" placeholder="e.g., Reunion, Nostalgia">
+                </div>
+            </div>
+
+            <div class="form-group full-width">
+                <label>💭 Favorite Memory</label>
+                <textarea id="eventMemory" rows="2" placeholder="e.g., Remember the college fest of 2019? 🎉"></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>🎁 What to Bring</label>
+                    <input type="text" id="eventBring" placeholder="e.g., Snacks, gifts, old photos">
+                </div>
+                <div class="form-group">
+                    <label>👕 Dress Code</label>
+                    <input type="text" id="eventDressCode" placeholder="e.g., Party theme, College Jersey">
+                </div>
+            </div>
+
+            <div class="form-group full-width">
+                <label>🎉 Surprise Element</label>
+                <input type="text" id="eventSurprise" placeholder="e.g., I will arrange a cake! 🎂">
+            </div>
+
+            <div class="form-group full-width">
+                <label>💌 Special Note</label>
+                <textarea id="eventNote" rows="2" placeholder="e.g., Can't wait to see everyone! 🎊"></textarea>
+            </div>
+        </div>
+
+        <button class="btn-primary" onclick="saveAndContinue()">Continue to Add Friends & Try Your Fortune → 🎲</button>
+    </div>
+        <!-- Centered Success Modal -->
+    <div id="successModal" class="success-modal">
+        <div class="success-modal-content">
+            <div class="success-modal-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h3 id="modalTitle">🎉 Event Details Saved!</h3>
+            <p id="modalMessage">Now add your friends and try your fortune.</p>
+            <button class="success-modal-btn" onclick="closeSuccessModalAndRedirect()">Continue →</button>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // API BASE URL - FROM MASTER CONFIGURATION
+        // ============================================================
+        const API_BASE = ACTIVE_CONFIG.API_BASE_URL;
+
+        // ========== VOICE RECOGNITION (Compact version) ==========
+        let recognition = null;
+        let voiceFilled = false;
+        let pendingRedirectUrl = null;
+
+        function startVoiceRecognition() {
+            const statusDiv = document.getElementById('voiceStatus');
+            const voiceBtn = document.getElementById('voiceMainBtn');
+            
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                statusDiv.innerHTML = '❌ Voice not supported. Please use Chrome.';
+                statusDiv.className = 'voice-status error';
+                return;
+            }
+            
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.lang = 'en-IN';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            
+            recognition.onstart = () => {
+                statusDiv.innerHTML = '🎤 Listening... Speak event title and location';
+                statusDiv.className = 'voice-status listening';
+                voiceBtn.classList.add('listening');
+                voiceBtn.innerHTML = '<i class="fas fa-microphone-slash"></i>';
+            };
+            
+            recognition.onresult = (event) => {
+                const text = event.results[0][0].transcript;
+                statusDiv.innerHTML = '✅ Processing: "' + text + '"';
+                parseVoiceInput(text);
+            };
+            
+            recognition.onerror = () => {
+                statusDiv.innerHTML = '❌ Could not hear. Please try again.';
+                statusDiv.className = 'voice-status error';
+                voiceBtn.classList.remove('listening');
+                voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+            };
+            
+            recognition.onend = () => {
+                voiceBtn.classList.remove('listening');
+                voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+            };
+            
+            recognition.start();
+        }
+
+        function parseVoiceInput(text) {
+            const words = text.split(' ');
+            
+            // Extract event title (first 2-4 words)
+            if (words.length >= 2) {
+                const title = words.slice(0, Math.min(4, words.length)).join(' ');
+                document.getElementById('eventTitle').value = title;
+            }
+            
+            // Look for location (city names)
+            const lower = text.toLowerCase();
+            const cities = ['bangalore', 'mangalore', 'udupi', 'mysore', 'mysuru', 'dharwad', 'belgaum', 'belagavi', 'hubli', 'shimoga', 'tumkur'];
+            for (let city of cities) {
+                if (lower.includes(city)) {
+                    document.getElementById('eventLocation').value = city.charAt(0).toUpperCase() + city.slice(1);
+                    break;
+                }
+            }
+            
+            voiceFilled = true;
+            const statusDiv = document.getElementById('voiceStatus');
+            statusDiv.innerHTML = '✅ Voice filled! 🎉';
+            statusDiv.className = 'voice-status success';
+            setTimeout(() => {
+                if (statusDiv) {
+                    statusDiv.innerHTML = '';
+                    statusDiv.className = '';
+                }
+            }, 3000);
+        }
+                // ========== MORE DETAILS TOGGLE ==========
+        function toggleMoreDetails() {
+            const div = document.getElementById('moreDetails');
+            const btn = document.querySelector('.toggle-more');
+            if (div.classList.contains('show')) {
+                div.classList.remove('show');
+                btn.innerHTML = '▶ MORE DETAILS (Optional)';
+            } else {
+                div.classList.add('show');
+                btn.innerHTML = '▼ LESS DETAILS';
+            }
+        }
+
+        // ========== PHOTO UPLOAD ==========
+        let selectedPhotos = [];
+
+        function handlePhotoSelect(event) {
+            const files = Array.from(event.target.files);
+            const maxPhotos = 4;
+            
+            if (selectedPhotos.length + files.length > maxPhotos) {
+                alert(`You can only upload up to ${maxPhotos} photos. You already have ${selectedPhotos.length}.`);
+                return;
+            }
+
+            files.forEach(file => {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        selectedPhotos.push(e.target.result);
+                        renderPhotoPreview();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            document.getElementById('photoInput').value = '';
+        }
+
+        function renderPhotoPreview() {
+            const container = document.getElementById('photoPreview');
+            if (selectedPhotos.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            container.innerHTML = selectedPhotos.map((photo, index) => `
+                <div class="photo-preview-item">
+                    <img src="${photo}" alt="Uploaded">
+                    <button class="remove-photo" onclick="removePhoto(${index})">×</button>
+                </div>
+            `).join('');
+        }
+
+        function removePhoto(index) {
+            selectedPhotos.splice(index, 1);
+            renderPhotoPreview();
+        }
+
+        // ========== GET AUTH TOKEN ==========
+        function getAuthToken() {
+            return localStorage.getItem('authToken');
+        }
+
+        // ========== SUCCESS MODAL ==========
+        function showSuccessModal(title, message, redirectUrl) {
+            pendingRedirectUrl = redirectUrl;
+            document.getElementById('modalTitle').innerHTML = title;
+            document.getElementById('modalMessage').innerHTML = message;
+            document.getElementById('successModal').style.display = 'flex';
+            
+            for (let i = 0; i < 80; i++) {
+                createConfetti();
+            }
+        }
+
+        function closeSuccessModalAndRedirect() {
+            document.getElementById('successModal').style.display = 'none';
+            if (pendingRedirectUrl) {
+                window.location.href = pendingRedirectUrl;
+            }
+        }
+
+        function createConfetti() {
+            setTimeout(() => {
+                const confetti = document.createElement('div');
+                confetti.innerHTML = ['🎉', '✨', '🎊', '🎈', '🌸', '🎂', '🍾'][Math.floor(Math.random() * 7)];
+                confetti.className = 'confetti-particle';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.top = '-20px';
+                confetti.style.fontSize = (Math.random() * 20 + 15) + 'px';
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 3000);
+            }, Math.random() * 100);
+        }
+                // ========== SAVE AND CONTINUE ==========
+        async function saveAndContinue() {
+            const title = document.getElementById('eventTitle').value.trim();
+
+            if (!title) {
+                alert('❌ Please enter event title');
+                return;
+            }
+
+            const submitBtn = document.querySelector('.btn-primary');
+            const originalText = submitBtn.innerText;
+            submitBtn.innerText = 'Saving... 🎉';
+            submitBtn.disabled = true;
+
+            const eventData = {
+                title: title,
+                location: document.getElementById('eventLocation').value.trim(),
+                district: document.getElementById('eventDistrict').value,
+                pet_names: document.getElementById('eventPetNames').value.trim(),
+                secret_code: document.getElementById('eventSecretCode').value.trim(),
+                memory: document.getElementById('eventMemory').value.trim(),
+                bring: document.getElementById('eventBring').value.trim(),
+                dress_code: document.getElementById('eventDressCode').value.trim(),
+                surprise: document.getElementById('eventSurprise').value.trim(),
+                note: document.getElementById('eventNote').value.trim(),
+                photos: selectedPhotos,
+                type: 'celebration'
+            };
+
+            try {
+                const token = getAuthToken();
+                if (!token) {
+                    alert('❌ Please login first');
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                const response = await fetch(`${API_BASE}/groups/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(eventData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('celebrationGroupData', JSON.stringify(eventData));
+                    localStorage.setItem('currentGroupId', data.group?.id || data.group_id);
+                    
+                    const groupId = data.group?.id || data.group_id;
+                    let redirectUrl = groupId ? `celebration_group_creation_finish.html?groupId=${groupId}` : 'celebration_group_creation_finish.html';
+                    
+                    showSuccessModal(
+                        '🎉 Event Details Saved!', 
+                        'Now add your friends and try your fortune.', 
+                        redirectUrl
+                    );
+                } else {
+                    console.warn('Backend save failed, using localStorage only:', data);
+                    localStorage.setItem('celebrationGroupData', JSON.stringify(eventData));
+                    showSuccessModal(
+                        '🎉 Event Details Saved (Local)', 
+                        'Now add your friends and try your fortune.', 
+                        'celebration_group_creation_finish.html'
+                    );
+                }
+            } catch (error) {
+                console.error('Save error:', error);
+                localStorage.setItem('celebrationGroupData', JSON.stringify(eventData));
+                showSuccessModal(
+                    '🎉 Event Details Saved (Local)', 
+                    'Now add your friends and try your fortune.', 
+                    'celebration_group_creation_finish.html'
+                );
+            } finally {
+                submitBtn.innerText = originalText;
+                submitBtn.disabled = false;
+            }
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+    <script src="js/auth-guard.js"></script>
+</body>
+</html>

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Campus Central — Demo | New Features Preview</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Force scrollbar – prevents menu shift */
+        html {
+            overflow-y: scroll;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+        }
+        :root {
+            --primary: #0f4c5c;
+            --primary-dark: #0a3a46;
+            --secondary: #e67e22;
+            --accent: #ffb347;
+            --gold: #f4b942;
+            --light: #fef9e6;
+            --dark: #1e2a2e;
+            --gray-bg: #f8f9fc;
+        }
+        body {
+            background-color: var(--gray-bg);
+            color: var(--dark);
+        }
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 0.8rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .logo-main {
+            font-size: 1.4rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .logo-main i { color: var(--gold); }
+        .brand-parent { font-size: 0.55rem; opacity: 0.8; }
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 0.3rem 0.5rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            transition: 0.2s;
+        }
+        nav a:hover {
+            background-color: rgba(255,255,255,0.15);
+            color: var(--accent);
+        }
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background: white;
+            min-width: 170px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            border-radius: 12px;
+            top: 100%;
+            left: 0;
+            z-index: 1;
+        }
+        .dropdown-content a {
+            color: var(--primary);
+            padding: 6px 10px;
+            display: block;
+            font-size: 0.7rem;
+        }
+        .dropdown-content a:hover { background: #f1f1f1; }
+        .dropdown:hover .dropdown-content { display: block; }
+        .header-buttons {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        /* Chatbot button in header */
+        .chatbot-header-btn {
+            background: var(--gold);
+            color: var(--primary-dark);
+            border: none;
+            border-radius: 40px;
+            padding: 0.3rem 0.8rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.2s;
+        }
+        .chatbot-header-btn:hover {
+            background: var(--secondary);
+            color: white;
+            transform: translateY(-2px);
+        }
+        .btn-primary {
+            background-color: var(--secondary);
+            color: white;
+            padding: 0.3rem 0.7rem;
+            border-radius: 40px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 2px solid white;
+            color: white;
+            padding: 0.3rem 0.7rem;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+        .btn-outline:hover {
+            background: white;
+            color: var(--primary);
+        }
+        /* Hero section (simplified) */
+        .hero {
+            background: linear-gradient(rgba(15, 76, 92, 0.85), rgba(10, 58, 70, 0.9)), url('https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1920&h=1080&fit=crop');
+            background-size: cover;
+            background-position: center 30%;
+            color: white;
+            padding: 2rem 2rem;
+            text-align: center;
+        }
+        .hero h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+        .hero p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        .highlight {
+            background: var(--gold);
+            color: var(--primary-dark);
+            padding: 0.1rem 0.4rem;
+            border-radius: 12px;
+        }
+        /* Rotating slogan banner */
+        .slogan-banner {
+            background: var(--light);
+            border-bottom: 1px solid #eee;
+            border-top: 1px solid #eee;
+            padding: 0.8rem 1rem;
+            text-align: center;
+            font-weight: 600;
+            color: var(--primary-dark);
+            font-size: 0.9rem;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .slogan-banner i {
+            color: var(--secondary);
+            margin-right: 0.5rem;
+        }
+        /* Minimal footer */
+        footer {
+            background: var(--dark);
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.7rem;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="logo">
+                <div class="logo-main"><i class="fas fa-graduation-cap"></i><span>Campus Central</span></div>
+                <div class="brand-parent"><i class="fas fa-water"></i> A JetStream Initiative</div>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#">Thank Teacher</a></li>
+                    <li><a href="#">Celebrate Together</a></li>
+                    <li><a href="#">Find Groups</a></li>
+                    <li><a href="#">My Groups</a></li>
+                    <li class="dropdown">
+                        <a href="#">✨ Explore All Features ▼</a>
+                        <div class="dropdown-content">
+                            <a href="#">📖 Mood & Memory</a>
+                            <a href="#">🔍 Find My Friend</a>
+                        </div>
+                    </li>
+                </ul>
+            </nav>
+            <div class="header-buttons">
+                <!-- Chatbot button (new) -->
+                <button class="chatbot-header-btn" id="demoChatbotBtn"><i class="fas fa-comment-dots"></i> CampusPulse</button>
+                <button class="btn-outline" onclick="alert('Login demo')">Login</button>
+                <button class="btn-primary" onclick="alert('Signup demo')">Sign Up →</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Simplified hero section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="surprise-badge">🎉 TOGETHER WE CELEBRATE 🎉</div>
+            <h1>Surprise Your <span class="highlight">Teacher</span> or <span class="highlight">Celebrate</span> Together</h1>
+            <p>One teacher. Many students. One unforgettable surprise.</p>
+        </div>
+    </section>
+
+    <!-- Rotating slogan banner (right below hero) -->
+    <div class="slogan-banner" id="rotatingSloganBanner">
+        <i class="fas fa-quote-left"></i> <span id="sloganText">Built by students, for students</span>
+    </div>
+
+    <!-- Rest of the page is empty – just to show new elements -->
+    <div style="text-align: center; padding: 3rem 1rem; color: #888;">
+        <p>(Demo – only new elements shown. The full index will contain all original content.)</p>
+    </div>
+
+    <footer>
+        <p>© 2026 Campus Central — A JetStream Initiative. For students across Karnataka.</p>
+    </footer>
+
+    <script>
+        // Rotating slogans
+        const slogans = [
+            "Built by students, for students",
+            "Campus-driven. Student-focused.",
+            "Where batchmates become friends again",
+            "Your campus. Your community.",
+            "Real connections. Real help. Real campus life."
+        ];
+        let sloganIndex = 0;
+        const sloganSpan = document.getElementById("sloganText");
+        function rotateSlogan() {
+            sloganIndex = (sloganIndex + 1) % slogans.length;
+            const banner = document.getElementById("rotatingSloganBanner");
+            banner.style.opacity = "0";
+            setTimeout(() => {
+                sloganSpan.textContent = slogans[sloganIndex];
+                banner.style.opacity = "1";
+            }, 300);
+        }
+        setInterval(rotateSlogan, 4000);
+
+        // Chatbot button placeholder action
+        document.getElementById("demoChatbotBtn").onclick = () => {
+            alert("✨ CampusPulse chatbot will be available soon! ✨");
+        };
+    </script>
+</body>
+</html>

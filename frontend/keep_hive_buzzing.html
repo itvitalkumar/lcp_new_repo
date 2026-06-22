@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Campus Central — Keep the Hive Buzzing | Appreciation Wall</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ========== INDEX.HTML DESIGN SYSTEM ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+        }
+
+        :root {
+            --primary: #0f4c5c;
+            --primary-dark: #0a3a46;
+            --secondary: #e67e22;
+            --accent: #ffb347;
+            --gold: #f4b942;
+            --light: #fef9e6;
+            --dark: #1e2a2e;
+            --gray-bg: #f8f9fc;
+            --success: #2ecc71;
+            --coffee: #6f4e2e;
+        }
+
+        body {
+            background-color: var(--gray-bg);
+            color: var(--dark);
+            line-height: 1.5;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 0.8rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .logo {
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .logo-main {
+            font-size: 1.4rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-main i {
+            color: var(--gold);
+            font-size: 1.4rem;
+        }
+
+        .brand-parent {
+            font-size: 0.55rem;
+            opacity: 0.8;
+            letter-spacing: 1px;
+        }
+
+        nav {
+            flex: 1;
+            text-align: center;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.3rem 0.5rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            transition: 0.2s;
+            cursor: pointer;
+        }
+
+        nav a:hover {
+            background-color: rgba(255,255,255,0.15);
+            color: var(--accent);
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: white;
+            min-width: 170px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 12px;
+            top: 100%;
+            left: 0;
+        }
+
+        .dropdown-content a {
+            color: var(--primary);
+            padding: 6px 10px;
+            text-decoration: none;
+            display: block;
+            font-size: 0.7rem;
+            text-align: left;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .btn-primary {
+            background-color: var(--secondary);
+            color: white;
+            padding: 0.3rem 0.7rem;
+            border-radius: 40px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid white;
+            color: white;
+            padding: 0.3rem 0.7rem;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.7rem;
+        }
+
+        .btn-outline:hover {
+            background: white;
+            color: var(--primary);
+        }
+
+        .hidden { display: none; }
+
+        /* Main container */
+        .hive-container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .page-header h1 i {
+            color: var(--gold);
+            margin-right: 0.5rem;
+        }
+
+        .page-header p {
+            color: #5a6e7a;
+            font-size: 0.9rem;
+        }
+
+        /* Create post card */
+        .create-post {
+            background: white;
+            border-radius: 24px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border-top: 3px solid var(--gold);
+        }
+
+        .create-post textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            resize: vertical;
+            margin-bottom: 0.8rem;
+        }
+
+        .create-post textarea:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 2px rgba(230,126,34,0.1);
+        }
+
+        .post-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .btn-buzz {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-buzz:hover {
+            background: #d35400;
+            transform: translateY(-2px);
+        }
+
+        /* Feed styles */
+        .feed {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        .buzz-card {
+            background: white;
+            border-radius: 24px;
+            padding: 1.2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border-left: 4px solid var(--gold);
+            transition: transform 0.2s;
+        }
+
+        .buzz-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+        }
+
+        .buzz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .buzz-author {
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .buzz-time {
+            font-size: 0.7rem;
+            color: #999;
+        }
+
+        .buzz-message {
+            margin: 0.8rem 0;
+            line-height: 1.5;
+            font-size: 0.95rem;
+        }
+
+        .buzz-stats {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid #eee;
+        }
+
+        .like-btn, .comment-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: #666;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: 0.2s;
+        }
+
+        .like-btn:hover, .comment-btn:hover {
+            color: var(--secondary);
+        }
+
+        .like-btn.liked {
+            color: #e74c3c;
+        }
+
+        .comments-section {
+            margin-top: 0.8rem;
+            padding-left: 1rem;
+            border-left: 2px solid var(--gold);
+            display: none;
+        }
+
+        .comment {
+            background: var(--gray-bg);
+            padding: 0.5rem;
+            border-radius: 16px;
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .comment strong {
+            color: var(--primary);
+        }
+
+        .add-comment {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.8rem;
+        }
+
+        .add-comment input {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 40px;
+            font-size: 0.8rem;
+        }
+
+        .add-comment button {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 40px;
+            cursor: pointer;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: 24px;
+            color: #999;
+        }
+
+        footer {
+            background: var(--dark);
+            color: white;
+            padding: 2rem 2rem 1rem;
+            margin-top: 3rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-content h3 {
+            font-size: 1rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-content ul li, .footer-content p {
+            font-size: 0.75rem;
+            list-style: none;
+        }
+
+        .copyright {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.7rem;
+        }
+
+        @media (max-width: 700px) {
+            .hive-container { padding: 0 1rem; }
+            .create-post { padding: 1rem; }
+        }
+
+        @media (max-width: 900px) {
+            nav ul { gap: 0.3rem; }
+            nav a { font-size: 0.65rem; padding: 0.25rem 0.4rem; }
+            .nav-container { flex-direction: column; }
+            .header-buttons { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+        <!-- Header (same as index.html) -->
+    <header>
+        <div class="nav-container">
+            <div class="logo">
+                <div class="logo-main">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>Campus Central</span>
+                </div>
+                <div class="brand-parent">
+                    <i class="fas fa-water"></i> A JetStream Initiative
+                </div>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="teacher_group_creation_start.html">Thank Teacher</a></li>
+                    <li><a href="celebration_group_creation_start.html">Celebrate Together</a></li>
+                    <li><a href="find_groups.html">Find Groups</a></li>
+                    <li><a href="student_dashboard.html">My Groups</a></li>
+                    <li><a href="find_my_friend.html">Find My Friend</a></li>
+                    <li class="dropdown">
+                        <a href="#">✨ Explore More ▼</a>
+                        <div class="dropdown-content">
+                            <a href="avatar_studio.html">🎨 Avatar Studio</a>
+                            <a href="keep_hive_buzzing.html">🍯 Keep the Hive</a>
+                            <a href="success_stories.html">📖 Success Stories</a>
+                            <a href="study_hub.html">📚 Study Hub</a>
+                        </div>
+                    </li>
+                </ul>
+            </nav>
+            <div class="header-buttons" id="authButtons">
+                <button class="btn-outline" onclick="window.location.href='login.html'">Login</button>
+                <button class="btn-primary" onclick="window.location.href='signup.html'">Sign Up →</button>
+            </div>
+            <div id="userMenu" class="hidden">
+                <span id="userName" style="margin-right: 0.8rem; font-size: 0.7rem;"></span>
+                <button class="btn-outline" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="hive-container">
+        <div class="page-header">
+            <h1><i class="fas fa-hive"></i> Keep the Hive Buzzing</h1>
+            <p>Spread positivity – appreciate your friends, batchmates, and teachers</p>
+        </div>
+
+        <!-- Create a buzz -->
+        <div class="create-post">
+            <textarea id="buzzMessage" rows="2" placeholder="Write a shout-out, thank you, or appreciation... 🐝"></textarea>
+            <div class="post-actions">
+                <button class="btn-buzz" id="postBuzzBtn"><i class="fas fa-paper-plane"></i> Buzz 🐝</button>
+                <span style="font-size:0.7rem; color:#999;">Be kind. Your words make someone's day.</span>
+            </div>
+        </div>
+
+        <!-- Feed of buzzes -->
+        <div class="feed" id="buzzFeed"></div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div>
+                <h3>Campus Central</h3>
+                <p>A JetStream Initiative — Bring people together.</p>
+                <a class="coffee-button" style="margin-top:0.5rem; display:inline-flex; background-color: var(--coffee); color: white; padding: 0.3rem 0.8rem; border-radius: 30px; text-decoration: none; font-size: 0.7rem;" onclick="alert('Thank you for your support! ❤️ UPI: campuscentral@okhdfcbank')">
+                    <i class="fas fa-coffee"></i> Support Our Mission
+                </a>
+            </div>
+            <div>
+                <h3>Tools</h3>
+                <ul>
+                    <li>Thank Teacher</li>
+                    <li>Celebrate Together</li>
+                    <li>Find Groups</li>
+                    <li>My Groups</li>
+                    <li>Batchmate Finder</li>
+                    <li>Avatar Studio</li>
+                    <li>Crush Corner</li>
+                    <li>Family Business</li>
+                    <li>Startup Nest</li>
+                    <li>Keep the Hive</li>
+                    <li>Teen Space</li>
+                    <li>Marriage Staffing</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Coming Soon</h3>
+                <ul>
+                    <li>Campus Legend</li>
+                    <li>Batchmates</li>
+                    <li>Fest Hunter</li>
+                    <li>Hostel Hero</li>
+                    <li>Project Partner</li>
+                    <li>Campus Gully</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Legal</h3>
+                <ul>
+                    <li><a onclick="showLegalPage('disclaimer')" style="color: white; text-decoration: none; cursor: pointer;">Disclaimer</a></li>
+                    <li><a onclick="showLegalPage('privacy')" style="color: white; text-decoration: none; cursor: pointer;">Privacy Policy</a></li>
+                    <li><a onclick="showLegalPage('terms')" style="color: white; text-decoration: none; cursor: pointer;">Terms of Service</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3>Contact</h3>
+                <ul>
+                    <li>hello@campuscentral.in</li>
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>© 2026 Campus Central — A JetStream Initiative. For students across Karnataka.</p>
+            <p style="font-size:0.65rem;">⚠️ Platform fee only. Actual gift money collected offline among friends.</p>
+        </div>
+    </footer>
+        <script src="js/config.js"></script>
+    <script>
+        // ========== SHARED FUNCTIONS ==========
+        function showLegalPage(type) {
+            const texts = {
+                disclaimer: '⚠️ Campus Central is a facilitation platform only. Platform fee keeps the service running. Actual gift money is collected offline among friends.',
+                privacy: '🔒 We collect your name, email, phone number, and college information for coordination. We do not sell your data.',
+                terms: '📜 By using Campus Central, you agree to be 18 years or older and use the platform responsibly.'
+            };
+            alert(texts[type]);
+        }
+
+        function logout() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('token');
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('user');
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = 'index.html';
+        }
+
+        function updateHeaderUI() {
+            const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+            const userData = localStorage.getItem('currentUser') || localStorage.getItem('user');
+            const authDiv = document.getElementById('authButtons');
+            const userMenu = document.getElementById('userMenu');
+            const userNameSpan = document.getElementById('userName');
+            if (token && userData) {
+                try {
+                    const user = JSON.parse(userData);
+                    if (authDiv) authDiv.classList.add('hidden');
+                    if (userMenu) userMenu.classList.remove('hidden');
+                    if (userNameSpan) userNameSpan.innerText = user.full_name || (user.email ? user.email.split('@')[0] : 'User');
+                } catch(e) {}
+            } else {
+                if (authDiv) authDiv.classList.remove('hidden');
+                if (userMenu) userMenu.classList.add('hidden');
+            }
+        }
+
+        // ========== KEEP THE HIVE LOGIC ==========
+        let buzzes = [];
+
+        function loadBuzzes() {
+            const stored = localStorage.getItem('campus_hive_buzzes');
+            if (stored) {
+                buzzes = JSON.parse(stored);
+            } else {
+                // Seed with example buzzes
+                buzzes = [
+                    {
+                        id: "1",
+                        author: "Meera S.",
+                        message: "Huge thanks to Prof. Sharma for always supporting us! 🙏",
+                        likes: 12,
+                        comments: [
+                            { author: "Rahul K", text: "True, he's the best!" },
+                            { author: "Anjali P", text: "Completely agree! 🎉" }
+                        ],
+                        timestamp: Date.now() - 3 * 24 * 60 * 60 * 1000
+                    },
+                    {
+                        id: "2",
+                        author: "Naveen K",
+                        message: "Shout-out to my batchmates for making our reunion so special! 🎓",
+                        likes: 24,
+                        comments: [],
+                        timestamp: Date.now() - 1 * 24 * 60 * 60 * 1000
+                    }
+                ];
+                saveBuzzes();
+            }
+            renderBuzzFeed();
+        }
+
+        function saveBuzzes() {
+            localStorage.setItem('campus_hive_buzzes', JSON.stringify(buzzes));
+        }
+
+        function getCurrentUser() {
+            const userData = localStorage.getItem('currentUser') || localStorage.getItem('user');
+            if (userData) {
+                try {
+                    const user = JSON.parse(userData);
+                    return user.full_name || user.email?.split('@')[0] || 'Anonymous';
+                } catch(e) {}
+            }
+            return 'Anonymous';
+        }
+
+        function addBuzz() {
+            const message = document.getElementById('buzzMessage').value.trim();
+            if (!message) {
+                alert('Please write something before buzzing!');
+                return;
+            }
+            const newBuzz = {
+                id: Date.now().toString(),
+                author: getCurrentUser(),
+                message: message,
+                likes: 0,
+                comments: [],
+                timestamp: Date.now()
+            };
+            buzzes.unshift(newBuzz);
+            saveBuzzes();
+            renderBuzzFeed();
+            document.getElementById('buzzMessage').value = '';
+        }
+
+        function toggleLike(buzzId) {
+            const buzz = buzzes.find(b => b.id === buzzId);
+            if (buzz) {
+                buzz.likes = (buzz.likes || 0) + 1;
+                saveBuzzes();
+                renderBuzzFeed();
+            }
+        }
+
+        function addComment(buzzId) {
+            const commentInput = document.getElementById(`comment-input-${buzzId}`);
+            const text = commentInput.value.trim();
+            if (!text) return;
+            const buzz = buzzes.find(b => b.id === buzzId);
+            if (buzz) {
+                if (!buzz.comments) buzz.comments = [];
+                buzz.comments.push({
+                    author: getCurrentUser(),
+                    text: text,
+                    timestamp: Date.now()
+                });
+                saveBuzzes();
+                renderBuzzFeed();
+            }
+        }
+
+        function toggleComments(buzzId) {
+            const section = document.getElementById(`comments-${buzzId}`);
+            if (section) {
+                section.style.display = section.style.display === 'block' ? 'none' : 'block';
+            }
+        }
+                function renderBuzzFeed() {
+            const feed = document.getElementById('buzzFeed');
+            if (buzzes.length === 0) {
+                feed.innerHTML = '<div class="empty-state"><i class="fas fa-hive"></i><h3>No buzz yet</h3><p>Be the first to spread positivity!</p></div>';
+                return;
+            }
+            feed.innerHTML = buzzes.map(buzz => {
+                const timeAgo = getTimeAgo(buzz.timestamp);
+                const likeCount = buzz.likes || 0;
+                const comments = buzz.comments || [];
+                return `
+                    <div class="buzz-card" data-id="${buzz.id}">
+                        <div class="buzz-header">
+                            <div class="buzz-author"><i class="fas fa-user-circle"></i> ${escapeHtml(buzz.author)}</div>
+                            <div class="buzz-time">${timeAgo}</div>
+                        </div>
+                        <div class="buzz-message">${escapeHtml(buzz.message)}</div>
+                        <div class="buzz-stats">
+                            <button class="like-btn" onclick="toggleLike('${buzz.id}')"><i class="fas fa-heart"></i> ${likeCount}</button>
+                            <button class="comment-btn" onclick="toggleComments('${buzz.id}')"><i class="fas fa-comment"></i> ${comments.length}</button>
+                        </div>
+                        <div class="comments-section" id="comments-${buzz.id}">
+                            ${comments.map(c => `<div class="comment"><strong>${escapeHtml(c.author)}</strong>: ${escapeHtml(c.text)}</div>`).join('')}
+                            <div class="add-comment">
+                                <input type="text" id="comment-input-${buzz.id}" placeholder="Write a reply...">
+                                <button onclick="addComment('${buzz.id}')">Post</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getTimeAgo(timestamp) {
+            const seconds = Math.floor((Date.now() - timestamp) / 1000);
+            if (seconds < 60) return 'just now';
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+            const days = Math.floor(hours / 24);
+            return `${days} day${days > 1 ? 's' : ''} ago`;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }        // Initialization
+        updateHeaderUI();
+        loadBuzzes();
+        document.getElementById('postBuzzBtn').addEventListener('click', addBuzz);
+    </script>
+    <script src="js/auth-guard.js"></script>
+</body>
+</html>

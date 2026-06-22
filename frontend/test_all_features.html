@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Central - Automated Test Suite</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #0f4c5c, #0a3a46);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 2rem;
+        }
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        .test-card {
+            background: white;
+            border-radius: 20px;
+            padding: 1.2rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #3498db;
+        }
+        .test-card.passed {
+            border-left-color: #2ecc71;
+            background: #f0fff4;
+        }
+        .test-card.failed {
+            border-left-color: #e74c3c;
+            background: #fff5f5;
+        }
+        .test-card.running {
+            border-left-color: #f39c12;
+            background: #fff8e7;
+        }
+        .test-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .test-status {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+        }
+        .status-pass { background: #2ecc71; color: white; }
+        .status-fail { background: #e74c3c; color: white; }
+        .status-running { background: #f39c12; color: white; }
+        .status-pending { background: #95a5a6; color: white; }
+        .test-details {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid #eee;
+        }
+        .test-details pre {
+            background: #f8f9fa;
+            padding: 0.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 0.7rem;
+            margin-top: 0.3rem;
+        }
+        .btn-run {
+            background: #e67e22;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 40px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 1.5rem;
+            width: 100%;
+        }
+        .btn-run:hover {
+            background: #d35400;
+        }
+        .summary {
+            background: white;
+            border-radius: 20px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .summary-stats {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 0.5rem;
+        }
+        .summary-stat {
+            text-align: center;
+        }
+        .summary-number {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            color: white;
+            opacity: 0.7;
+            font-size: 0.7rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Campus Central - Automated Test Suite</h1>
+            <p>Tests all 9 features (HTML files, localStorage, API connectivity)</p>
+        </div>
+
+        <button class="btn-run" onclick="runAllTests()">▶ Run All Tests</button>
+
+        <div class="summary" id="summary" style="display: none;">
+            <strong>📊 Test Summary</strong>
+            <div class="summary-stats">
+                <div class="summary-stat"><div class="summary-number" id="totalTests">0</div><div>Total</div></div>
+                <div class="summary-stat"><div class="summary-number" id="passedTests">0</div><div>Passed</div></div>
+                <div class="summary-stat"><div class="summary-number" id="failedTests">0</div><div>Failed</div></div>
+            </div>
+        </div>
+
+        <div id="testsContainer"></div>
+        <footer>Campus Central — Automated Test Suite | Tests run in browser console</footer>
+    </div>
+
+    <script>
+        // Test results storage
+        let testResults = [];
+        let currentRunning = false;
+
+        // Define all tests
+        const tests = [
+            {
+                id: "index",
+                name: "📄 index.html",
+                description: "Check if index.html exists and loads",
+                file: "index.html",
+                type: "file"
+            },
+            {
+                id: "batchmate",
+                name: "🔍 Batchmate Finder",
+                description: "Check batchmate_finder.html exists and localStorage works",
+                file: "batchmate_finder.html",
+                type: "file"
+            },
+            {
+                id: "avatar",
+                name: "🎨 Avatar Studio",
+                description: "Check avatar_studio.html exists",
+                file: "avatar_studio.html",
+                type: "file"
+            },
+            {
+                id: "crush_quiz",
+                name: "💕 Crush Quiz",
+                description: "Check crush_quiz.html exists",
+                file: "crush_quiz.html",
+                type: "file"
+            },
+            {
+                id: "crush_name",
+                name: "💑 Couple Name Maker",
+                description: "Check crush_name_generator.html exists",
+                file: "crush_name_generator.html",
+                type: "file"
+            },
+            {
+                id: "family_business",
+                name: "🧵 Family Business",
+                description: "Check family_business.html exists and localStorage",
+                file: "family_business.html",
+                type: "file"
+            },
+            {
+                id: "ants_startup",
+                name: "🐜 Ants' Startup Nest",
+                description: "Check ants_startup.html exists and localStorage",
+                file: "ants_startup.html",
+                type: "file"
+            },
+            {
+                id: "keep_hive",
+                name: "🍯 Keep the Hive",
+                description: "Check keep_hive_buzzing.html exists",
+                file: "keep_hive_buzzing.html",
+                type: "file"
+            },
+            {
+                id: "teen_space",
+                name: "👥 Teen Space",
+                description: "Check teen_space.html exists",
+                file: "teen_space.html",
+                type: "file"
+            },
+            {
+                id: "backend_health",
+                name: "🖥️ Backend Health Check",
+                description: "Check if backend API is running at localhost:8000",
+                type: "api",
+                endpoint: "/health"
+            },
+            {
+                id: "backend_auth",
+                name: "🔐 Backend Auth Check",
+                description: "Check if auth endpoints are accessible",
+                type: "api",
+                endpoint: "/docs"
+            },
+            {
+                id: "localStorage_clear",
+                name: "💾 localStorage Write/Read Test",
+                description: "Test if localStorage is working properly",
+                type: "localstorage"
+            }
+        ];
+
+        function renderTests() {
+            const container = document.getElementById('testsContainer');
+            container.innerHTML = tests.map(test => `
+                <div class="test-card pending" id="test-${test.id}">
+                    <div class="test-title">
+                        ${test.name}
+                        <span class="test-status status-pending" id="status-${test.id}">Pending</span>
+                    </div>
+                    <div class="test-details" id="details-${test.id}">
+                        ${test.description}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function runAllTests() {
+            if (currentRunning) {
+                alert('Tests are already running!');
+                return;
+            }
+            currentRunning = true;
+            testResults = [];
+            document.getElementById('summary').style.display = 'block';
+            
+            let passed = 0;
+            let failed = 0;
+
+            for (const test of tests) {
+                await runSingleTest(test);
+                if (testResults[test.id]?.passed) passed++;
+                else failed++;
+                
+                document.getElementById('totalTests').innerText = tests.length;
+                document.getElementById('passedTests').innerText = passed;
+                document.getElementById('failedTests').innerText = failed;
+            }
+            
+            currentRunning = false;
+            
+            // Final summary in console
+            console.log('%c🎉 TEST SUMMARY', 'font-size: 20px; font-weight: bold; color: #2ecc71;');
+            console.log(`Total: ${tests.length} | Passed: ${passed} | Failed: ${failed}`);
+            if (failed === 0) {
+                console.log('%c✅ All tests passed! Your site is ready for deployment.', 'font-size: 16px; color: #2ecc71;');
+            } else {
+                console.log('%c⚠️ Some tests failed. Please check the issues above.', 'font-size: 16px; color: #e74c3c;');
+            }
+        }
+
+        async function runSingleTest(test) {
+            const card = document.getElementById(`test-${test.id}`);
+            const statusSpan = document.getElementById(`status-${test.id}`);
+            const detailsDiv = document.getElementById(`details-${test.id}`);
+            
+            card.classList.remove('pending', 'passed', 'failed');
+            card.classList.add('running');
+            statusSpan.innerText = 'Running...';
+            statusSpan.className = 'test-status status-running';
+            detailsDiv.innerHTML = `<span style="color:#f39c12;">⏳ Testing ${test.description}...</span>`;
+            
+            let passed = false;
+            let message = '';
+            let details = '';
+            
+            try {
+                if (test.type === 'file') {
+                    const result = await checkFileExists(test.file);
+                    passed = result.exists;
+                    message = result.exists ? `✅ ${test.file} found` : `❌ ${test.file} not found`;
+                    details = result.exists ? `File exists at expected location.` : `File missing! Expected at: frontend/${test.file}`;
+                } 
+                else if (test.type === 'api') {
+                    const result = await checkApiEndpoint(test.endpoint);
+                    passed = result.success;
+                    message = result.success ? `✅ API endpoint ${test.endpoint} responded` : `❌ API endpoint ${test.endpoint} failed`;
+                    details = result.message;
+                }
+                else if (test.type === 'localstorage') {
+                    const result = testLocalStorage();
+                    passed = result.success;
+                    message = result.success ? `✅ localStorage working` : `❌ localStorage failed`;
+                    details = result.message;
+                }
+            } catch (error) {
+                passed = false;
+                message = `❌ Test error: ${error.message}`;
+                details = error.stack || error.message;
+            }
+            
+            testResults[test.id] = { passed, message, details };
+            
+            card.classList.remove('running');
+            card.classList.add(passed ? 'passed' : 'failed');
+            statusSpan.innerText = passed ? 'Passed' : 'Failed';
+            statusSpan.className = passed ? 'test-status status-pass' : 'test-status status-fail';
+            detailsDiv.innerHTML = `
+                <div style="color: ${passed ? '#2ecc71' : '#e74c3c'}; margin-bottom: 0.3rem;">
+                    ${message}
+                </div>
+                <div style="font-size: 0.75rem; color: #666;">
+                    ${details}
+                </div>
+            `;
+            
+            console.log(`${passed ? '✅' : '❌'} ${test.name}: ${message}`);
+        }
+
+        async function checkFileExists(filename) {
+            return new Promise((resolve) => {
+                // Try to fetch the file
+                fetch(filename)
+                    .then(response => {
+                        if (response.ok) {
+                            resolve({ exists: true, message: `File ${filename} loaded successfully` });
+                        } else {
+                            resolve({ exists: false, message: `HTTP ${response.status}: ${filename} not found` });
+                        }
+                    })
+                    .catch(() => {
+                        resolve({ exists: false, message: `Cannot access ${filename}. Make sure file exists in the same directory.` });
+                    });
+            });
+        }
+
+        async function checkApiEndpoint(endpoint) {
+            const apiUrl = `http://localhost:8000${endpoint}`;
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 3000);
+                const response = await fetch(apiUrl, { signal: controller.signal });
+                clearTimeout(timeoutId);
+                
+                if (response.ok) {
+                    return { success: true, message: `API responded with status ${response.status}` };
+                } else {
+                    return { success: false, message: `API returned status ${response.status}` };
+                }
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    return { success: false, message: `Timeout: Backend not responding at ${apiUrl}. Make sure backend is running (python run.py)` };
+                }
+                return { success: false, message: `Cannot connect to backend: ${error.message}. Start backend with: python run.py` };
+            }
+        }
+
+        function testLocalStorage() {
+            try {
+                const testKey = '__campus_central_test__';
+                const testValue = 'test_value_' + Date.now();
+                localStorage.setItem(testKey, testValue);
+                const retrieved = localStorage.getItem(testKey);
+                localStorage.removeItem(testKey);
+                
+                if (retrieved === testValue) {
+                    return { success: true, message: 'localStorage write/read successful' };
+                } else {
+                    return { success: false, message: 'localStorage write/read failed: values do not match' };
+                }
+            } catch (error) {
+                return { success: false, message: `localStorage error: ${error.message}` };
+            }
+        }
+
+        // Auto-run on page load
+        renderTests();
+        
+        // Auto-run after 1 second
+        setTimeout(() => {
+            runAllTests();
+        }, 500);
+    </script>
+    <script src="js/auth-guard.js"></script>`n</body>
+</html>

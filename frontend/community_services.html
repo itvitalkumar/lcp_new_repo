@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Central - Community Services</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+
+        :root {
+            --primary: #0f4c5c;
+            --primary-dark: #0a3a46;
+            --secondary: #e67e22;
+            --gold: #f4b942;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 2rem;
+        }
+
+        .header p {
+            color: rgba(255,255,255,0.8);
+            margin-top: 0.5rem;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .service-card {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+            border-top: 3px solid var(--gold);
+        }
+
+        .service-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .service-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .service-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .service-desc {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 0.8rem;
+        }
+
+        .service-tag {
+            display: inline-block;
+            background: #e8f4f8;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            color: var(--secondary);
+        }
+
+        .info-message {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 700px) {
+            body { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌐 Community Services</h1>
+            <p>Free services for students across Karnataka</p>
+        </div>
+
+        <div class="services-grid" id="servicesGrid"></div>
+
+        <div id="serviceDetail" class="info-message hidden">
+            <h2 id="detailTitle" style="color: var(--primary); margin-bottom: 0.5rem;"></h2>
+            <p id="detailDesc" style="color: #666;"></p>
+            <button class="search-btn" style="margin-top: 1rem; background: var(--secondary); color: white; border: none; padding: 0.6rem 1.5rem; border-radius: 30px; cursor: pointer;" onclick="closeDetail()">← Back to Services</button>
+        </div>
+    </div>
+
+    <script>
+        const services = [
+            { id: "lostfriends", icon: "🔍", title: "Find Lost Friends", desc: "Reconnect with friends you've lost touch with", tag: "Reunite" },
+            { id: "bookexchange", icon: "📚", title: "Book Exchange", desc: "Exchange textbooks with fellow students", tag: "Share" },
+            { id: "notessharing", icon: "📝", title: "Notes Sharing", desc: "Share and download study notes", tag: "Learn Together" },
+            { id: "studybuddy", icon: "👥", title: "Study Buddy", desc: "Find partners for exam preparation", tag: "Collaborate" },
+            { id: "campusevents", icon: "🎪", title: "Campus Events", desc: "Discover fests and workshops near you", tag: "Explore" },
+            { id: "jobalerts", icon: "💼", title: "Job Alerts", desc: "Get internship and fresher opportunities", tag: "Grow" },
+            { id: "roommate", icon: "🏠", title: "Roommate Finder", desc: "Find trusted hostel/PG roommates", tag: "Care" },
+            { id: "secondhand", icon: "🔄", title: "Second-hand Items", desc: "Exchange old laptops, tables, cycles", tag: "Help" },
+            { id: "carpool", icon: "🚗", title: "Carpool Connect", desc: "Share rides with students on same route", tag: "Save" },
+            { id: "doubtforum", icon: "❓", title: "Doubt Forum", desc: "Ask questions, get answers from peers", tag: "Clarity" },
+            { id: "accessible", icon: "♿", title: "Accessible Events", desc: "Events with disability-friendly facilities", tag: "Include" },
+            { id: "ragging", icon: "🛡️", title: "Ragging Complaint", desc: "Anonymous reporting to authorities", tag: "Protect" },
+            { id: "gender", icon: "🏳️‍🌈", title: "Gender-Inclusive Groups", desc: "Safe spaces for all students", tag: "Respect" }
+        ];
+
+        function renderServices() {
+            const grid = document.getElementById('servicesGrid');
+            grid.innerHTML = services.map(s => `
+                <div class="service-card" onclick="showServiceDetail('${s.id}')">
+                    <div class="service-icon">${s.icon}</div>
+                    <div class="service-title">${escapeHtml(s.title)}</div>
+                    <div class="service-desc">${escapeHtml(s.desc)}</div>
+                    <span class="service-tag">✨ ${escapeHtml(s.tag)}</span>
+                </div>
+            `).join('');
+        }
+
+        function showServiceDetail(serviceId) {
+            const service = services.find(s => s.id === serviceId);
+            if (service) {
+                document.getElementById('servicesGrid').classList.add('hidden');
+                document.getElementById('serviceDetail').classList.remove('hidden');
+                document.getElementById('detailTitle').innerHTML = `${service.icon} ${service.title}`;
+                document.getElementById('detailDesc').innerHTML = `${service.desc}<br><br>📝 This feature is coming soon! We're working hard to bring this to you.`;
+            }
+        }
+
+        function closeDetail() {
+            document.getElementById('servicesGrid').classList.remove('hidden');
+            document.getElementById('serviceDetail').classList.add('hidden');
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        renderServices();
+    </script>
+    <script src="js/auth-guard.js"></script>`n</body>
+</html>

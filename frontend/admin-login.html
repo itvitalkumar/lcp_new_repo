@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Campus Central</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background: linear-gradient(135deg, #0f4c5c, #0a3a46); min-height: 100vh; display: flex; justify-content: center; align-items: center; }
+        .login-card { background: white; border-radius: 32px; padding: 2rem; max-width: 400px; width: 90%; text-align: center; }
+        .login-card h1 { color: #0f4c5c; margin-bottom: 0.5rem; }
+        .admin-badge { background: #e74c3c; color: white; padding: 0.2rem 0.8rem; border-radius: 20px; font-size: 0.7rem; display: inline-block; margin-bottom: 1rem; }
+        .input-group { margin-bottom: 1rem; text-align: left; }
+        .input-group label { display: block; margin-bottom: 0.3rem; font-weight: 600; color: #0f4c5c; }
+        .input-group input { width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 12px; font-size: 0.9rem; }
+        .btn { width: 100%; padding: 0.8rem; background: #e67e22; color: white; border: none; border-radius: 40px; font-weight: 600; cursor: pointer; font-size: 1rem; }
+        .btn:hover { background: #d35400; }
+        .error-msg { background: #f8d7da; color: #721c24; padding: 0.8rem; border-radius: 12px; margin-top: 1rem; display: none; }
+        .info-msg { background: #d4edda; color: #155724; padding: 0.8rem; border-radius: 12px; margin-top: 1rem; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+<div class="login-card">
+    <h1><i class="fas fa-user-shield"></i> Admin Portal</h1>
+    <div class="admin-badge">RESTRICTED ACCESS</div>
+    <p style="color: #666; margin-bottom: 1.5rem;">Enter your admin credentials</p>
+    
+    <div class="input-group">
+        <label>📧 Email</label>
+        <input type="email" id="adminEmail" placeholder="admin@campuscentral.com" value="it.naveenkumar86@gmail.com">
+    </div>
+    <div class="input-group">
+        <label>🔐 Password</label>
+        <input type="password" id="adminPassword" placeholder="Enter password">
+    </div>
+    
+    <button class="btn" onclick="adminLogin()">🔓 Login to Admin Dashboard</button>
+    
+    <div class="info-msg" style="margin-top: 1rem;">
+        <strong>ℹ️ Admin Account:</strong><br>
+        Email: it.naveenkumar86@gmail.com<br>
+        Password: Panduranga@123
+    </div>
+    <div class="error-msg" id="errorMsg"></div>
+</div>
+
+<script>
+    const ADMIN_EMAIL = "it.naveenkumar86@gmail.com";
+    const ADMIN_PASSWORD = "Panduranga@123";
+
+    function adminLogin() {
+        const email = document.getElementById('adminEmail').value.trim();
+        const password = document.getElementById('adminPassword').value;
+        const errorMsg = document.getElementById('errorMsg');
+        
+        if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+            localStorage.setItem('adminLoggedIn', 'true');
+            localStorage.setItem('adminEmail', email);
+            window.location.href = 'admin-dashboard.html';
+        } else {
+            errorMsg.style.display = 'block';
+            errorMsg.innerHTML = '❌ Invalid admin credentials. Access denied.';
+        }
+    }
+    
+    // If already logged in, go to dashboard
+    if (localStorage.getItem('adminLoggedIn') === 'true') {
+        window.location.href = 'admin-dashboard.html';
+    }
+</script>
+</body>
+</html>

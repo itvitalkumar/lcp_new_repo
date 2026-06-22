@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Campus Central — Mood & Memory | Share Your Campus Stories</title>
+    <script src="js/config.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+        :root { --primary: #0f4c5c; --primary-dark: #0a3a46; --secondary: #e67e22; --accent: #ffb347; --gold: #f4b942; --light: #fef9e6; --dark: #1e2a2e; --gray-bg: #f8f9fc; --success: #2ecc71; --coffee: #6f4e2e; }
+        body { background: linear-gradient(135deg, var(--gray-bg) 0%, #f0f4f8 100%); color: var(--dark); }
+        header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 0.8rem 2rem; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+        .nav-container { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; flex-wrap: wrap; gap: 0.5rem; }
+        .logo { display: flex; flex-direction: column; flex-shrink: 0; }
+        .logo-main { font-size: 1.4rem; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+        .logo-main i { color: var(--gold); font-size: 1.4rem; }
+        .brand-parent { font-size: 0.55rem; opacity: 0.8; letter-spacing: 1px; }
+        nav { flex: 1; text-align: center; }
+        nav ul { display: flex; list-style: none; gap: 0.4rem; flex-wrap: wrap; justify-content: center; }
+        nav a { color: white; text-decoration: none; font-weight: 500; padding: 0.3rem 0.5rem; border-radius: 8px; font-size: 0.75rem; transition: 0.2s; cursor: pointer; }
+        nav a:hover { background-color: rgba(255,255,255,0.15); color: var(--accent); }
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-content { display: none; position: absolute; background: white; min-width: 170px; box-shadow: 0 8px 16px rgba(0,0,0,0.2); border-radius: 12px; z-index: 1; }
+        .dropdown-content a { color: var(--primary); padding: 6px 10px; display: block; font-size: 0.7rem; text-align: left; }
+        .dropdown-content a:hover { background-color: #f1f1f1; }
+        .dropdown:hover .dropdown-content { display: block; }
+        .header-buttons { display: flex; gap: 0.5rem; flex-shrink: 0; }
+        .btn-primary { background: var(--secondary); color: white; padding: 0.3rem 0.7rem; border-radius: 40px; font-weight: 600; border: none; cursor: pointer; font-size: 0.7rem; transition: all 0.2s; }
+        .btn-primary:hover { background: #d35400; transform: scale(1.02); }
+        .btn-outline { background: transparent; border: 2px solid white; color: white; padding: 0.3rem 0.7rem; border-radius: 40px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.7rem; }
+        .btn-outline:hover { background: white; color: var(--primary); transform: scale(1.02); }
+        .hidden { display: none; }
+        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem; }
+        .masonry-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
+        .story-card { background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); transition: all 0.3s cubic-bezier(0.2, 0, 0, 1); display: flex; flex-direction: column; }
+        .story-card:hover { transform: translateY(-5px); box-shadow: 0 25px 35px -12px rgba(0,0,0,0.2); }
+        .card-media { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: #f0f0f0; cursor: pointer; transition: transform 0.3s; }
+        .card-media:hover { transform: scale(1.02); }
+        .card-content { padding: 1rem; flex: 1; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.3rem; }
+        .category-badge { font-size: 0.65rem; padding: 0.2rem 0.6rem; border-radius: 20px; font-weight: bold; }
+        .category-badge.mood { background: #ffe0b5; color: #c45c00; }
+        .category-badge.memory { background: #d0f0e8; color: #1e6f5c; }
+        .trending-badge { background: var(--gold); color: var(--primary-dark); font-size: 0.65rem; padding: 0.2rem 0.5rem; border-radius: 20px; }
+        .card-title { font-size: 1rem; font-weight: 700; margin: 0.3rem 0; color: var(--primary-dark); }
+        .card-message { font-size: 0.8rem; color: #4a5b63; margin: 0.5rem 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .card-actions { display: flex; gap: 1rem; margin-top: 0.8rem; padding-top: 0.5rem; border-top: 1px solid #eee; flex-wrap: wrap; }
+        .action-btn { background: none; border: none; color: #5a6e7a; cursor: pointer; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s; padding: 0.3rem 0.6rem; border-radius: 40px; }
+        .action-btn:hover { background: var(--light); color: var(--secondary); transform: scale(1.02); }
+        .delete-btn { color: #e74c3c; }
+        .delete-btn:hover { background: #fee; color: #c0392b; }
+        .comments-section { margin-top: 0.8rem; padding-left: 0.5rem; border-left: 2px solid var(--gold); display: none; }
+        .comment { background: var(--gray-bg); padding: 0.5rem; border-radius: 12px; margin-top: 0.5rem; font-size: 0.75rem; }
+        .filter-chips { display: flex; gap: 0.8rem; flex-wrap: wrap; margin: 1rem 0 0.5rem; justify-content: center; }
+        .chip { background: white; border: 1px solid #ddd; border-radius: 40px; padding: 0.5rem 1.2rem; font-size: 0.8rem; font-weight: 600; color: var(--primary); cursor: pointer; transition: 0.2s; }
+        .chip.active { background: var(--secondary); color: white; border-color: var(--secondary); }
+        .chip:hover:not(.active) { background: var(--light); transform: translateY(-2px); }
+        .floating-create-btn { position: fixed; bottom: 2rem; right: 2rem; background: var(--secondary); color: white; border: none; border-radius: 60px; padding: 0.8rem 1.5rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 1000; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
+        .floating-create-btn:hover { background: #d35400; transform: scale(1.05); }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: white; max-width: 500px; width: 90%; border-radius: 32px; padding: 1.5rem; max-height: 90%; overflow-y: auto; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-weight: 600; font-size: 0.75rem; margin-bottom: 0.2rem; color: var(--primary); }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.5rem 0.7rem; border: 1px solid #ddd; border-radius: 20px; font-size: 0.85rem; transition: all 0.2s; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--secondary); box-shadow: 0 0 0 3px rgba(230,126,34,0.1); }
+        .photo-preview { margin-top: 0.5rem; }
+        .photo-preview img { max-width: 100%; border-radius: 16px; }
+        .btn-submit { background: var(--secondary); color: white; width: 100%; padding: 0.6rem; border-radius: 40px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-submit:hover { background: #d35400; transform: scale(1.02); }
+        .lightbox { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 3000; cursor: pointer; }
+        .lightbox img { max-width: 90%; max-height: 90%; object-fit: contain; }
+        
+        /* NEW: Redesigned Top Slogan Banner - Dark Gradient + Pulse Icon */
+        .slogan-top-banner {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 60px;
+            padding: 0.9rem 1.5rem;
+            margin-bottom: 1rem;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+        }
+        .slogan-top-banner:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.2);
+        }
+        .slogan-top-icon {
+            font-size: 1.8rem;
+            margin-bottom: 0.3rem;
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .slogan-top-text {
+            font-size: 1rem;
+            font-weight: 700;
+            color: white;
+            line-height: 1.4;
+            margin: 0.3rem 0;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+        .slogan-top-sub {
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.8);
+            margin-top: 0.3rem;
+            letter-spacing: 0.5px;
+        }
+        .slogan-top-banner i.fa-quote-left {
+            color: var(--gold);
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+        
+        footer { background: var(--dark); color: white; padding: 2rem 2rem 1rem; margin-top: 3rem; }
+        .footer-content { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem; max-width: 1200px; margin: 0 auto; }
+        .footer-content h3 { font-size: 0.9rem; margin-bottom: 0.6rem; }
+        .footer-content ul li, .footer-content p { font-size: 0.7rem; list-style: none; }
+        .copyright { text-align: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.65rem; }
+        @media (max-width: 700px) { .masonry-grid { grid-template-columns: 1fr; } .slogan-top-text { font-size: 0.85rem; } }
+    </style>
+</head>
+<body>
+        <header>
+        <div class="nav-container">
+            <div class="logo">
+                <div class="logo-main"><i class="fas fa-graduation-cap"></i><span>Campus Central</span></div>
+                <div class="brand-parent"><i class="fas fa-water"></i> A JetStream Initiative</div>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="teacher_group_creation_start.html">Thank Teacher</a></li>
+                    <li><a href="celebration_group_creation_start.html">Celebrate Together</a></li>
+                    <li><a href="find_groups.html">Find Groups</a></li>
+                    <li><a href="student_dashboard.html">My Groups</a></li>
+                    <li><a href="index.html">Success Stories</a></li>
+                    <li class="dropdown">
+                        <a href="#">✨ Explore All Features ▼</a>
+                        <div class="dropdown-content">
+                            <a href="find_my_friend.html">🔍 Find My Friend</a>
+                            <a href="avatar_studio.html">🎨 Avatar Studio</a>
+                            <a href="crush_quiz.html">💕 Crush Corner</a>
+                            <a href="family_business.html">🧵 Family Business</a>
+                            <a href="ants_startup.html">🐜 Startup Nest</a>
+                            <a href="keep_hive_buzzing.html">🍯 Keep the Hive</a>
+                            <a href="teen_space.html">👥 Teen Space</a>
+                            <a href="marriage_staffing.html">💒 Marriage Staffing</a>
+                            <a href="mood_memory.html">📖 Mood & Memory</a>
+                        </div>
+                    </li>
+                </ul>
+            </nav>
+            <div class="header-buttons" id="authButtons">
+                <button class="btn-outline" onclick="window.location.href='login.html'">Login</button>
+                <button class="btn-primary" onclick="window.location.href='signup.html'">Sign Up →</button>
+            </div>
+            <div id="userMenu" class="hidden">
+                <span id="userName" style="margin-right: 0.8rem; font-size: 0.7rem;"></span>
+                <button class="btn-outline" onclick="logout()" style="font-size: 0.7rem; padding: 0.25rem 0.6rem;">Logout</button>
+            </div>
+        </div>
+    </header>
+        <div class="container">
+        <!-- NEW: Redesigned Top Slogan Banner -->
+        <div class="slogan-top-banner" id="rotatingSloganTop">
+            <div class="slogan-top-icon">
+                <i class="fas fa-book-open"></i>
+            </div>
+            <div class="slogan-top-text" id="sloganTextTop">
+                Every story deserves the spotlight.
+            </div>
+            <div class="slogan-top-sub">
+                <i class="fas fa-quote-left"></i> campus central
+            </div>
+        </div>
+
+        <div class="filter-chips">
+            <button class="chip active" data-filter="all">🌍 All</button>
+            <button class="chip" data-filter="mood">🎉 Mood / Travel</button>
+            <button class="chip" data-filter="memory">📚 Memory / Study</button>
+            <button class="chip" data-filter="my">🔒 My Memories</button>
+        </div>
+
+        <div id="masonryGrid" class="masonry-grid"></div>
+    </div>
+
+    <button class="floating-create-btn" id="openCreateModalBtn">
+        <i class="fas fa-plus-circle"></i> Share Memory
+    </button>
+
+    <!-- Modal for creating post -->
+    <div id="createModal" class="modal">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                <h3>Share your story</h3>
+                <button id="closeModalBtn" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Category *</label>
+                <select id="postCategory">
+                    <option value="mood">🎉 Mood / Adventure</option>
+                    <option value="memory">📚 Memory / Study Tip</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Title *</label>
+                <input type="text" id="postTitle" placeholder="e.g., My trek to Kudremukh">
+            </div>
+            <div class="form-group">
+                <label>Your story *</label>
+                <textarea id="postContent" rows="3" placeholder="Write your experience..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Photo (optional)</label>
+                <input type="file" id="postPhoto" accept="image/*">
+                <div id="postPhotoPreview" class="photo-preview"></div>
+            </div>
+            <div class="form-group">
+                <label>OR YouTube URL</label>
+                <input type="text" id="postYoutubeUrl" placeholder="https://youtube.com/...">
+            </div>
+            <div style="background: var(--light); border-radius: 16px; padding: 0.6rem; margin: 0.5rem 0;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem;">
+                    <input type="radio" name="privacy" value="public" id="privacyPublic" checked> <label for="privacyPublic">🌍 Public – visible to everyone</label>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="radio" name="privacy" value="private" id="privacyPrivate"> <label for="privacyPrivate">🔒 Private – only you</label>
+                </div>
+            </div>
+            <div style="margin-bottom:1rem;">
+                <input type="checkbox" id="postAnonymous"> <label for="postAnonymous">🎭 Post anonymously</label>
+            </div>
+            <button class="btn-submit" id="submitPostBtn">Publish <i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <div id="lightbox" class="lightbox" onclick="closeLightbox()">
+        <img id="lightboxImg" src="">
+        <span style="position:absolute; top:20px; right:30px; color:white; font-size:30px; cursor:pointer;">&times;</span>
+    </div>
+        <footer>
+        <div class="footer-content">
+            <div>
+                <h3>Campus Central</h3>
+                <p>A JetStream Initiative — Bring people together.</p>
+                <a class="coffee-button" style="margin-top:0.5rem; display:inline-flex; background-color: var(--coffee); color: white; padding: 0.3rem 0.8rem; border-radius: 30px; text-decoration: none; font-size: 0.7rem;" onclick="alert('Thank you for your support! ❤️ UPI: campuscentral@okhdfcbank')">
+                    <i class="fas fa-coffee"></i> Support Our Mission
+                </a>
+            </div>
+            <div>
+                <h3>Tools</h3>
+                <ul>
+                    <li>Thank Teacher</li>
+                    <li>Celebrate Together</li>
+                    <li>Find Groups</li>
+                    <li>My Groups</li>
+                    <li><a href="batchmate_finder.html" style="color:white; text-decoration:none;">Batchmate Finder</a></li>
+                    <li><a href="avatar_studio.html" style="color:white; text-decoration:none;">Avatar Studio</a></li>
+                    <li><a href="crush_quiz.html" style="color:white; text-decoration:none;">Crush Corner</a></li>
+                    <li><a href="family_business.html" style="color:white; text-decoration:none;">Family Business</a></li>
+                    <li><a href="ants_startup.html" style="color:white; text-decoration:none;">Startup Nest</a></li>
+                    <li><a href="keep_hive_buzzing.html" style="color:white; text-decoration:none;">Keep the Hive</a></li>
+                    <li><a href="teen_space.html" style="color:white; text-decoration:none;">Teen Space</a></li>
+                    <li><a href="marriage_staffing.html" style="color:white; text-decoration:none;">Marriage Staffing</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3>Coming Soon</h3>
+                <ul>
+                    <li>Campus Legend</li>
+                    <li>Batchmates</li>
+                    <li>Fest Hunter</li>
+                    <li>Hostel Hero</li>
+                    <li>Project Partner</li>
+                    <li>Campus Gully</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Legal</h3>
+                <ul>
+                    <li><a onclick="showLegalPage('disclaimer')" style="color: white; text-decoration: none; cursor: pointer;">Disclaimer</a></li>
+                    <li><a onclick="showLegalPage('privacy')" style="color: white; text-decoration: none; cursor: pointer;">Privacy Policy</a></li>
+                    <li><a onclick="showLegalPage('terms')" style="color: white; text-decoration: none; cursor: pointer;">Terms of Service</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3>Contact</h3>
+                <ul>
+                    <li>hello@campuscentral.in</li>
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>© 2026 Campus Central — A JetStream Initiative. For students across Karnataka.</p>
+            <p style="font-size:0.65rem;">⚠️ Platform fee only. Actual gift money collected offline among friends.</p>
+        </div>
+    </footer>
+
+    <script src="js/config.js"></script>
+        <script>
+        // ========== Helper functions ==========
+        function showLegalPage(type) {
+            const texts = {
+                disclaimer: '⚠️ Campus Central is a facilitation platform only. Platform fee keeps the service running. Actual gift money is collected offline among friends.',
+                privacy: '🔒 We collect your name, email, phone number, and college information for coordination. We do not sell your data.',
+                terms: '📜 By using Campus Central, you agree to be 18 years or older and use the platform responsibly.'
+            };
+            alert(texts[type]);
+        }
+
+        function logout() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('token');
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('user');
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = 'index.html';
+        }
+
+        function updateHeaderUI() {
+            const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+            const userData = localStorage.getItem('currentUser') || localStorage.getItem('user');
+            const authDiv = document.getElementById('authButtons');
+            const userMenu = document.getElementById('userMenu');
+            const userNameSpan = document.getElementById('userName');
+            if (token && userData) {
+                try {
+                    const user = JSON.parse(userData);
+                    if (authDiv) authDiv.classList.add('hidden');
+                    if (userMenu) userMenu.classList.remove('hidden');
+                    if (userNameSpan) userNameSpan.innerText = user.full_name || (user.email ? user.email.split('@')[0] : 'User');
+                } catch(e) { console.error(e); }
+            } else {
+                if (authDiv) authDiv.classList.remove('hidden');
+                if (userMenu) userMenu.classList.add('hidden');
+            }
+        }
+        updateHeaderUI();
+
+        // localStorage store
+        let store = { posts: [] };
+        let currentUser = null;
+        let currentFilter = "all";
+        let currentPhotoBase64 = null;
+
+        function loadUser() {
+            const userData = localStorage.getItem('currentUser') || localStorage.getItem('user');
+            if (userData) try { currentUser = JSON.parse(userData); } catch(e) {}
+            if (!currentUser) currentUser = { id: "demo_" + Date.now(), full_name: "CampusStudent" };
+        }
+        loadUser();
+
+        function loadData() {
+            const raw = localStorage.getItem("campus_mood_memory_v4");
+            if (raw) store = JSON.parse(raw);
+            if (!store.posts || store.posts.length === 0) {
+                store.posts = [
+                    { id: "1", category: "mood", title: "Trek to Kudremukh", content: "Best weekend ever! The views were breathtaking. The misty mountains and the sound of birds made it unforgettable. We camped under the stars and woke up to a golden sunrise.", media: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=500", mediaType: "image", author: "Rahul Shetty", authorId: "user1", anonymous: false, visibility: "public", createdAt: new Date().toISOString(), likes: 42, comments: [{author:"Priya", text:"Wow! Adding this to my bucket list"}] },
+                    { id: "2", category: "memory", title: "Exam hack that saved my semester", content: "Start early, solve previous year papers, and take breaks every 45 minutes. Also, teach your friends – it reinforces learning. I went from failing to 85% in one sem!", media: "", mediaType: "", author: "Prof Help", authorId: "user2", anonymous: false, visibility: "public", createdAt: new Date(Date.now() - 86400000).toISOString(), likes: 67, comments: [{author:"Naveen", text:"This really works!"}] },
+                    { id: "3", category: "mood", title: "Beach sunset with friends", content: "After 2 years, finally met my college gang at Gokarna. The vibes were immaculate. Made memories that will last forever.", media: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500", mediaType: "image", author: "Sanjana", authorId: "user3", anonymous: false, visibility: "public", createdAt: new Date(Date.now() - 172800000).toISOString(), likes: 89, comments: [] },
+                    { id: "4", category: "memory", title: "How I mastered DSA", content: "Consistency over intensity. Solve one problem daily, join a study group, and don't skip the fundamentals. Landed my dream internship!", media: "", mediaType: "", author: "Aakash", authorId: "user4", anonymous: true, visibility: "public", createdAt: new Date(Date.now() - 259200000).toISOString(), likes: 103, comments: [] }
+                ];
+                saveData();
+            }
+        }
+        function saveData() { localStorage.setItem("campus_mood_memory_v4", JSON.stringify(store)); }
+        loadData();
+
+        function getUserName(post) { return post.anonymous ? "Anonymous 🎭" : post.author; }
+
+        function embedMedia(media, mediaType) {
+            if (!media) return `<div class="card-media" style="background:var(--light); display:flex; align-items:center; justify-content:center;"><i class="fas fa-image" style="font-size:2rem; color:#ccc;"></i></div>`;
+            if (mediaType === "image") return `<img class="card-media" src="${media}" onclick="event.stopPropagation();openLightbox('${media}')">`;
+            if (mediaType === "youtube") {
+                let match = media.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+                if (match) return `<iframe class="card-media" src="https://www.youtube.com/embed/${match[1]}" frameborder="0" allowfullscreen></iframe>`;
+                else return `<div class="card-media" style="background:var(--light); padding:1rem; text-align:center;"><a href="${media}" target="_blank">🔗 YouTube Link</a></div>`;
+            }
+            return `<div class="card-media" style="background:var(--light);"><i class="fas fa-link"></i> Link</div>`;
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById("masonryGrid");
+            if (!grid) return;
+            let posts = [];
+            if (currentFilter === "my") {
+                posts = store.posts.filter(p => p.visibility === "private" && p.authorId === currentUser.id);
+            } else {
+                posts = store.posts.filter(p => p.visibility === "public");
+                if (currentFilter !== "all") posts = posts.filter(p => p.category === currentFilter);
+            }
+            posts.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+            if (posts.length === 0) {
+                grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:3rem;">✨ No memories yet. Click "Share Memory" to add yours.</div>`;
+                return;
+            }
+            grid.innerHTML = posts.map(post => {
+                const isTrending = (post.likes + post.comments.length) > 10;
+                const isAuthor = currentUser && post.authorId === currentUser.id;
+                return `
+                    <div class="story-card" data-id="${post.id}">
+                        ${embedMedia(post.media, post.mediaType)}
+                        <div class="card-content">
+                            <div class="card-header">
+                                <span class="category-badge ${post.category}">${post.category === 'mood' ? '🎉 Mood' : '📚 Memory'}</span>
+                                ${isTrending ? '<span class="trending-badge"><i class="fas fa-fire"></i> Trending</span>' : ''}
+                            </div>
+                            <div class="card-title">${escapeHtml(post.title)}</div>
+                            <div class="card-message">${escapeHtml(post.content.substring(0, 120))}${post.content.length>120?'...':''}</div>
+                            <div class="card-actions">
+                                <button class="action-btn like-btn" data-id="${post.id}"><i class="fa-regular fa-heart"></i> ${post.likes}</button>
+                                <button class="action-btn comment-toggle" data-id="${post.id}"><i class="fa-regular fa-comment"></i> ${post.comments.length}</button>
+                                <button class="action-btn share-btn" data-id="${post.id}"><i class="fa-solid fa-share"></i> Share</button>
+                                ${isAuthor ? `<button class="action-btn delete-btn" data-id="${post.id}"><i class="fa-solid fa-trash"></i> Delete</button>` : ''}
+                            </div>
+                            <div class="comments-section" id="comments-${post.id}">
+                                ${post.comments.map(c => `<div class="comment"><strong>${escapeHtml(c.author)}</strong>: ${escapeHtml(c.text)}</div>`).join('')}
+                                <div style="margin-top:8px;"><input type="text" placeholder="Add a comment..." class="comment-input" data-id="${post.id}" style="width:70%; padding:0.3rem; border-radius:20px;"><button class="add-comment-btn" data-id="${post.id}" style="margin-left:0.5rem;">Post</button></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            attachEvents();
+        }
+                function attachEvents() {
+            document.querySelectorAll('.like-btn').forEach(btn => {
+                btn.onclick = () => {
+                    const post = store.posts.find(p => p.id === btn.dataset.id);
+                    if (post) { post.likes += 1; saveData(); renderGrid(); }
+                };
+            });
+            document.querySelectorAll('.comment-toggle').forEach(btn => {
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    const sec = document.getElementById(`comments-${btn.dataset.id}`);
+                    if (sec) sec.style.display = sec.style.display === 'block' ? 'none' : 'block';
+                };
+            });
+            document.querySelectorAll('.add-comment-btn').forEach(btn => {
+                btn.onclick = () => {
+                    const post = store.posts.find(p => p.id === btn.dataset.id);
+                    const input = document.querySelector(`.comment-input[data-id="${btn.dataset.id}"]`);
+                    if (post && input && input.value.trim()) {
+                        post.comments.push({ author: currentUser.full_name || "User", text: input.value.trim() });
+                        saveData();
+                        renderGrid();
+                    }
+                };
+            });
+            document.querySelectorAll('.share-btn').forEach(btn => {
+                btn.onclick = () => { navigator.clipboard.writeText(window.location.href + "?post=" + btn.dataset.id); alert("📎 Link copied!"); };
+            });
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.onclick = () => { if(confirm("Delete this memory?")) { store.posts = store.posts.filter(p => p.id !== btn.dataset.id); saveData(); renderGrid(); } };
+            });
+        }
+
+        // Filter chips
+        document.querySelectorAll('.chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                currentFilter = chip.dataset.filter;
+                document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                renderGrid();
+            });
+        });
+
+        // Modal logic
+        const modal = document.getElementById('createModal');
+        document.getElementById('openCreateModalBtn').onclick = () => modal.style.display = 'flex';
+        document.getElementById('closeModalBtn').onclick = () => modal.style.display = 'none';
+        window.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+
+        document.getElementById('postPhoto').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (ev) => { currentPhotoBase64 = ev.target.result; document.getElementById('postPhotoPreview').innerHTML = `<img src="${currentPhotoBase64}" style="max-width:100%; border-radius:16px;">`; };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('submitPostBtn').onclick = () => {
+            const category = document.getElementById('postCategory').value;
+            const title = document.getElementById('postTitle').value.trim();
+            const content = document.getElementById('postContent').value.trim();
+            const youtubeUrl = document.getElementById('postYoutubeUrl').value.trim();
+            const visibility = document.querySelector('input[name="privacy"]:checked').value;
+            const anonymous = document.getElementById('postAnonymous').checked;
+            if (!title || !content) { alert("Please enter title and story."); return; }
+            let media = "", mediaType = "";
+            if (currentPhotoBase64) { media = currentPhotoBase64; mediaType = "image"; }
+            else if (youtubeUrl) { media = youtubeUrl; mediaType = "youtube"; }
+            const newPost = {
+                id: Date.now().toString(),
+                category, title, content, media, mediaType,
+                author: currentUser.full_name, authorId: currentUser.id,
+                anonymous, visibility,
+                createdAt: new Date().toISOString(),
+                likes: 0, comments: []
+            };
+            store.posts.unshift(newPost);
+            saveData();
+            modal.style.display = 'none';
+            document.getElementById('postTitle').value = '';
+            document.getElementById('postContent').value = '';
+            document.getElementById('postYoutubeUrl').value = '';
+            document.getElementById('postPhoto').value = '';
+            document.getElementById('postPhotoPreview').innerHTML = '';
+            currentPhotoBase64 = null;
+            document.getElementById('privacyPublic').checked = true;
+            document.getElementById('postAnonymous').checked = false;
+            if (visibility === 'public') currentFilter = 'all';
+            else currentFilter = 'my';
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            if (visibility === 'private') document.querySelector('.chip[data-filter="my"]').classList.add('active');
+            else document.querySelector('.chip[data-filter="all"]').classList.add('active');
+            renderGrid();
+        };
+
+        function openLightbox(src) { const lb = document.getElementById('lightbox'); document.getElementById('lightboxImg').src = src; lb.style.display = 'flex'; }
+        function closeLightbox() { document.getElementById('lightbox').style.display = 'none'; }
+        window.openLightbox = openLightbox; window.closeLightbox = closeLightbox;
+
+        function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => m==='&'?'&amp;': m==='<'?'&lt;':'&gt;'); }
+
+        // NEW: Rotating slogans for redesigned top banner
+        const topSlogans = [
+            "✨ Every story deserves the spotlight.",
+            "🎓 Your campus memories, beautifully shared.",
+            "🤝 Share once. Inspire everyone.",
+            "💫 Where every moment becomes a memory.",
+            "🌟 Be seen. Be remembered.",
+            "💖 The campus gallery – no waiting."
+        ];
+        let topSloganIndex = 0;
+        const topSloganSpan = document.getElementById("sloganTextTop");
+        
+        function rotateTopSlogan() {
+            topSloganIndex = (topSloganIndex + 1) % topSlogans.length;
+            const banner = document.getElementById("rotatingSloganTop");
+            if (!banner) return;
+            banner.style.opacity = "0";
+            setTimeout(() => {
+                if (topSloganSpan) {
+                    topSloganSpan.textContent = topSlogans[topSloganIndex];
+                }
+                banner.style.opacity = "1";
+            }, 300);
+        }
+        
+        setInterval(rotateTopSlogan, 5000);
+
+        // Initial render
+        renderGrid();
+    </script>
+</body>
+</html>

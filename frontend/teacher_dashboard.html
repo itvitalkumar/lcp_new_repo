@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Central - Teacher Dashboard</title>
+    
+    <!-- ============================================================ -->
+    <!-- ONLY ADDED: Master Configuration Reference -->
+    <!-- ============================================================ -->
+    <script src="js/config.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+
+        :root {
+            --primary: #0f4c5c;
+            --primary-dark: #0a3a46;
+            --secondary: #e67e22;
+            --gold: #f4b942;
+            --gray-bg: #f8f9fc;
+            --success: #2ecc71;
+            --info: #3498db;
+        }
+
+        body {
+            background-color: var(--gray-bg);
+            padding: 1rem;
+        }
+
+        .dashboard-wrapper {
+            display: flex;
+            gap: 1.5rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+        }
+
+        .main-content {
+            flex: 2;
+            min-width: 250px;
+        }
+
+        .right-sidebar {
+            flex: 0.9;
+            min-width: 280px;
+            background: white;
+            border-radius: 20px;
+            padding: 1.2rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            height: fit-content;
+            position: sticky;
+            top: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e0e5e7;
+        }
+
+        .dashboard-header h1 {
+            color: var(--primary);
+            font-size: 1.6rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 0.8rem;
+            text-align: center;
+            border-top: 3px solid var(--gold);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        .stat-number {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .sidebar-section {
+            background: #f8f9fc;
+            border-radius: 16px;
+            padding: 0.8rem;
+        }
+
+        .sidebar-title {
+            font-size: 0.9rem;
+            color: var(--primary);
+            margin-bottom: 0.8rem;
+            padding-bottom: 0.3rem;
+            border-bottom: 2px solid var(--gold);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .impact-number {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--secondary);
+        }
+
+        .memory-photo {
+            width: 100%;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+        }
+
+        .student-message {
+            background: white;
+            padding: 0.6rem;
+            border-radius: 12px;
+            margin-bottom: 0.5rem;
+            font-size: 0.7rem;
+            border-left: 3px solid var(--gold);
+        }
+
+        .student-name {
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 0.2rem;
+        }
+
+        .search-input {
+            width: 100%;
+            max-width: 300px;
+            padding: 0.6rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 40px;
+            margin-bottom: 1rem;
+        }
+
+        .group-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1rem;
+            margin-bottom: 0.8rem;
+            border-left: 3px solid var(--gold);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        .group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 0.5rem;
+        }
+
+        .group-title h3 {
+            font-size: 0.95rem;
+            color: var(--primary);
+        }
+
+        .group-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            font-size: 0.7rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .group-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid #eee;
+        }
+
+        .action-btn {
+            padding: 0.3rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.65rem;
+            border: none;
+            cursor: pointer;
+        }
+
+        .action-primary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .action-secondary {
+            background: #eef2f3;
+            color: var(--primary);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            padding: 1.5rem;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .photo-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin: 1rem 0;
+            justify-content: center;
+        }
+
+        .photo-grid img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: 16px;
+            color: #999;
+        }
+
+        .tip-card {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border-radius: 16px;
+            padding: 0.8rem;
+        }
+
+        .tip-card p {
+            font-size: 0.7rem;
+            line-height: 1.4;
+            margin-top: 0.3rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--secondary);
+        }
+
+        @media (max-width: 900px) {
+            .dashboard-wrapper {
+                flex-direction: column;
+            }
+            .right-sidebar {
+                position: static;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <div class="main-content">
+            <div class="dashboard-header">
+                <h1><i class="fas fa-chalkboard-teacher"></i> Teacher Dashboard</h1>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-card"><div class="stat-number" id="totalThanks">0</div><div>Thank You Groups</div></div>
+                <div class="stat-card"><div class="stat-number" id="totalPhotos">0</div><div>Memory Photos</div></div>
+                <div class="stat-card"><div class="stat-number" id="totalStudents">0</div><div>Students Who Thanked</div></div>
+            </div>
+
+            <input type="text" id="searchGroups" class="search-input" placeholder="🔍 Search thank you groups...">
+
+            <h3 style="color: var(--primary); margin-bottom: 0.5rem; font-size: 1rem;">📖 Thank You Groups Received</h3>
+            <div id="groupsList"><div class="loading">Loading your groups...</div></div>
+        </div>
+
+        <div class="right-sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title"><i class="fas fa-heart" style="color: #e74c3c;"></i> Your Impact</div>
+                <div style="text-align: center; padding: 0.3rem;">
+                    <div class="impact-number" id="impactNumber">0</div>
+                    <div style="font-size: 0.7rem;">lives touched through your teaching</div>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-title"><i class="fas fa-images" style="color: var(--success);"></i> Recent Memory Photos</div>
+                <div id="recentPhotosList">
+                    <div style="font-size: 0.7rem; color: #999; text-align: center;">Loading...</div>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-title"><i class="fas fa-comment-dots" style="color: var(--info);"></i> Student Messages</div>
+                <div id="studentMessagesList">
+                    <div style="font-size: 0.7rem; color: #999; text-align: center;">Loading...</div>
+                </div>
+            </div>
+
+            <div class="tip-card">
+                <div style="display: flex; align-items: center; gap: 6px;"><i class="fas fa-lightbulb"></i> <strong>Did You Know?</strong></div>
+                <p>✨ Your students can upload photos from your surprise celebration. These memories stay on your profile forever!</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="memoryWallModal" class="modal">
+        <div class="modal-content">
+            <i class="fas fa-images" style="font-size: 1.8rem; color: var(--gold);"></i>
+            <h3 style="color: var(--primary); margin: 0.5rem 0;">Memory Wall</h3>
+            <div id="memoryWallPhotos" class="photo-grid"></div>
+            <button class="action-btn action-primary" style="width: 100%; margin-top: 0.5rem;" onclick="downloadCertificate()">📄 Download Thank You Certificate</button>
+            <button class="action-btn action-secondary" style="width: 100%; margin-top: 0.5rem;" onclick="closeMemoryWall()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // API BASE URL - FROM MASTER CONFIGURATION
+        // ONLY CHANGED: Replaced hardcoded URL with ACTIVE_CONFIG.API_BASE_URL
+        // ============================================================
+        const API_BASE_URL = ACTIVE_CONFIG.API_BASE_URL;
+
+        let currentTeacher = null;
+        let thankYouGroups = [];
+        let currentGroupId = null;
+
+        // Load current user from localStorage
+        function loadCurrentUser() {
+            const userStr = localStorage.getItem('currentUser');
+            if (userStr) {
+                try {
+                    currentTeacher = JSON.parse(userStr);
+                    if (currentTeacher.role !== 'teacher') {
+                        // If not a teacher, redirect to student dashboard
+                        window.location.href = 'student_dashboard.html';
+                    }
+                } catch(e) {
+                    console.error('Error parsing user:', e);
+                }
+            } else {
+                // Not logged in - auth-guard will handle redirect
+                console.log('No user found, auth-guard will redirect');
+            }
+        }
+
+        // Fetch teacher dashboard data from backend
+        async function loadTeacherDashboard() {
+            if (!currentTeacher || !currentTeacher.id) {
+                console.log('Waiting for user data...');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/dashboard/teacher/${currentTeacher.id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    thankYouGroups = data.groups || [];
+                    updateStats();
+                    renderGroups();
+                    updateSidebar();
+                } else if (response.status === 401) {
+                    // Token expired - logout
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('currentUser');
+                    window.location.href = 'login.html';
+                } else {
+                    console.error('Failed to load dashboard:', response.status);
+                    // Use demo data for testing if backend not ready
+                    loadDemoData();
+                }
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                // Use demo data for testing when backend is not running
+                loadDemoData();
+            }
+        }
+
+        // Demo data for testing (fallback when backend is not available)
+        function loadDemoData() {
+            thankYouGroups = [
+                {
+                    id: "demo_1",
+                    teacher_name: "Prof. Anand Sharma",
+                    college: "RV College of Engineering",
+                    students: ["Priya Sharma", "Amit Kumar", "Sneha Rao"],
+                    event_date: "2024-03-15",
+                    message: "Thank you for being the best teacher! You inspired us to pursue computer science.",
+                    photos: [],
+                    member_count: 3
+                },
+                {
+                    id: "demo_2",
+                    teacher_name: "Prof. Anand Sharma",
+                    college: "RV College of Engineering",
+                    students: ["Rahul Desai", "Neha Patil"],
+                    event_date: "2023-12-10",
+                    message: "Your guidance helped me crack the placement interviews. Forever grateful!",
+                    photos: [],
+                    member_count: 2
+                }
+            ];
+            updateStats();
+            renderGroups();
+            updateSidebar();
+        }
+
+        function updateStats() {
+            const totalThanks = thankYouGroups.length;
+            const totalPhotos = thankYouGroups.reduce((sum, g) => sum + (g.photos ? g.photos.length : 0), 0);
+            const uniqueStudents = new Set();
+            thankYouGroups.forEach(g => {
+                if (g.students) {
+                    g.students.forEach(s => uniqueStudents.add(s));
+                }
+            });
+            
+            document.getElementById("totalThanks").innerText = totalThanks;
+            document.getElementById("totalPhotos").innerText = totalPhotos;
+            document.getElementById("totalStudents").innerText = uniqueStudents.size;
+            document.getElementById("impactNumber").innerText = uniqueStudents.size * 10 || 0;
+        }
+
+        function renderGroups() {
+            const container = document.getElementById("groupsList");
+            const searchTerm = document.getElementById("searchGroups")?.value.toLowerCase() || "";
+            
+            let filtered = thankYouGroups;
+            if (searchTerm) {
+                filtered = thankYouGroups.filter(g => 
+                    (g.teacher_name || '').toLowerCase().includes(searchTerm) || 
+                    (g.college || '').toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="empty-state"><i class="fas fa-gift"></i><h3>No thank you groups yet</h3><p>When students thank you, it will appear here.</p></div>`;
+                return;
+            }
+            
+            container.innerHTML = filtered.map(g => `
+                <div class="group-card">
+                    <div class="group-header">
+                        <div class="group-title">
+                            <h3>🎓 Thank You ${g.teacher_name || 'Teacher'}</h3>
+                        </div>
+                    </div>
+                    <div class="group-details">
+                        <span><i class="fas fa-university"></i> ${g.college || 'Various colleges'}</span>
+                        <span><i class="fas fa-calendar"></i> ${g.event_date || 'Date TBD'}</span>
+                        <span><i class="fas fa-users"></i> ${g.member_count || g.students?.length || 0} students</span>
+                    </div>
+                    <div class="group-details">
+                        <span><i class="fas fa-quote-left"></i> "${g.message || 'Thank you for your teaching!'}"</span>
+                    </div>
+                    <div class="group-actions">
+                        <button class="action-btn action-primary" onclick="openMemoryWall('${g.id}')">🖼️ View Memory Wall</button>
+                        <button class="action-btn action-secondary" onclick="downloadCertificate()">📄 Download Certificate</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateSidebar() {
+            // Update recent photos
+            const recentPhotos = thankYouGroups.filter(g => g.photos && g.photos.length > 0).slice(0, 3);
+            const recentPhotosHtml = recentPhotos.length > 0 ? 
+                recentPhotos.map(g => `<img src="${g.photos[0]}" class="memory-photo" onclick="openMemoryWall('${g.id}')">`).join('') :
+                '<div style="font-size: 0.7rem; color: #999; text-align: center;">No photos yet</div>';
+            document.getElementById("recentPhotosList").innerHTML = recentPhotosHtml;
+            
+            // Update student messages
+            const recentMessages = thankYouGroups.slice(0, 3);
+            const messagesHtml = recentMessages.length > 0 ?
+                recentMessages.map(g => `
+                    <div class="student-message">
+                        <div class="student-name">${g.students?.slice(0, 2).join(", ") || 'Students'}</div>
+                        <div>"${g.message || 'Thank you for everything!'}"</div>
+                    </div>
+                `).join('') :
+                '<div style="font-size: 0.7rem; color: #999; text-align: center;">No messages yet</div>';
+            document.getElementById("studentMessagesList").innerHTML = messagesHtml;
+        }
+
+        function openMemoryWall(groupId) {
+            currentGroupId = groupId;
+            const group = thankYouGroups.find(g => g.id === groupId);
+            if (group && group.photos && group.photos.length > 0) {
+                document.getElementById("memoryWallPhotos").innerHTML = group.photos.map(photo => `<img src="${photo}" alt="Memory photo">`).join('');
+            } else {
+                document.getElementById("memoryWallPhotos").innerHTML = '<p style="color: #999;">No photos uploaded yet. Students can upload photos from your celebration!</p>';
+            }
+            document.getElementById("memoryWallModal").style.display = "flex";
+        }
+
+        function closeMemoryWall() {
+            document.getElementById("memoryWallModal").style.display = "none";
+            currentGroupId = null;
+        }
+
+        function downloadCertificate() {
+            alert("📄 Downloading Thank You Certificate...\n\nThis would generate a beautiful PDF certificate of appreciation for your teaching journey.");
+        }
+
+        // Search listener
+        document.getElementById("searchGroups")?.addEventListener("input", function() {
+            renderGroups();
+        });
+
+        // Initialize
+        loadCurrentUser();
+        setTimeout(() => {
+            if (currentTeacher) {
+                loadTeacherDashboard();
+            }
+        }, 500);
+    </script>
+    <script src="js/auth-guard.js"></script>
+</body>
+</html>

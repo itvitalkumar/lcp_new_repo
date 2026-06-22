@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Central - Functional Test Suite</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background: linear-gradient(135deg, #0f4c5c, #0a3a46); min-height: 100vh; padding: 2rem; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .header { text-align: center; color: white; margin-bottom: 2rem; }
+        .header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .test-card { background: white; border-radius: 20px; padding: 1.2rem; margin-bottom: 1rem; border-left: 4px solid #3498db; }
+        .test-card.passed { border-left-color: #2ecc71; background: #f0fff4; }
+        .test-card.failed { border-left-color: #e74c3c; background: #fff5f5; }
+        .test-card.running { border-left-color: #f39c12; background: #fff8e7; }
+        .test-title { font-weight: bold; font-size: 1rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .test-status { font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 20px; }
+        .status-pass { background: #2ecc71; color: white; }
+        .status-fail { background: #e74c3c; color: white; }
+        .status-running { background: #f39c12; color: white; }
+        .status-pending { background: #95a5a6; color: white; }
+        .test-details { font-size: 0.8rem; color: #666; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #eee; }
+        .btn-run { background: #e67e22; color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 40px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-bottom: 1.5rem; width: 100%; }
+        .btn-run:hover { background: #d35400; }
+        .summary { background: white; border-radius: 20px; padding: 1rem; margin-bottom: 1rem; text-align: center; }
+        .summary-stats { display: flex; justify-content: center; gap: 2rem; margin-top: 0.5rem; }
+        .summary-stat { text-align: center; }
+        .summary-number { font-size: 1.8rem; font-weight: bold; }
+        footer { text-align: center; margin-top: 2rem; color: white; opacity: 0.7; font-size: 0.7rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Campus Central - Functional Test Suite</h1>
+            <p>Tests actual feature functionality (not just file existence)</p>
+        </div>
+
+        <button class="btn-run" onclick="runFunctionalTests()">▶ Run Functional Tests</button>
+
+        <div class="summary" id="summary" style="display: none;">
+            <strong>📊 Test Summary</strong>
+            <div class="summary-stats">
+                <div class="summary-stat"><div class="summary-number" id="totalTests">0</div><div>Total</div></div>
+                <div class="summary-stat"><div class="summary-number" id="passedTests">0</div><div>Passed</div></div>
+                <div class="summary-stat"><div class="summary-number" id="failedTests">0</div><div>Failed</div></div>
+            </div>
+        </div>
+
+        <div id="testsContainer"></div>
+        <footer>Campus Central — Functional Test Suite | Tests actual feature behavior</footer>
+    </div>
+
+    <script>
+        let testResults = [];
+        let currentRunning = false;
+        let authToken = localStorage.getItem('authToken');
+
+        const functionalTests = [
+            {
+                id: "api_signup",
+                name: "🔐 API: User Signup",
+                description: "Test /api/auth/signup endpoint",
+                run: async () => {
+                    const testEmail = `test_${Date.now()}@example.com`;
+                    const response = await fetch('http://localhost:8000/api/auth/signup', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            full_name: "Test User",
+                            email: testEmail,
+                            whatsapp: "9876543210",
+                            password: "test123",
+                            role: "student"
+                        })
+                    });
+                    const data = await response.json();
+                    if (response.status === 201 && data.access_token) {
+                        return { passed: true, message: `Signup successful for ${testEmail}`, data: data };
+                    }
+                    return { passed: false, message: `Signup failed: ${data.detail || 'Unknown error'}`, data: data };
+                }
+            },
+            {
+                id: "api_login",
+                name: "🔐 API: User Login",
+                description: "Test /api/auth/login endpoint",
+                run: async () => {
+                    const response = await fetch('http://localhost:8000/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: "test@example.com", password: "pass123" })
+                    });
+                    const data = await response.json();
+                    if (response.status === 200 && data.access_token) {
+                        authToken = data.access_token;
+                        localStorage.setItem('authToken', authToken);
+                        return { passed: true, message: `Login successful`, token: data.access_token };
+                    }
+                    return { passed: false, message: `Login failed: ${data.detail || 'Invalid credentials'}` };
+                }
+            },
+            {
+                id: "api_lucky_game",
+                name: "🎲 API: Lucky Number Game",
+                description: "Test /api/groups/lucky-game endpoint",
+                run: async () => {
+                    const response = await fetch('http://localhost:8000/api/groups/lucky-game', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ friends: ["Priya", "Amit", "Sneha"], group_type: "teacher" })
+                    });
+                    const data = await response.json();
+                    if (response.status === 200 && data.contribution && data.lucky_friend) {
+                        return { passed: true, message: `Lucky game works! Contribution: ${data.contribution}, Lucky friend: ${data.lucky_friend}` };
+                    }
+                    return { passed: false, message: `Lucky game failed: ${data.detail || 'Unknown error'}` };
+                }
+            },
+            {
+                id: "api_create_teacher_group",
+                name: "👨‍🏫 API: Create Teacher Group",
+                description: "Test /api/groups/teacher/create endpoint (requires auth)",
+                run: async () => {
+                    const token = localStorage.getItem('authToken');
+                    if (!token) return { passed: false, message: "No auth token. Login first." };
+                    
+                    const response = await fetch('http://localhost:8000/api/groups/teacher/create', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ teacher_name: "Test Teacher", college: "Test College" })
+                    });
+                    const data = await response.json();
+                    if (response.status === 200 && data.group_id) {
+                        return { passed: true, message: `Teacher group created! Group ID: ${data.group_id}` };
+                    }
+                    return { passed: false, message: `Create group failed: ${data.detail || 'Unknown error'}` };
+                }
+            },
+            {
+                id: "batchmate_functional",
+                name: "🔍 Batchmate Finder: Register & Search",
+                description: "Test batchmate registration and search functionality",
+                run: async () => {
+                    const token = localStorage.getItem('authToken');
+                    if (!token) return { passed: false, message: "No auth token. Login first." };
+                    
+                    const testName = `TestUser_${Date.now()}`;
+                    await fetch('http://localhost:8000/api/batchmate/register', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ name: testName, college: "RVCE", batch: "2020", whatsapp: "9876543210" })
+                    });
+                    
+                    const response = await fetch('http://localhost:8000/api/batchmate/search?college=RVCE&batch=2020', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const data = await response.json();
+                    if (response.status === 200) {
+                        return { passed: true, message: `Batchmate search works! Found ${data.length} results` };
+                    }
+                    return { passed: false, message: `Batchmate search failed` };
+                }
+            },
+            {
+                id: "family_business_functional",
+                name: "🧵 Family Business: Create & List",
+                description: "Test family business creation and listing",
+                run: async () => {
+                    const token = localStorage.getItem('authToken');
+                    if (!token) return { passed: false, message: "No auth token. Login first." };
+                    
+                    await fetch('http://localhost:8000/api/business/create', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ name: "Test Tailoring", category: "Tailoring", location: "Bangalore", whatsapp: "9876543210", student_name: "Test Student", college: "RVCE" })
+                    });
+                    
+                    const response = await fetch('http://localhost:8000/api/business/list');
+                    const data = await response.json();
+                    if (response.status === 200 && Array.isArray(data)) {
+                        return { passed: true, message: `Family business works! Total businesses: ${data.length}` };
+                    }
+                    return { passed: false, message: `Family business list failed` };
+                }
+            },
+            {
+                id: "startup_functional",
+                name: "🐜 Startup Nest: Create & List",
+                description: "Test startup idea posting and listing",
+                run: async () => {
+                    // Get fresh token for this test
+                    const loginResponse = await fetch('http://localhost:8000/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: "test@example.com", password: "pass123" })
+                    });
+                    const loginData = await loginResponse.json();
+                    
+                    if (!loginData.access_token) {
+                        return { passed: false, message: "Failed to get auth token for startup test" };
+                    }
+                    
+                    const token = loginData.access_token;
+                    
+                    // Create startup idea
+                    const createResponse = await fetch('http://localhost:8000/api/startup/create', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json', 
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ 
+                            title: `Test Startup ${Date.now()}`, 
+                            category: "Tech", 
+                            pitch: "Test pitch", 
+                            looking_for: "Co-founder"
+                        })
+                    });
+                    
+                    if (createResponse.status !== 200) {
+                        const errorData = await createResponse.json();
+                        return { passed: false, message: `Create failed: ${createResponse.status} - ${JSON.stringify(errorData)}` };
+                    }
+                    
+                    const listResponse = await fetch('http://localhost:8000/api/startup/list');
+                    const listData = await listResponse.json();
+                    
+                    if (listResponse.status === 200 && Array.isArray(listData)) {
+                        return { passed: true, message: `Startup nest works! Total ideas: ${listData.length}` };
+                    }
+                    return { passed: false, message: `List failed` };
+                }
+            },
+            {
+                id: "crush_quiz_functional",
+                name: "💕 Crush Quiz: Submit & Leaderboard",
+                description: "Test crush quiz submission and leaderboard",
+                run: async () => {
+                    const submitResponse = await fetch('http://localhost:8000/api/crush/quiz/submit', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ your_name: "Test A", crush_name: "Test B", answers: [3, 4, 5, 4, 3] })
+                    });
+                    const submitData = await submitResponse.json();
+                    
+                    const leaderboardResponse = await fetch('http://localhost:8000/api/crush/quiz/leaderboard');
+                    const leaderboardData = await leaderboardResponse.json();
+                    
+                    if (submitResponse.status === 200 && leaderboardResponse.status === 200) {
+                        return { passed: true, message: `Crush quiz works! Score: ${submitData.compatibility_score}%, Leaderboard has ${leaderboardData.length} entries` };
+                    }
+                    return { passed: false, message: `Crush quiz failed` };
+                }
+            },
+            {
+                id: "avatar_functional",
+                name: "🎨 Avatar Studio: Create & Gallery",
+                description: "Test avatar creation and gallery",
+                run: async () => {
+                    const token = localStorage.getItem('authToken');
+                    if (!token) return { passed: false, message: "No auth token. Login first." };
+                    
+                    const createResponse = await fetch('http://localhost:8000/api/avatar/create', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ style: "cartoon", description: "Test avatar", color_scheme: "vibrant" })
+                    });
+                    const createData = await createResponse.json();
+                    
+                    const galleryResponse = await fetch('http://localhost:8000/api/avatar/gallery');
+                    const galleryData = await galleryResponse.json();
+                    
+                    if (createResponse.status === 200 && galleryResponse.status === 200) {
+                        return { passed: true, message: `Avatar studio works! Avatar ID: ${createData.id}, Gallery has ${galleryData.length} avatars` };
+                    }
+                    return { passed: false, message: `Avatar creation failed` };
+                }
+            },
+            {
+                id: "forum_functional",
+                name: "👥 Teen Space: Create Post & Reply",
+                description: "Test forum post creation and replies",
+                run: async () => {
+                    const token = localStorage.getItem('authToken');
+                    if (!token) return { passed: false, message: "No auth token. Login first." };
+                    
+                    const postResponse = await fetch('http://localhost:8000/api/forum/post', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ title: "Test Post", content: "Test content", category: "General" })
+                    });
+                    
+                    const postsResponse = await fetch('http://localhost:8000/api/forum/posts');
+                    const postsData = await postsResponse.json();
+                    
+                    if (postResponse.status === 200 && postsResponse.status === 200) {
+                        return { passed: true, message: `Forum works! Total posts: ${postsData.length}` };
+                    }
+                    return { passed: false, message: `Forum post failed` };
+                }
+            },
+            {
+                id: "hive_functional",
+                name: "🍯 Keep the Hive: Stats",
+                description: "Test hive statistics endpoint",
+                run: async () => {
+                    const response = await fetch('http://localhost:8000/api/hive/stats');
+                    const data = await response.json();
+                    if (response.status === 200 && typeof data.total_businesses_helped === 'number') {
+                        return { passed: true, message: `Hive stats works! Businesses helped: ${data.total_businesses_helped}, Total contributions: ₹${data.total_contributions}` };
+                    }
+                    return { passed: false, message: `Hive stats failed` };
+                }
+            },
+            {
+                id: "marriage_functional",
+                name: "💒 Marriage Staffing: Post Job & List",
+                description: "Test marriage staffing job posting and listing",
+                run: async () => {
+                    const token = localStorage.getItem('authToken');
+                    if (!token) return { passed: false, message: "No auth token. Login first." };
+                    
+                    const postResponse = await fetch('http://localhost:8000/api/marriage/post-job', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({
+                            event_date: "2025-12-25",
+                            event_location: "Bangalore",
+                            event_type: "wedding",
+                            role_needed: "serving",
+                            number_of_staff: 5,
+                            pay_per_staff: 500,
+                            description: "Test job",
+                            contact_whatsapp: "9876543210"
+                        })
+                    });
+                    const postData = await postResponse.json();
+                    
+                    const listResponse = await fetch('http://localhost:8000/api/marriage/jobs');
+                    const listData = await listResponse.json();
+                    
+                    if (postResponse.status === 200 && listResponse.status === 200) {
+                        return { passed: true, message: `Marriage staffing works! Job ID: ${postData.id}, Total jobs: ${listData.length}` };
+                    }
+                    return { passed: false, message: `Marriage staffing failed` };
+                }
+            },
+            {
+                id: "localstorage_functional",
+                name: "💾 localStorage: Data Persistence",
+                description: "Test if data persists across refreshes",
+                run: async () => {
+                    try {
+                        const testKey = '__func_test__';
+                        const testValue = `value_${Date.now()}`;
+                        localStorage.setItem(testKey, testValue);
+                        const retrieved = localStorage.getItem(testKey);
+                        localStorage.removeItem(testKey);
+                        if (retrieved === testValue) {
+                            return { passed: true, message: "localStorage persistence works" };
+                        }
+                        return { passed: false, message: "localStorage persistence failed" };
+                    } catch (e) {
+                        return { passed: false, message: `localStorage error: ${e.message}` };
+                    }
+                }
+            }
+        ];
+
+        function renderTests() {
+            const container = document.getElementById('testsContainer');
+            container.innerHTML = functionalTests.map(test => `
+                <div class="test-card pending" id="test-${test.id}">
+                    <div class="test-title">
+                        ${test.name}
+                        <span class="test-status status-pending" id="status-${test.id}">Pending</span>
+                    </div>
+                    <div class="test-details" id="details-${test.id}">
+                        ${test.description}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function runFunctionalTests() {
+            if (currentRunning) { alert('Tests already running!'); return; }
+            currentRunning = true;
+            testResults = [];
+            document.getElementById('summary').style.display = 'block';
+            
+            let passed = 0, failed = 0;
+            
+            for (const test of functionalTests) {
+                await runSingleTest(test);
+                if (testResults[test.id]?.passed) passed++;
+                else failed++;
+                
+                document.getElementById('totalTests').innerText = functionalTests.length;
+                document.getElementById('passedTests').innerText = passed;
+                document.getElementById('failedTests').innerText = failed;
+            }
+            
+            currentRunning = false;
+            console.log('%c📊 FUNCTIONAL TEST SUMMARY', 'font-size: 18px; font-weight: bold;');
+            console.log(`Total: ${functionalTests.length} | Passed: ${passed} | Failed: ${failed}`);
+            if (failed === 0) {
+                console.log('%c✅ All functional tests passed! Your features are working correctly.', 'font-size: 14px; color: #2ecc71;');
+            } else {
+                console.log('%c⚠️ Some tests failed. Check the console for details.', 'font-size: 14px; color: #e74c3c;');
+            }
+        }
+
+        async function runSingleTest(test) {
+            const card = document.getElementById(`test-${test.id}`);
+            const statusSpan = document.getElementById(`status-${test.id}`);
+            const detailsDiv = document.getElementById(`details-${test.id}`);
+            
+            card.classList.remove('pending', 'passed', 'failed');
+            card.classList.add('running');
+            statusSpan.innerText = 'Running...';
+            statusSpan.className = 'test-status status-running';
+            detailsDiv.innerHTML = `<span style="color:#f39c12;">⏳ Testing...</span>`;
+            
+            try {
+                const result = await test.run();
+                testResults[test.id] = result;
+                
+                card.classList.remove('running');
+                card.classList.add(result.passed ? 'passed' : 'failed');
+                statusSpan.innerText = result.passed ? 'Passed' : 'Failed';
+                statusSpan.className = result.passed ? 'test-status status-pass' : 'test-status status-fail';
+                detailsDiv.innerHTML = `
+                    <div style="color: ${result.passed ? '#2ecc71' : '#e74c3c'}; margin-bottom: 0.3rem;">
+                        ${result.passed ? '✅' : '❌'} ${result.message}
+                    </div>
+                    ${result.data ? `<div style="font-size: 0.7rem; color: #888; margin-top: 0.3rem;">${JSON.stringify(result.data, null, 2).substring(0, 200)}</div>` : ''}
+                `;
+                console.log(`${result.passed ? '✅' : '❌'} ${test.name}: ${result.message}`);
+            } catch (error) {
+                card.classList.remove('running');
+                card.classList.add('failed');
+                statusSpan.innerText = 'Failed';
+                statusSpan.className = 'test-status status-fail';
+                detailsDiv.innerHTML = `<div style="color: #e74c3c;">❌ Error: ${error.message}</div>`;
+                console.error(`❌ ${test.name}: ${error.message}`);
+                testResults[test.id] = { passed: false, message: error.message };
+            }
+        }
+
+        renderTests();
+    </script>
+    <script src="js/auth-guard.js"></script>`n</body>
+</html>
