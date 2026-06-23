@@ -28,7 +28,8 @@ class Settings:
     """Enable debug mode. Set to 'false' in production."""
     
     # ========== DATABASE ==========
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./campus_central.db")
+    #DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./campus_central.db")
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:////home/site/wwwroot/campus_central.db")
     """Database connection URL. Supports SQLite, PostgreSQL, etc."""
     
     # ========== SECURITY ==========
