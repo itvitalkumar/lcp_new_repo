@@ -13,17 +13,34 @@ import time
 
 from app.config import settings
 from app.database import engine, Base, get_db
-import app.models
+
+# ============================================================
+# IMPORT ALL MODELS (REQUIRED FOR TABLE CREATION)
+# ============================================================
+from app.models import (
+    User,
+    TeacherGroup,
+    CelebrationGroup,
+    GroupMember,
+    Message,
+    Payment,
+    SuccessStory,
+    OTPCode,
+    SocialPost,
+    SocialComment,
+    SocialLike,
+    ConnectionRequest,
+    FriendStory
+)
 
 # ============================================================
 # CREATE TABLES
 # ============================================================
 Base.metadata.create_all(bind=engine)
 
-# ✅ ADDED DEBUG: Confirm Payment table exists
-from app.models import Payment
+# ✅ DEBUG: Confirm Payment table exists
 print(f"✅ Payment table exists: {Payment.__tablename__}")
-print(f"✅ Database tables created successfully")
+print(f"✅ All database tables created successfully")
 
 # ============================================================
 # FASTAPI APP
@@ -97,11 +114,28 @@ app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads"
 # ROUTERS
 # ============================================================
 from routers import (
-    auth, groups, dashboard, search, stories, admin,
-    batchmate, business, startup, hive, crush, avatar,
-    forum, marriage, messages, public, findmyfriend,
-    social_posts, users, connections, mood_memory,
-    friend_search
+    auth,
+    groups,
+    dashboard,
+    search,
+    stories,
+    admin,
+    batchmate,
+    business,
+    startup,
+    hive,
+    crush,
+    avatar,
+    forum,
+    marriage,
+    messages,
+    public,
+    findmyfriend,
+    social_posts,
+    users,
+    connections,
+    mood_memory,
+    friend_search,
 )
 
 from routers.payment import router as payment_router
@@ -136,10 +170,7 @@ app.include_router(friend_search.router)
 # ============================================================
 @app.get("/")
 def root():
-    return {
-        "message": "Welcome to Campus Central API",
-        "status": "running"
-    }
+    return {"message": "Welcome to Campus Central API", "status": "running"}
 
 # ============================================================
 # HEALTH CHECK
@@ -162,7 +193,7 @@ def join_group(group_id: str, db: Session = Depends(get_db)):
             "success": True,
             "type": "teacher",
             "group_id": teacher.group_id,
-            "member_count": count
+            "member_count": count,
         }
 
     celebration = db.query(CelebrationGroup).filter_by(group_id=group_id).first()
@@ -172,7 +203,7 @@ def join_group(group_id: str, db: Session = Depends(get_db)):
             "success": True,
             "type": "celebration",
             "group_id": celebration.group_id,
-            "member_count": count
+            "member_count": count,
         }
 
     return {"success": False, "message": "Group not found"}
@@ -189,13 +220,23 @@ def version():
             "Crush Corner",
             "Startup Nest",
             "Mood & Memory",
-            "Find My Friend"
-        ]
+            "Find My Friend",
+        ],
     }
+
+# ============================================================
+# TEMPORARY: INIT DATABASE TABLES (ONE-TIME USE)
+# ============================================================
+@app.get("/init-db")
+def init_database():
+    """One-time endpoint to create all tables."""
+    Base.metadata.create_all(bind=engine)
+    return {"status": "✅ All tables created successfully"}
 
 # ============================================================
 # RUN LOCALLY ONLY
 # ============================================================
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
