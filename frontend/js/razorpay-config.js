@@ -3,6 +3,9 @@
 // Campus Central Payment Integration
 // ============================================================
 
+// 🔑 YOUR LIVE RAZORPAY KEY (MUST MATCH AZURE RAZORPAY_KEY_ID)
+const RAZORPAY_KEY_ID = 'rzp_live_T3rKPJSOQQHamh';  // ← Your live key
+
 // Make sure API_BASE is available (fallback to localhost if ACTIVE_CONFIG missing)
 const API_BASE = (window.ACTIVE_CONFIG && window.ACTIVE_CONFIG.API_BASE_URL) 
     ? window.ACTIVE_CONFIG.API_BASE_URL 
@@ -108,14 +111,14 @@ async function openRazorpayCheckout(amount, groupId, groupType) {
         
         // Step 4: Configure Razorpay options
         const options = {
-            key: orderData.key,
+            key: RAZORPAY_KEY_ID,  // ✅ FIXED: Use explicit key
             amount: orderData.amount * 100, // Convert to paise
             currency: "INR",
             name: "Campus Central",
             description: orderData.group_type === 'teacher' 
                 ? 'Teacher Group Activation Fee' 
                 : 'Celebration Event Activation Fee',
-            image: "https://campuscentral.in/logo.png", // Optional: Add your logo URL
+            image: "https://campuscentral.in/logo.png",
             order_id: orderData.order_id,
             prefill: {
                 name: currentUser.full_name || '',
@@ -123,7 +126,7 @@ async function openRazorpayCheckout(amount, groupId, groupType) {
                 contact: currentUser.whatsapp || ''
             },
             theme: {
-                color: "#e67e22"  // Campus Central orange color
+                color: "#e67e22"
             },
             modal: {
                 ondismiss: function() {
@@ -135,7 +138,6 @@ async function openRazorpayCheckout(amount, groupId, groupType) {
                 }
             },
             handler: function(response) {
-                // Payment successful - verify with backend
                 console.log("Payment success response:", response);
                 verifyPaymentWithBackend(response, orderData);
             }
@@ -210,7 +212,6 @@ async function verifyPaymentWithBackend(paymentResponse, orderData) {
                 resultDiv.innerHTML = '<div class="success-msg">✅ Payment successful! Activating your group...</div>';
             }
             
-            // Show success modal with confetti
             showPaymentSuccess(result.group_id);
             
         } else {

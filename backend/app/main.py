@@ -37,6 +37,9 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5500",
         "http://127.0.0.1:5500",
+        "https://www.mycampuscentral.in",      # ← MUST ADD
+        "https://mycampuscentral.in",          # ← MUST ADD
+        "https://lcp-backend-app.azurewebsites.net",
     ],
     allow_credentials=True,
     allow_methods=["*"],
