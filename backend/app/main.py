@@ -20,6 +20,11 @@ import app.models
 # ============================================================
 Base.metadata.create_all(bind=engine)
 
+# ✅ ADDED DEBUG: Confirm Payment table exists
+from app.models import Payment
+print(f"✅ Payment table exists: {Payment.__tablename__}")
+print(f"✅ Database tables created successfully")
+
 # ============================================================
 # FASTAPI APP
 # ============================================================
@@ -37,8 +42,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5500",
         "http://127.0.0.1:5500",
-        "https://www.mycampuscentral.in",      # ← MUST ADD
-        "https://mycampuscentral.in",          # ← MUST ADD
+        "https://www.mycampuscentral.in",
+        "https://mycampuscentral.in",
         "https://lcp-backend-app.azurewebsites.net",
     ],
     allow_credentials=True,
