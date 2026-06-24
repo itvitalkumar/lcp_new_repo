@@ -185,8 +185,9 @@ def verify_payment(
         razorpay_client.utility.verify_payment_signature(payment_data)
         print("✅ Signature verified successfully")
         
-        order_id = payment_data.get("order_id")
-        payment_id = payment_data.get("payment_id")
+        # ✅ FIX: Use razorpay_order_id (not order_id)
+        order_id = payment_data.get("razorpay_order_id")
+        payment_id = payment_data.get("razorpay_payment_id")
         print(f"🔍 Looking for payment record: order_id={order_id}")
         
         # DEBUG LINE 2
