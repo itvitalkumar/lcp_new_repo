@@ -1,4 +1,4 @@
-# Placeholder - Code will be added
+# utils.py - Complete file with TEST MODE for 1-6 rupees
 import random
 import uuid
 import json
@@ -20,8 +20,15 @@ def generate_lucky_numbers(friends: List[str], group_type: str) -> Dict[str, Any
     """
     # Set point range based on group type
     if group_type == "teacher":
-        min_points = settings.TEACHER_MIN_POINTS
-        max_points = settings.TEACHER_MAX_POINTS
+        # 🔧 TEST MODE: 1-6 (change back to 18-81 for production)
+        # Check if TEST_MODE is enabled and use 1-6 range
+        if settings.TEST_MODE:
+            min_points = 1
+            max_points = 6
+            print(f"🧪 TEST MODE: Teacher lucky range = 1-6")
+        else:
+            min_points = settings.TEACHER_MIN_POINTS
+            max_points = settings.TEACHER_MAX_POINTS
     else:  # celebration
         min_points = settings.CELEBRATION_MIN_POINTS
         max_points = settings.CELEBRATION_MAX_POINTS
