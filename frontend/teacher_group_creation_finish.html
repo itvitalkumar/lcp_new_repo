@@ -978,9 +978,15 @@
         }
         
         // ========== FORTUNE REVEAL ==========
+        // ========== FORTUNE REVEAL ==========
+        // Original code (18-81 range) - COMMENTED OUT FOR TESTING
+        // function generateRandomPoints() {
+        //     return Math.floor(Math.random() * (81 - 18 + 1) + 18);
+        // }
+        // NEW TEST CODE: Generates random numbers between 1 and 6 rupees
         function generateRandomPoints() {
-            return Math.floor(Math.random() * (81 - 18 + 1) + 18);
-        }
+        return Math.floor(Math.random() * 6) + 1;
+     }
 
         function getRandomFriend() {
             return friends[Math.floor(Math.random() * friends.length)];
