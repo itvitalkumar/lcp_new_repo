@@ -1045,10 +1045,15 @@
             updateRevealButton();
         }
 
-        // ========== FORTUNE NUMBER GENERATION ==========
+        // ========== FORTUNE NUMBER GENERATION  we need to uncomment below 2 lines later==========
+        //function generateRandomPoints() {
+        //    return Math.floor(Math.random() * (MAX_POINTS - MIN_POINTS + 1) + MIN_POINTS);
+        //}
+
+        // 🔧 TEST MODE: 1-6 rupees (temporary for testing)
         function generateRandomPoints() {
-            return Math.floor(Math.random() * (MAX_POINTS - MIN_POINTS + 1) + MIN_POINTS);
-        }
+        return Math.floor(Math.random() * 6) + 1;
+      }
 
         function getRandomFriend() {
             return friends[Math.floor(Math.random() * friends.length)];
