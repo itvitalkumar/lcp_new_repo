@@ -1,7 +1,5 @@
 """
 backend/app/config.py
-Campus Central API - Configuration & Secrets Management
-
 Phase 1 (June 18, 2026): Core app settings.
 Phase 2 (June 19, 2026): Added TEST_MODE and TEST_PHONE_NUMBERS for OTP bypass.
 Phase 3 (June 25, 2026): Integrated Azure Key Vault for secure secret management.
@@ -43,7 +41,7 @@ class Settings:
     """Enable debug mode. Set to 'false' in production."""
     
     # ========== KEY VAULT CONFIGURATION ==========
-    KEY_VAULT_URL: str = os.getenv("AZURE_KEY_VAULT_URL", "https://campuscentral-keyvault.vault.azure.net/")
+    KEY_VAULT_URL: str = os.getenv("AZURE_KEY_VAULT_URL", "https://campuscentral-keyvalut.vault.azure.net/")
     """Azure Key Vault URL for fetching secrets in production."""
     
     # Initialize Key Vault client (lazy-loaded to avoid startup failures in local dev)
@@ -51,12 +49,7 @@ class Settings:
     
     @classmethod
     def _get_secret_client(cls):
-        """
-        Lazy-initialize the Key Vault client.
-        
-        Returns:
-            SecretClient or None: The Key Vault client if initialized successfully.
-        """
+        """Lazy-initialize the Key Vault client."""
         if cls._secret_client is None:
             try:
                 credential = DefaultAzureCredential()
@@ -72,11 +65,11 @@ class Settings:
         Fetch a secret from Azure Key Vault with fallback to environment variable.
         
         Args:
-            secret_name: Name of the secret in Key Vault.
-            fallback: Fallback value if secret cannot be fetched.
+            secret_name: Name of the secret in Key Vault
+            fallback: Fallback value if secret cannot be fetched
             
         Returns:
-            str: The secret value or fallback.
+            The secret value or fallback
         """
         client = cls._get_secret_client()
         if client:
@@ -107,39 +100,23 @@ class Settings:
     """ODBC driver for Azure SQL connection."""
     
     # Fetch password from Key Vault (fallback to env var)
-    DB_PASSWORD: str = _get_secret.__func__(
-        Settings, "DB-Password", 
-        fallback=os.getenv("DB_PASSWORD", "")
-    )
+    DB_PASSWORD: str = ""
     """Azure SQL database password (fetched from Key Vault)."""
     
-    # ========== DATABASE URL (DYNAMIC) ==========
-    @property
-    def DATABASE_URL(self) -> str:
-        """
-        Build the Azure SQL connection URL using fetched credentials.
-        Falls back to SQLite for local development if Key Vault is unavailable.
-        
-        Returns:
-            str: The database connection URL.
-        """
-        if self.DB_PASSWORD and self.DB_HOST:
-            return (
-                f"mssql+pyodbc://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}/{self.DB_NAME}"
-                f"?driver={self.DB_DRIVER}&Encrypt=yes&TrustServerCertificate=no&ConnectionTimeout=30"
-            )
-        # Fallback to SQLite for local development
-        sqlite_path = os.getenv("SQLITE_PATH", "sqlite:///./campus_central.db")
-        print("⚠️ Using SQLite fallback (Azure SQL credentials not available)")
-        return sqlite_path
+    @classmethod
+    def _get_db_password(cls):
+        """Fetch DB password from Key Vault."""
+        return cls._get_secret("DB-Password", fallback=os.getenv("DB_PASSWORD", ""))
     
     # ========== SECURITY ==========
     # Fetch JWT secret from Key Vault (fallback to env var)
-    JWT_SECRET: str = _get_secret.__func__(
-        Settings, "JWT-Secret",
-        fallback=os.getenv("JWT_SECRET", "your-super-secret-key-change-in-production")
-    )
+    JWT_SECRET: str = ""
     """Secret key for JWT token signing (fetched from Key Vault)."""
+    
+    @classmethod
+    def _get_jwt_secret(cls):
+        """Fetch JWT secret from Key Vault."""
+        return cls._get_secret("JWT-Secret", fallback=os.getenv("JWT_SECRET", "your-super-secret-key-change-in-production"))
     
     ALGORITHM: str = "HS256"
     """JWT signing algorithm."""
@@ -193,23 +170,26 @@ class Settings:
     
     # ========== RAZORPAY PAYMENT SETTINGS ==========
     # Fetch Razorpay keys from Key Vault (fallback to env var)
-    RAZORPAY_KEY_ID: str = _get_secret.__func__(
-        Settings, "Razorpay-KeyId",
-        fallback=os.getenv("RAZORPAY_KEY_ID", "rzp_test_T0KRH1p12BN6S3")
-    )
+    RAZORPAY_KEY_ID: str = ""
     """Razorpay API Key ID for payment processing (fetched from Key Vault)."""
     
-    RAZORPAY_KEY_SECRET: str = _get_secret.__func__(
-        Settings, "Razorpay-KeySecret",
-        fallback=os.getenv("RAZORPAY_KEY_SECRET", "13NK59ubLhjQAp75VzkLm803")
-    )
+    RAZORPAY_KEY_SECRET: str = ""
     """Razorpay API Key Secret for payment processing (fetched from Key Vault)."""
     
-    RAZORPAY_WEBHOOK_SECRET: str = _get_secret.__func__(
-        Settings, "Razorpay-Webhook-Secret",
-        fallback=os.getenv("RAZORPAY_WEBHOOK_SECRET", "your_webhook_secret_here")
-    )
+    RAZORPAY_WEBHOOK_SECRET: str = ""
     """Razorpay webhook secret for verifying webhook signatures (fetched from Key Vault)."""
+    
+    @classmethod
+    def _get_razorpay_key_id(cls):
+        return cls._get_secret("Razorpay-KeyId", fallback=os.getenv("RAZORPAY_KEY_ID", "rzp_test_T0KRH1p12BN6S3"))
+    
+    @classmethod
+    def _get_razorpay_key_secret(cls):
+        return cls._get_secret("Razorpay-KeySecret", fallback=os.getenv("RAZORPAY_KEY_SECRET", "13NK59ubLhjQAp75VzkLm803"))
+    
+    @classmethod
+    def _get_razorpay_webhook_secret(cls):
+        return cls._get_secret("Razorpay-Webhook-Secret", fallback=os.getenv("RAZORPAY_WEBHOOK_SECRET", "your_webhook_secret_here"))
     
     # ========== TEST MODE (Phase 2 - Added June 19, 2026) ==========
     TEST_MODE: bool = os.getenv("TEST_MODE", "false").lower() == "true"
@@ -229,6 +209,37 @@ class Settings:
 
 # ========== CREATE SETTINGS INSTANCE ==========
 settings = Settings()
+
+# ========== FETCH SECRETS AFTER INSTANCE CREATION ==========
+settings.DB_PASSWORD = settings._get_db_password()
+settings.JWT_SECRET = settings._get_jwt_secret()
+settings.RAZORPAY_KEY_ID = settings._get_razorpay_key_id()
+settings.RAZORPAY_KEY_SECRET = settings._get_razorpay_key_secret()
+settings.RAZORPAY_WEBHOOK_SECRET = settings._get_razorpay_webhook_secret()
+
+# ========== BUILD DATABASE URL ==========
+def get_database_url() -> str:
+    """
+    Build the Azure SQL connection URL using fetched credentials.
+    Falls back to SQLite for local development if Key Vault is unavailable.
+    """
+    db_password = settings.DB_PASSWORD
+    db_host = settings.DB_HOST
+    db_user = settings.DB_USER
+    db_name = settings.DB_NAME
+    db_driver = settings.DB_DRIVER
+    
+    if db_password and db_host:
+        return (
+            f"mssql+pyodbc://{db_user}:{db_password}@{db_host}/{db_name}"
+            f"?driver={db_driver}&Encrypt=yes&TrustServerCertificate=no&ConnectionTimeout=30"
+        )
+    # Fallback to SQLite for local development
+    sqlite_path = os.getenv("SQLITE_PATH", "sqlite:///./campus_central.db")
+    print("⚠️ Using SQLite fallback (Azure SQL credentials not available)")
+    return sqlite_path
+
+settings.DATABASE_URL = get_database_url()
 
 # ========== DEVELOPMENT HELPER ==========
 if settings.DEBUG:
