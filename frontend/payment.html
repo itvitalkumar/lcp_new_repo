@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Complete Your Payment — Campus Central</title>
 
-    <!-- Master Config -->
+    <!-- Master Config: Provides API_BASE_URL -->
     <script src="js/config.js"></script>
 
-    <!-- Font Awesome -->
+    <!-- Font Awesome: For icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
-    <!-- Razorpay Config (contains RAZORPAY_KEY_ID) -->
+    <!-- Razorpay Config: Contains RAZORPAY_KEY_ID and helper functions -->
     <script src="js/razorpay-config.js"></script>
 
     <style>
@@ -254,6 +254,38 @@
 
     <script>
         // ============================================================
+        // 📌 HOW THIS PAGE WORKS (COMPLETE FLOW)
+        // ============================================================
+        // 1. This page is called from any feature page (Teacher, Celebration, etc.)
+        // 2. URL parameters define the payment:
+        //    - amount: The amount to pay (in rupees)
+        //    - group_id: The group/job ID to activate after payment
+        //    - type: The group type (teacher, celebration, feature, etc.)
+        //    - service: Display name of the service
+        //    - success_url: Where to redirect after successful payment
+        // 3. The page creates a Razorpay order using the backend API
+        // 4. The user completes the payment via Razorpay
+        // 5. The payment is verified via the backend API
+        // 6. On success, the user is redirected to the success_url
+        //
+        // 📋 EXAMPLE USAGE (on any feature page):
+        // ============================================================
+        // <button onclick="startPayment()">Pay ₹49</button>
+        // <script>
+        // function startPayment() {
+        //     // Create a group/order first (or reuse existing)
+        //     const groupId = "grp_" + Date.now();
+        //     const amount = 49;
+        //     const service = "Premium Feature";
+        //     
+        //     window.location.href = `payment.html?amount=${amount}&group_id=${groupId}&type=feature&service=${service}&success_url=student_dashboard.html`;
+        // }
+        // </script>
+        // ============================================================
+        // ✅ This page works with ALL revenue-generating features
+        // ============================================================
+
+        // ============================================================
         // CONFIGURATION
         // ============================================================
         const API_BASE = window.ACTIVE_CONFIG?.API_BASE_URL || 'http://localhost:8000/api';
@@ -266,12 +298,15 @@
             return url.searchParams.get(name);
         }
 
-        const amount = parseInt(getParam('amount')) || 0;
-        const groupId = getParam('group_id') || getParam('groupId') || null;
-        const groupType = getParam('type') || getParam('group_type') || 'service';
-        const serviceName = getParam('service') || getParam('name') || 'Service Activation';
-        const successUrl = getParam('success_url') || 'student_dashboard.html';
-        const cancelUrl = getParam('cancel_url') || 'javascript:history.back()';
+        // --- Required Parameters ---
+        const amount = parseInt(getParam('amount')) || 0;               // Amount in rupees
+        const groupId = getParam('group_id') || getParam('groupId') || null; // Group/Job ID
+        const groupType = getParam('type') || getParam('group_type') || 'service'; // Service type
+
+        // --- Optional Parameters ---
+        const serviceName = getParam('service') || getParam('name') || 'Service Activation'; // Display name
+        const successUrl = getParam('success_url') || 'student_dashboard.html'; // Redirect on success
+        const cancelUrl = getParam('cancel_url') || 'javascript:history.back()'; // Redirect on cancel
 
         // ============================================================
         // DOM ELEMENTS
@@ -288,6 +323,7 @@
         // RENDER PAGE
         // ============================================================
         function renderPage() {
+            // Display amount and service name
             displayAmount.innerText = amount || '0';
             displayService.innerText = serviceName || '—';
             detailService.innerText = serviceName || '—';
@@ -295,6 +331,7 @@
             detailStatus.innerText = 'Pending';
             detailStatus.style.color = '#e67e22';
 
+            // Validate required fields
             if (!amount || amount <= 0) {
                 payBtn.disabled = true;
                 payBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Invalid Amount';
@@ -362,9 +399,10 @@
         }
 
         // ============================================================
-        // INITIATE PAYMENT
+        // INITIATE PAYMENT (CORE LOGIC)
         // ============================================================
         async function initiatePayment() {
+            // --- Validation ---
             if (!amount || amount <= 0) {
                 alert('Invalid payment amount');
                 return;
@@ -382,11 +420,20 @@
                 return;
             }
 
+            // --- Show loading state ---
             payBtn.disabled = true;
             payBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Initializing...';
 
             try {
-                // Step 1: Create Razorpay Order
+                // ============================================================
+                // STEP 1: Create Razorpay Order via Backend
+                // ============================================================
+                // The backend:
+                // 1. Verifies the group exists and belongs to the user
+                // 2. Creates a Razorpay order
+                // 3. Saves the payment record in the database with status 'pending'
+                // 4. Returns the order_id and key to the frontend
+                // ============================================================
                 const orderRes = await fetch(`${API_BASE}/payment/create-order`, {
                     method: 'POST',
                     headers: {
@@ -407,13 +454,25 @@
 
                 const orderData = await orderRes.json();
 
-                // Step 2: Load Razorpay SDK
+                // ============================================================
+                // STEP 2: Load Razorpay SDK
+                // ============================================================
                 await loadRazorpayScript();
 
-                // Step 3: Get current user
+                // ============================================================
+                // STEP 3: Get current user details
+                // ============================================================
                 const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
 
-                // Step 4: Open Razorpay Checkout
+                // ============================================================
+                // STEP 4: Open Razorpay Checkout
+                // ============================================================
+                // Razorpay will:
+                // 1. Show the payment UI to the user
+                // 2. Collect payment details
+                // 3. Process the payment
+                // 4. Call the handler function with the payment response
+                // ============================================================
                 const options = {
                     key: orderData.key,
                     amount: orderData.amount * 100,
@@ -428,6 +487,14 @@
                     },
                     theme: { color: '#e67e22' },
                     handler: async function(response) {
+                        // ============================================================
+                        // STEP 5: Verify Payment (Called after successful payment)
+                        // ============================================================
+                        // This is the critical step where the backend verifies:
+                        // 1. The payment signature (to ensure it's genuine)
+                        // 2. The payment record exists in the database
+                        // 3. The group is activated
+                        // ============================================================
                         showResult('⏳ Verifying payment...', 'success');
 
                         try {
@@ -449,6 +516,15 @@
                             const verifyData = await verifyRes.json();
 
                             if (verifyData.success) {
+                                // ============================================================
+                                // STEP 6: Payment Success — Redirect to success_url
+                                // ============================================================
+                                // The backend has:
+                                // 1. Verified the signature
+                                // 2. Updated the payment status to 'success'
+                                // 3. Activated the group (status = 'active')
+                                // Now we redirect the user to the dashboard or success page
+                                // ============================================================
                                 showResult('✅ Payment successful! Redirecting...', 'success');
                                 createConfetti();
 
@@ -480,11 +556,11 @@
         }
 
         // ============================================================
-        // INIT
+        // INIT — Render the page on load
         // ============================================================
         renderPage();
 
-        // Expose for inline onclick
+        // Expose function for inline onclick
         window.initiatePayment = initiatePayment;
     </script>
 

@@ -1,20 +1,35 @@
 """
 backend/app/config.py
-Phase 1 version: Initial deployment (June 18, 2026) - core app settings.
-Phase 2 update: Added TEST_MODE and TEST_PHONE_NUMBERS for OTP bypass during development/testing.
-Docstrings added for all settings.
+Campus Central API - Configuration & Secrets Management
+
+Phase 1 (June 18, 2026): Core app settings.
+Phase 2 (June 19, 2026): Added TEST_MODE and TEST_PHONE_NUMBERS for OTP bypass.
+Phase 3 (June 25, 2026): Integrated Azure Key Vault for secure secret management.
+                         Database migrated from SQLite to Azure SQL.
+                         Secrets now fetched from Key Vault with fallback to env vars.
 """
 
 import os
 from dotenv import load_dotenv
+from azure.identity import DefaultAzureCredential
+from azure.keyvault.secrets import SecretClient
 
-# Load environment variables from .env file
+# Load environment variables from .env file (for local development)
 load_dotenv()
+
 
 class Settings:
     """
-    Application settings loaded from environment variables.
-    All settings can be overridden by setting environment variables.
+    Application settings loaded from environment variables and Azure Key Vault.
+    
+    For production: Secrets are fetched from Azure Key Vault.
+    For local development: Falls back to environment variables or .env file.
+    
+    To use Key Vault in production, set these environment variables:
+    - AZURE_KEY_VAULT_URL: The URL of your Key Vault instance
+    - AZURE_TENANT_ID: Your Azure AD tenant ID (for authentication)
+    - AZURE_CLIENT_ID: Service principal client ID (if using SP)
+    - AZURE_CLIENT_SECRET: Service principal secret (if using SP)
     """
     
     # ========== APP SETTINGS ==========
@@ -24,17 +39,107 @@ class Settings:
     APP_VERSION: str = "1.0.0"
     """Version of the application."""
     
-    DEBUG: bool = os.getenv("DEBUG", "True").lower() == "true"
+    DEBUG: bool = os.getenv("DEBUG", "False").lower() == "true"
     """Enable debug mode. Set to 'false' in production."""
     
-    # ========== DATABASE ==========
-    #DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./campus_central.db")
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:////home/site/wwwroot/campus_central.db")
-    """Database connection URL. Supports SQLite, PostgreSQL, etc."""
+    # ========== KEY VAULT CONFIGURATION ==========
+    KEY_VAULT_URL: str = os.getenv("AZURE_KEY_VAULT_URL", "https://campuscentral-keyvault.vault.azure.net/")
+    """Azure Key Vault URL for fetching secrets in production."""
+    
+    # Initialize Key Vault client (lazy-loaded to avoid startup failures in local dev)
+    _secret_client = None
+    
+    @classmethod
+    def _get_secret_client(cls):
+        """
+        Lazy-initialize the Key Vault client.
+        
+        Returns:
+            SecretClient or None: The Key Vault client if initialized successfully.
+        """
+        if cls._secret_client is None:
+            try:
+                credential = DefaultAzureCredential()
+                cls._secret_client = SecretClient(vault_url=cls.KEY_VAULT_URL, credential=credential)
+            except Exception as e:
+                print(f"⚠️ Failed to initialize Key Vault client: {e}")
+                cls._secret_client = None
+        return cls._secret_client
+    
+    @classmethod
+    def _get_secret(cls, secret_name: str, fallback: str = None) -> str:
+        """
+        Fetch a secret from Azure Key Vault with fallback to environment variable.
+        
+        Args:
+            secret_name: Name of the secret in Key Vault.
+            fallback: Fallback value if secret cannot be fetched.
+            
+        Returns:
+            str: The secret value or fallback.
+        """
+        client = cls._get_secret_client()
+        if client:
+            try:
+                return client.get_secret(secret_name).value
+            except Exception as e:
+                print(f"⚠️ Failed to fetch secret '{secret_name}': {e}")
+        # Fallback to environment variable
+        env_value = os.getenv(secret_name)
+        if env_value:
+            return env_value
+        if fallback:
+            return fallback
+        print(f"⚠️ No value found for '{secret_name}'. Using empty string.")
+        return ""
+    
+    # ========== DATABASE (Azure SQL) ==========
+    DB_USER: str = os.getenv("DB_USER", "campusadmin")
+    """Azure SQL database username."""
+    
+    DB_HOST: str = os.getenv("DB_HOST", "campuscentral-sql-server.database.windows.net")
+    """Azure SQL server hostname."""
+    
+    DB_NAME: str = os.getenv("DB_NAME", "campuscentral_sql_db")
+    """Azure SQL database name."""
+    
+    DB_DRIVER: str = os.getenv("DB_DRIVER", "ODBC Driver 18 for SQL Server")
+    """ODBC driver for Azure SQL connection."""
+    
+    # Fetch password from Key Vault (fallback to env var)
+    DB_PASSWORD: str = _get_secret.__func__(
+        Settings, "DB-Password", 
+        fallback=os.getenv("DB_PASSWORD", "")
+    )
+    """Azure SQL database password (fetched from Key Vault)."""
+    
+    # ========== DATABASE URL (DYNAMIC) ==========
+    @property
+    def DATABASE_URL(self) -> str:
+        """
+        Build the Azure SQL connection URL using fetched credentials.
+        Falls back to SQLite for local development if Key Vault is unavailable.
+        
+        Returns:
+            str: The database connection URL.
+        """
+        if self.DB_PASSWORD and self.DB_HOST:
+            return (
+                f"mssql+pyodbc://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}/{self.DB_NAME}"
+                f"?driver={self.DB_DRIVER}&Encrypt=yes&TrustServerCertificate=no&ConnectionTimeout=30"
+            )
+        # Fallback to SQLite for local development
+        sqlite_path = os.getenv("SQLITE_PATH", "sqlite:///./campus_central.db")
+        print("⚠️ Using SQLite fallback (Azure SQL credentials not available)")
+        return sqlite_path
     
     # ========== SECURITY ==========
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "your-super-secret-key-change-in-production")
-    """Secret key for JWT token signing. Must be changed in production."""
+    # Fetch JWT secret from Key Vault (fallback to env var)
+    JWT_SECRET: str = _get_secret.__func__(
+        Settings, "JWT-Secret",
+        fallback=os.getenv("JWT_SECRET", "your-super-secret-key-change-in-production")
+    )
+    """Secret key for JWT token signing (fetched from Key Vault)."""
     
     ALGORITHM: str = "HS256"
     """JWT signing algorithm."""
@@ -87,14 +192,24 @@ class Settings:
     # Above 60 = LUCKY
     
     # ========== RAZORPAY PAYMENT SETTINGS ==========
-    RAZORPAY_KEY_ID: str = os.getenv("RAZORPAY_KEY_ID", "rzp_test_T0KRH1p12BN6S3")
-    """Razorpay API Key ID for payment processing."""
+    # Fetch Razorpay keys from Key Vault (fallback to env var)
+    RAZORPAY_KEY_ID: str = _get_secret.__func__(
+        Settings, "Razorpay-KeyId",
+        fallback=os.getenv("RAZORPAY_KEY_ID", "rzp_test_T0KRH1p12BN6S3")
+    )
+    """Razorpay API Key ID for payment processing (fetched from Key Vault)."""
     
-    RAZORPAY_KEY_SECRET: str = os.getenv("RAZORPAY_KEY_SECRET", "13NK59ubLhjQAp75VzkLm803")
-    """Razorpay API Key Secret for payment processing."""
+    RAZORPAY_KEY_SECRET: str = _get_secret.__func__(
+        Settings, "Razorpay-KeySecret",
+        fallback=os.getenv("RAZORPAY_KEY_SECRET", "13NK59ubLhjQAp75VzkLm803")
+    )
+    """Razorpay API Key Secret for payment processing (fetched from Key Vault)."""
     
-    RAZORPAY_WEBHOOK_SECRET: str = os.getenv("RAZORPAY_WEBHOOK_SECRET", "your_webhook_secret_here")
-    """Razorpay webhook secret for verifying webhook signatures."""
+    RAZORPAY_WEBHOOK_SECRET: str = _get_secret.__func__(
+        Settings, "Razorpay-Webhook-Secret",
+        fallback=os.getenv("RAZORPAY_WEBHOOK_SECRET", "your_webhook_secret_here")
+    )
+    """Razorpay webhook secret for verifying webhook signatures (fetched from Key Vault)."""
     
     # ========== TEST MODE (Phase 2 - Added June 19, 2026) ==========
     TEST_MODE: bool = os.getenv("TEST_MODE", "false").lower() == "true"
@@ -112,4 +227,13 @@ class Settings:
     """
 
 
+# ========== CREATE SETTINGS INSTANCE ==========
 settings = Settings()
+
+# ========== DEVELOPMENT HELPER ==========
+if settings.DEBUG:
+    print("🔧 Running in DEBUG mode")
+    print(f"   Database: {settings.DATABASE_URL.split('@')[0] if '@' in settings.DATABASE_URL else 'SQLite'}")
+    print(f"   TEST_MODE: {settings.TEST_MODE}")
+    if settings.TEST_MODE:
+        print(f"   TEST_PHONE_NUMBERS: {settings.TEST_PHONE_NUMBERS}")

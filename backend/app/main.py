@@ -1,6 +1,13 @@
 """
 backend/app/main.py
-Updated: CORS fix + Azure deployment stability + preflight handling
+Campus Central API - FastAPI entry point
+
+Phase 1 (June 18, 2026): Initial deployment.
+Phase 2 (June 19, 2026): CORS fix + Azure deployment stability + preflight handling.
+Phase 3 (June 25, 2026): Azure Key Vault integration for secrets.
+                         Azure SQL Database (replaces SQLite).
+                         JWT_SECRET now fetched from Key Vault.
+                         Database URL built dynamically from Key Vault secrets.
 """
 
 from fastapi import FastAPI, Depends, Request
@@ -10,9 +17,17 @@ from fastapi.responses import Response
 from sqlalchemy.orm import Session
 import os
 import time
+import logging
 
 from app.config import settings
 from app.database import engine, Base, get_db
+
+# ========== LOGGING SETUP ==========
+logging.basicConfig(
+    level=logging.DEBUG if settings.DEBUG else logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 # ============================================================
 # IMPORT ALL MODELS (REQUIRED FOR TABLE CREATION)
@@ -34,13 +49,14 @@ from app.models import (
 )
 
 # ============================================================
-# CREATE TABLES
+# CREATE TABLES (Azure SQL or SQLite fallback)
 # ============================================================
-Base.metadata.create_all(bind=engine)
-
-# ✅ DEBUG: Confirm Payment table exists
-print(f"✅ Payment table exists: {Payment.__tablename__}")
-print(f"✅ All database tables created successfully")
+try:
+    Base.metadata.create_all(bind=engine)
+    logger.info("✅ Database tables created/verified successfully")
+    logger.info(f"   Database: {'Azure SQL' if 'mssql' in settings.DATABASE_URL else 'SQLite (fallback)'}")
+except Exception as e:
+    logger.error(f"❌ Failed to create database tables: {e}")
 
 # ============================================================
 # FASTAPI APP
@@ -48,7 +64,9 @@ print(f"✅ All database tables created successfully")
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
-    debug=settings.DEBUG
+    debug=settings.DEBUG,
+    docs_url="/docs" if settings.DEBUG else None,
+    redoc_url="/redoc" if settings.DEBUG else None,
 )
 
 # ============================================================
@@ -56,13 +74,7 @@ app = FastAPI(
 # ============================================================
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5500",
-        "http://127.0.0.1:5500",
-        "https://www.mycampuscentral.in",
-        "https://mycampuscentral.in",
-        "https://lcp-backend-app.azurewebsites.net",
-    ],
+    allow_origins=settings.ALLOWED_ORIGINS,  # ✅ Uses your updated list from config.py
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -73,10 +85,11 @@ app.add_middleware(
 # ============================================================
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
+    """Log all incoming requests with method, path, status, and duration."""
     start = time.time()
     response = await call_next(request)
     duration = (time.time() - start) * 1000
-    print(f"{request.method} {request.url.path} -> {response.status_code} ({duration:.0f}ms)")
+    logger.info(f"{request.method} {request.url.path} -> {response.status_code} ({duration:.0f}ms)")
     return response
 
 # ============================================================
@@ -84,6 +97,7 @@ async def log_requests(request: Request, call_next):
 # ============================================================
 @app.options("/{path:path}")
 async def preflight_handler(path: str):
+    """Handle CORS preflight OPTIONS requests."""
     return Response(status_code=200)
 
 # ============================================================
@@ -140,6 +154,7 @@ from routers import (
 
 from routers.payment import router as payment_router
 
+# ========== INCLUDE ALL ROUTERS ==========
 app.include_router(auth.router)
 app.include_router(groups.router)
 app.include_router(dashboard.router)
@@ -166,24 +181,38 @@ app.include_router(mood_memory.router)
 app.include_router(friend_search.router)
 
 # ============================================================
-# ROOT
+# ROOT ENDPOINT
 # ============================================================
 @app.get("/")
 def root():
-    return {"message": "Welcome to Campus Central API", "status": "running"}
+    """Root endpoint with database status."""
+    return {
+        "message": "Welcome to Campus Central API",
+        "status": "running",
+        "database": "Azure SQL" if "mssql" in settings.DATABASE_URL else "SQLite (fallback)",
+        "version": settings.APP_VERSION
+    }
 
 # ============================================================
 # HEALTH CHECK
 # ============================================================
 @app.get("/health")
 def health():
-    return {"status": "healthy"}
+    """Health check endpoint for Azure monitoring."""
+    return {
+        "status": "healthy",
+        "database": "Azure SQL" if "mssql" in settings.DATABASE_URL else "SQLite (fallback)"
+    }
 
 # ============================================================
 # PUBLIC JOIN
 # ============================================================
 @app.get("/join/{group_id}")
 def join_group(group_id: str, db: Session = Depends(get_db)):
+    """
+    Public endpoint to check group details before joining.
+    Returns group type and member count.
+    """
     from app.models import TeacherGroup, CelebrationGroup, GroupMember
 
     teacher = db.query(TeacherGroup).filter_by(group_id=group_id).first()
@@ -213,6 +242,7 @@ def join_group(group_id: str, db: Session = Depends(get_db)):
 # ============================================================
 @app.get("/api/version")
 def version():
+    """Returns the current API version and available features."""
     return {
         "version": settings.APP_VERSION,
         "features": [
@@ -222,6 +252,7 @@ def version():
             "Mood & Memory",
             "Find My Friend",
         ],
+        "database": "Azure SQL" if "mssql" in settings.DATABASE_URL else "SQLite (fallback)"
     }
 
 # ============================================================
@@ -229,14 +260,16 @@ def version():
 # ============================================================
 @app.get("/init-db")
 def init_database():
-    """One-time endpoint to create all tables."""
-    Base.metadata.create_all(bind=engine)
-    return {"status": "✅ All tables created successfully"}
+    """One-time endpoint to create all tables (useful for first deployment)."""
+    try:
+        Base.metadata.create_all(bind=engine)
+        return {"status": "✅ All tables created successfully"}
+    except Exception as e:
+        return {"status": "❌ Failed to create tables", "error": str(e)}
 
 # ============================================================
 # RUN LOCALLY ONLY
 # ============================================================
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
