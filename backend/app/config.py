@@ -235,7 +235,7 @@ def get_database_url() -> str:
             f"&Encrypt=yes"
             f"&TrustServerCertificate=no"
             f"&ConnectionTimeout=30"
-            f"&Authentication=ActiveDirectoryManagedIdentity"
+            f"&Authentication=ActiveDirectoryMSI"
         )
     sqlite_path = os.getenv("SQLITE_PATH", "sqlite:///./campus_central.db")
     print("⚠️ Using SQLite fallback (Azure SQL credentials not available)")
