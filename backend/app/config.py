@@ -244,7 +244,19 @@ settings.DATABASE_URL = get_database_url()
 # ========== DEVELOPMENT HELPER ==========
 if settings.DEBUG:
     print("🔧 Running in DEBUG mode")
-    print(f"   Database: {settings.DATABASE_URL.split('@')[0] if '@' in settings.DATABASE_URL else 'SQLite'}")
+    # ✅ Mask password in database URL
+    db_url = settings.DATABASE_URL
+    if '@' in db_url:
+        # Split at @ to separate credentials from host
+        parts = db_url.split('@')
+        # Mask the password part (between : and @)
+        if '://' in parts[0]:
+            protocol = parts[0].split('://')[0] + '://'
+            creds = parts[0].split('://')[1]
+            if ':' in creds:
+                user = creds.split(':')[0]
+                db_url = f"{protocol}{user}:****@{parts[1]}"
+    print(f"   Database: {db_url}")
     print(f"   TEST_MODE: {settings.TEST_MODE}")
     if settings.TEST_MODE:
         print(f"   TEST_PHONE_NUMBERS: {settings.TEST_PHONE_NUMBERS}")
