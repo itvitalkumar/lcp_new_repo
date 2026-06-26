@@ -18,7 +18,7 @@ from typing import List, Dict, Any
 import logging
 
 # CORRECT imports - from app, not from ..app
-from app.database import get_db, retry_on_db_error
+from app.database import get_db, retry_database_operation
 from app.models import User, TeacherGroup, CelebrationGroup, GroupMember, SuccessStory, Payment
 from app.auth import get_current_admin
 
@@ -70,24 +70,24 @@ def get_admin_dashboard(
         from datetime import datetime, timedelta
         
         # ✅ Count all entities with retry
-        total_users = retry_on_db_error(lambda: db.query(User).count())
-        total_teacher_groups = retry_on_db_error(lambda: db.query(TeacherGroup).count())
-        total_celebration_groups = retry_on_db_error(lambda: db.query(CelebrationGroup).count())
+        total_users = retry_database_operation(lambda: db.query(User).count())
+        total_teacher_groups = retry_database_operation(lambda: db.query(TeacherGroup).count())
+        total_celebration_groups = retry_database_operation(lambda: db.query(CelebrationGroup).count())
         
-        total_active_groups = retry_on_db_error(
+        total_active_groups = retry_database_operation(
             lambda: db.query(TeacherGroup).filter(TeacherGroup.status == "active").count()
-        ) + retry_on_db_error(
+        ) + retry_database_operation(
             lambda: db.query(CelebrationGroup).filter(CelebrationGroup.status == "active").count()
         )
         
-        total_stories = retry_on_db_error(lambda: db.query(SuccessStory).count())
-        pending_stories = retry_on_db_error(
+        total_stories = retry_database_operation(lambda: db.query(SuccessStory).count())
+        pending_stories = retry_database_operation(
             lambda: db.query(SuccessStory).filter(SuccessStory.is_approved == False).count()
         )
         
         # Recent users (last 7 days)
         week_ago = datetime.utcnow() - timedelta(days=7)
-        recent_users = retry_on_db_error(
+        recent_users = retry_database_operation(
             lambda: db.query(User).filter(User.created_at >= week_ago).count()
         )
         
@@ -134,7 +134,7 @@ def get_all_users(
     
     try:
         # ✅ Get users with retry
-        users = retry_on_db_error(
+        users = retry_database_operation(
             lambda: db.query(User).offset(skip).limit(limit).all()
         )
         
@@ -184,7 +184,7 @@ def search_users(
     try:
         search_term = f"%{query}%"
         
-        users = retry_on_db_error(
+        users = retry_database_operation(
             lambda: db.query(User).filter(
                 (User.full_name.ilike(search_term)) |
                 (User.email.ilike(search_term)) |
@@ -217,7 +217,9 @@ def search_users(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred. Please try again."
         )
-    # ============================================================
+
+
+# ============================================================
 # GET ALL TEACHER GROUPS
 # ============================================================
 @router.get("/groups/teacher")
@@ -235,18 +237,18 @@ def get_all_teacher_groups(
     logger.info(f"📁 Admin fetching teacher groups: skip={skip}, limit={limit}")
     
     try:
-        groups = retry_on_db_error(
+        groups = retry_database_operation(
             lambda: db.query(TeacherGroup).offset(skip).limit(limit).all()
         )
         
         result = []
         for g in groups:
-            member_count = retry_on_db_error(
+            member_count = retry_database_operation(
                 lambda: db.query(GroupMember).filter(GroupMember.teacher_group_id == g.id).count()
             )
             
             # ✅ Get creator name
-            creator = retry_on_db_error(
+            creator = retry_database_operation(
                 lambda: db.query(User).filter(User.id == g.created_by).first()
             )
             
@@ -298,18 +300,18 @@ def get_all_celebration_groups(
     logger.info(f"📁 Admin fetching celebration groups: skip={skip}, limit={limit}")
     
     try:
-        groups = retry_on_db_error(
+        groups = retry_database_operation(
             lambda: db.query(CelebrationGroup).offset(skip).limit(limit).all()
         )
         
         result = []
         for g in groups:
-            member_count = retry_on_db_error(
+            member_count = retry_database_operation(
                 lambda: db.query(GroupMember).filter(GroupMember.celebration_group_id == g.id).count()
             )
             
             # ✅ Get creator name
-            creator = retry_on_db_error(
+            creator = retry_database_operation(
                 lambda: db.query(User).filter(User.id == g.created_by).first()
             )
             
@@ -361,7 +363,7 @@ def delete_user(
     
     try:
         # ✅ Get user with retry
-        user = retry_on_db_error(
+        user = retry_database_operation(
             lambda: db.query(User).filter(User.id == user_id).first()
         )
         
@@ -376,22 +378,22 @@ def delete_user(
         
         # ✅ Delete related records (cascade)
         # Delete group memberships
-        retry_on_db_error(
+        retry_database_operation(
             lambda: db.query(GroupMember).filter(GroupMember.user_id == user_id).delete()
         )
         
         # Delete messages
-        retry_on_db_error(
+        retry_database_operation(
             lambda: db.query(Message).filter(Message.user_id == user_id).delete()
         )
         
         # Delete payments
-        retry_on_db_error(
+        retry_database_operation(
             lambda: db.query(Payment).filter(Payment.user_id == user_id).delete()
         )
         
         # Delete social posts
-        retry_on_db_error(
+        retry_database_operation(
             lambda: db.query(SocialPost).filter(SocialPost.user_id == user_id).delete()
         )
         
@@ -439,7 +441,7 @@ def delete_group(
     
     try:
         if group_type == "teacher":
-            group = retry_on_db_error(
+            group = retry_database_operation(
                 lambda: db.query(TeacherGroup).filter(TeacherGroup.group_id == group_id).first()
             )
             if not group:
@@ -447,19 +449,19 @@ def delete_group(
                 raise HTTPException(status_code=404, detail="Teacher group not found")
             
             # ✅ Delete related memberships
-            retry_on_db_error(
+            retry_database_operation(
                 lambda: db.query(GroupMember).filter(GroupMember.teacher_group_id == group.id).delete()
             )
             
             # ✅ Delete related messages
-            retry_on_db_error(
+            retry_database_operation(
                 lambda: db.query(Message).filter(Message.teacher_group_id == group.id).delete()
             )
             
             db.delete(group)
             
         elif group_type == "celebration":
-            group = retry_on_db_error(
+            group = retry_database_operation(
                 lambda: db.query(CelebrationGroup).filter(CelebrationGroup.group_id == group_id).first()
             )
             if not group:
@@ -467,12 +469,12 @@ def delete_group(
                 raise HTTPException(status_code=404, detail="Celebration group not found")
             
             # ✅ Delete related memberships
-            retry_on_db_error(
+            retry_database_operation(
                 lambda: db.query(GroupMember).filter(GroupMember.celebration_group_id == group.id).delete()
             )
             
             # ✅ Delete related messages
-            retry_on_db_error(
+            retry_database_operation(
                 lambda: db.query(Message).filter(Message.celebration_group_id == group.id).delete()
             )
             
@@ -524,7 +526,7 @@ def export_users_csv(
         from io import StringIO
         
         # ✅ Get all users with retry
-        users = retry_on_db_error(lambda: db.query(User).all())
+        users = retry_database_operation(lambda: db.query(User).all())
         
         # Create CSV in memory
         output = StringIO()

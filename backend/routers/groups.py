@@ -18,7 +18,7 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 import logging
 
-from app.database import get_db, retry_on_db_error, check_database_health
+from app.database import get_db, retry_database_operation, check_database_health
 from app.models import User, TeacherGroup, CelebrationGroup, GroupMember, Payment
 from app.schemas import (
     TeacherGroupCreate, TeacherGroupResponse, TeacherLuckyGameSubmit,
@@ -86,8 +86,6 @@ def lucky_game(request: LuckyGameRequest):
         label=result["label"],
         message=result["message"]
     )
-
-
 # ============================================================
 # CREATE GROUP (Auto-detect type)
 # ============================================================
@@ -211,7 +209,7 @@ def update_group_privacy(
         raise HTTPException(status_code=400, detail="group_id is required")
     
     try:
-        teacher_group = retry_on_db_error(
+        teacher_group = retry_database_operation(
             lambda: db.query(TeacherGroup).filter(TeacherGroup.group_id == group_id).first()
         )
         if teacher_group:
@@ -229,7 +227,7 @@ def update_group_privacy(
                 "message": f"Group privacy updated to {'public' if is_public else 'private'}"
             }
         
-        celebration_group = retry_on_db_error(
+        celebration_group = retry_database_operation(
             lambda: db.query(CelebrationGroup).filter(CelebrationGroup.group_id == group_id).first()
         )
         if celebration_group:
@@ -275,7 +273,7 @@ def get_my_groups(
         groups_list = []
         
         # ✅ Retry on transient database errors
-        teacher_memberships = retry_on_db_error(
+        teacher_memberships = retry_database_operation(
             lambda: db.query(GroupMember).filter(
                 GroupMember.user_id == current_user.id,
                 GroupMember.group_type == "teacher"
@@ -283,11 +281,11 @@ def get_my_groups(
         )
         
         for membership in teacher_memberships:
-            group = retry_on_db_error(
+            group = retry_database_operation(
                 lambda: db.query(TeacherGroup).filter(TeacherGroup.id == membership.teacher_group_id).first()
             )
             if group:
-                member_count = retry_on_db_error(
+                member_count = retry_database_operation(
                     lambda: db.query(GroupMember).filter(
                         GroupMember.teacher_group_id == group.id
                     ).count()
@@ -308,7 +306,7 @@ def get_my_groups(
                     "is_public": group.is_public
                 })
         
-        celebration_memberships = retry_on_db_error(
+        celebration_memberships = retry_database_operation(
             lambda: db.query(GroupMember).filter(
                 GroupMember.user_id == current_user.id,
                 GroupMember.group_type == "celebration"
@@ -316,11 +314,11 @@ def get_my_groups(
         )
         
         for membership in celebration_memberships:
-            group = retry_on_db_error(
+            group = retry_database_operation(
                 lambda: db.query(CelebrationGroup).filter(CelebrationGroup.id == membership.celebration_group_id).first()
             )
             if group:
-                member_count = retry_on_db_error(
+                member_count = retry_database_operation(
                     lambda: db.query(GroupMember).filter(
                         GroupMember.celebration_group_id == group.id
                     ).count()
@@ -370,14 +368,14 @@ def delete_group(
     group_id = group_data.get("group_id")
     
     try:
-        teacher_group = retry_on_db_error(
+        teacher_group = retry_database_operation(
             lambda: db.query(TeacherGroup).filter(TeacherGroup.group_id == group_id).first()
         )
         if teacher_group:
             if teacher_group.created_by != current_user.id:
                 raise HTTPException(status_code=403, detail="Only creator can delete this group")
             
-            retry_on_db_error(
+            retry_database_operation(
                 lambda: db.query(GroupMember).filter(GroupMember.teacher_group_id == teacher_group.id).delete()
             )
             db.delete(teacher_group)
@@ -385,14 +383,14 @@ def delete_group(
             logger.info(f"✅ Teacher group deleted: {group_id} by user {current_user.id}")
             return {"success": True, "message": "Group deleted successfully"}
         
-        celebration_group = retry_on_db_error(
+        celebration_group = retry_database_operation(
             lambda: db.query(CelebrationGroup).filter(CelebrationGroup.group_id == group_id).first()
         )
         if celebration_group:
             if celebration_group.created_by != current_user.id:
                 raise HTTPException(status_code=403, detail="Only creator can delete this group")
             
-            retry_on_db_error(
+            retry_database_operation(
                 lambda: db.query(GroupMember).filter(GroupMember.celebration_group_id == celebration_group.id).delete()
             )
             db.delete(celebration_group)
@@ -414,9 +412,7 @@ def delete_group(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred. Please try again."
         )
-
-
-# ============================================================
+    # ============================================================
 # LEAVE GROUP
 # ============================================================
 @router.post("/leave")
@@ -430,11 +426,11 @@ def leave_group(
     group_id = leave_data.get("group_id")
     
     try:
-        teacher_group = retry_on_db_error(
+        teacher_group = retry_database_operation(
             lambda: db.query(TeacherGroup).filter(TeacherGroup.group_id == group_id).first()
         )
         if teacher_group:
-            membership = retry_on_db_error(
+            membership = retry_database_operation(
                 lambda: db.query(GroupMember).filter(
                     GroupMember.teacher_group_id == teacher_group.id,
                     GroupMember.user_id == current_user.id
@@ -449,11 +445,11 @@ def leave_group(
             logger.info(f"✅ User {current_user.id} left teacher group: {group_id}")
             return {"success": True, "message": "You left the group"}
         
-        celebration_group = retry_on_db_error(
+        celebration_group = retry_database_operation(
             lambda: db.query(CelebrationGroup).filter(CelebrationGroup.group_id == group_id).first()
         )
         if celebration_group:
-            membership = retry_on_db_error(
+            membership = retry_database_operation(
                 lambda: db.query(GroupMember).filter(
                     GroupMember.celebration_group_id == celebration_group.id,
                     GroupMember.user_id == current_user.id
@@ -498,7 +494,7 @@ def search_groups_alias(
         results = []
         
         if teacher_name:
-            teacher_groups = retry_on_db_error(
+            teacher_groups = retry_database_operation(
                 lambda: db.query(TeacherGroup).filter(
                     TeacherGroup.teacher_name.ilike(f"%{teacher_name}%"),
                     TeacherGroup.status == "active"
@@ -506,7 +502,7 @@ def search_groups_alias(
             )
             
             for group in teacher_groups:
-                member_count = retry_on_db_error(
+                member_count = retry_database_operation(
                     lambda: db.query(GroupMember).filter(
                         GroupMember.teacher_group_id == group.id
                     ).count()
@@ -521,7 +517,7 @@ def search_groups_alias(
                     "status": group.status
                 })
             
-            celebration_groups = retry_on_db_error(
+            celebration_groups = retry_database_operation(
                 lambda: db.query(CelebrationGroup).filter(
                     CelebrationGroup.title.ilike(f"%{teacher_name}%"),
                     CelebrationGroup.status == "active"
@@ -529,7 +525,7 @@ def search_groups_alias(
             )
             
             for group in celebration_groups:
-                member_count = retry_on_db_error(
+                member_count = retry_database_operation(
                     lambda: db.query(GroupMember).filter(
                         GroupMember.celebration_group_id == group.id
                     ).count()
@@ -621,7 +617,7 @@ def submit_teacher_lucky_game(
     """Submit lucky game result and activate teacher group"""
     
     try:
-        group = retry_on_db_error(
+        group = retry_database_operation(
             lambda: db.query(TeacherGroup).filter(
                 TeacherGroup.group_id == submission.group_id,
                 TeacherGroup.created_by == current_user.id
@@ -668,7 +664,7 @@ def activate_teacher_group(
     """Activate teacher group after payment"""
     
     try:
-        group = retry_on_db_error(
+        group = retry_database_operation(
             lambda: db.query(TeacherGroup).filter(
                 TeacherGroup.group_id == group_id,
                 TeacherGroup.created_by == current_user.id
@@ -681,7 +677,7 @@ def activate_teacher_group(
         group.status = "active"
         db.commit()
         
-        existing_member = retry_on_db_error(
+        existing_member = retry_database_operation(
             lambda: db.query(GroupMember).filter(
                 GroupMember.teacher_group_id == group.id,
                 GroupMember.user_id == current_user.id
@@ -718,9 +714,7 @@ def activate_teacher_group(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred. Please try again."
         )
-
-
-# ============================================================
+    # ============================================================
 # CELEBRATION GROUP
 # ============================================================
 @router.post("/celebration/create", response_model=dict)
@@ -784,7 +778,7 @@ def submit_celebration_lucky_game(
     """Submit lucky game result and activate celebration group"""
     
     try:
-        group = retry_on_db_error(
+        group = retry_database_operation(
             lambda: db.query(CelebrationGroup).filter(
                 CelebrationGroup.group_id == submission.group_id,
                 CelebrationGroup.created_by == current_user.id
@@ -831,7 +825,7 @@ def activate_celebration_group(
     """Activate celebration group after payment"""
     
     try:
-        group = retry_on_db_error(
+        group = retry_database_operation(
             lambda: db.query(CelebrationGroup).filter(
                 CelebrationGroup.group_id == group_id,
                 CelebrationGroup.created_by == current_user.id
@@ -844,7 +838,7 @@ def activate_celebration_group(
         group.status = "active"
         db.commit()
         
-        existing_member = retry_on_db_error(
+        existing_member = retry_database_operation(
             lambda: db.query(GroupMember).filter(
                 GroupMember.celebration_group_id == group.id,
                 GroupMember.user_id == current_user.id
@@ -896,7 +890,7 @@ def join_group(
     
     try:
         if request.group_type == "teacher":
-            group = retry_on_db_error(
+            group = retry_database_operation(
                 lambda: db.query(TeacherGroup).filter(TeacherGroup.group_id == request.group_id).first()
             )
             
@@ -918,7 +912,7 @@ def join_group(
                     photos = []
             
             # Check if already a member
-            existing = retry_on_db_error(
+            existing = retry_database_operation(
                 lambda: db.query(GroupMember).filter(
                     GroupMember.teacher_group_id == group.id,
                     GroupMember.user_id == current_user.id,
@@ -926,7 +920,7 @@ def join_group(
                 ).first()
             )
             
-            member_count = retry_on_db_error(
+            member_count = retry_database_operation(
                 lambda: db.query(GroupMember).filter(
                     GroupMember.teacher_group_id == group.id,
                     GroupMember.group_type == "teacher"
@@ -998,7 +992,7 @@ def join_group(
                     "is_public": group.is_public
                 }
             
-            member_count = retry_on_db_error(
+            member_count = retry_database_operation(
                 lambda: db.query(GroupMember).filter(
                     GroupMember.teacher_group_id == group.id,
                     GroupMember.group_type == "teacher"
@@ -1032,9 +1026,8 @@ def join_group(
                 "status": group.status,
                 "is_public": group.is_public
             }
-        
-        elif request.group_type == "celebration":
-            group = retry_on_db_error(
+                elif request.group_type == "celebration":
+            group = retry_database_operation(
                 lambda: db.query(CelebrationGroup).filter(CelebrationGroup.group_id == request.group_id).first()
             )
             
@@ -1055,7 +1048,7 @@ def join_group(
                 except:
                     photos = []
             
-            existing = retry_on_db_error(
+            existing = retry_database_operation(
                 lambda: db.query(GroupMember).filter(
                     GroupMember.celebration_group_id == group.id,
                     GroupMember.user_id == current_user.id,
@@ -1063,7 +1056,7 @@ def join_group(
                 ).first()
             )
             
-            member_count = retry_on_db_error(
+            member_count = retry_database_operation(
                 lambda: db.query(GroupMember).filter(
                     GroupMember.celebration_group_id == group.id,
                     GroupMember.group_type == "celebration"
@@ -1135,7 +1128,7 @@ def join_group(
                     "is_public": group.is_public
                 }
             
-            member_count = retry_on_db_error(
+            member_count = retry_database_operation(
                 lambda: db.query(GroupMember).filter(
                     GroupMember.celebration_group_id == group.id,
                     GroupMember.group_type == "celebration"
@@ -1201,11 +1194,11 @@ def get_public_group_info(
     """
     
     try:
-        teacher_group = retry_on_db_error(
+        teacher_group = retry_database_operation(
             lambda: db.query(TeacherGroup).filter(TeacherGroup.group_id == group_id).first()
         )
         if teacher_group:
-            member_count = retry_on_db_error(
+            member_count = retry_database_operation(
                 lambda: db.query(GroupMember).filter(
                     GroupMember.teacher_group_id == teacher_group.id
                 ).count()
@@ -1243,11 +1236,11 @@ def get_public_group_info(
                 "is_public": teacher_group.is_public
             }
         
-        celebration_group = retry_on_db_error(
+        celebration_group = retry_database_operation(
             lambda: db.query(CelebrationGroup).filter(CelebrationGroup.group_id == group_id).first()
         )
         if celebration_group:
-            member_count = retry_on_db_error(
+            member_count = retry_database_operation(
                 lambda: db.query(GroupMember).filter(
                     GroupMember.celebration_group_id == celebration_group.id
                 ).count()
@@ -1330,14 +1323,14 @@ def verify_payment_and_activate(
     try:
         # Find the group
         if group_type == "teacher":
-            group = retry_on_db_error(
+            group = retry_database_operation(
                 lambda: db.query(TeacherGroup).filter(
                     TeacherGroup.group_id == group_id,
                     TeacherGroup.created_by == current_user.id
                 ).first()
             )
         else:
-            group = retry_on_db_error(
+            group = retry_database_operation(
                 lambda: db.query(CelebrationGroup).filter(
                     CelebrationGroup.group_id == group_id,
                     CelebrationGroup.created_by == current_user.id
@@ -1376,14 +1369,14 @@ def verify_payment_and_activate(
         
         # Add creator as member if not already
         if group_type == "teacher":
-            existing_member = retry_on_db_error(
+            existing_member = retry_database_operation(
                 lambda: db.query(GroupMember).filter(
                     GroupMember.teacher_group_id == group.id,
                     GroupMember.user_id == current_user.id
                 ).first()
             )
         else:
-            existing_member = retry_on_db_error(
+            existing_member = retry_database_operation(
                 lambda: db.query(GroupMember).filter(
                     GroupMember.celebration_group_id == group.id,
                     GroupMember.user_id == current_user.id
@@ -1448,14 +1441,14 @@ def create_razorpay_order(
     try:
         # Verify the group exists and belongs to the current user
         if group_type == "teacher":
-            group = retry_on_db_error(
+            group = retry_database_operation(
                 lambda: db.query(TeacherGroup).filter(
                     TeacherGroup.group_id == group_id,
                     TeacherGroup.created_by == current_user.id
                 ).first()
             )
         else:
-            group = retry_on_db_error(
+            group = retry_database_operation(
                 lambda: db.query(CelebrationGroup).filter(
                     CelebrationGroup.group_id == group_id,
                     CelebrationGroup.created_by == current_user.id
@@ -1533,14 +1526,14 @@ def verify_razorpay_payment(
     try:
         # Verify group ownership
         if group_type == "teacher":
-            group = retry_on_db_error(
+            group = retry_database_operation(
                 lambda: db.query(TeacherGroup).filter(
                     TeacherGroup.group_id == group_id,
                     TeacherGroup.created_by == current_user.id
                 ).first()
             )
         else:
-            group = retry_on_db_error(
+            group = retry_database_operation(
                 lambda: db.query(CelebrationGroup).filter(
                     CelebrationGroup.group_id == group_id,
                     CelebrationGroup.created_by == current_user.id
@@ -1570,14 +1563,14 @@ def verify_razorpay_payment(
             
             # Add creator as member (if not already)
             if group_type == "teacher":
-                existing = retry_on_db_error(
+                existing = retry_database_operation(
                     lambda: db.query(GroupMember).filter(
                         GroupMember.teacher_group_id == group.id,
                         GroupMember.user_id == current_user.id
                     ).first()
                 )
             else:
-                existing = retry_on_db_error(
+                existing = retry_database_operation(
                     lambda: db.query(GroupMember).filter(
                         GroupMember.celebration_group_id == group.id,
                         GroupMember.user_id == current_user.id

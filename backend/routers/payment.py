@@ -14,7 +14,7 @@ from sqlalchemy.exc import OperationalError, TimeoutError as SQLTimeoutError
 from datetime import datetime
 import logging
 
-from app.database import get_db, retry_on_db_error
+from app.database import get_db, retry_database_operation
 from app.models import TeacherGroup, CelebrationGroup, Payment
 from app.auth import get_current_user
 from app.config import settings
@@ -93,14 +93,14 @@ def create_payment_order(
     try:
         # Verify group with retry
         if group_type == "teacher":
-            group = retry_on_db_error(
+            group = retry_database_operation(
                 lambda: db.query(TeacherGroup).filter(
                     TeacherGroup.group_id == group_id,
                     TeacherGroup.created_by == current_user.id
                 ).first()
             )
         else:
-            group = retry_on_db_error(
+            group = retry_database_operation(
                 lambda: db.query(CelebrationGroup).filter(
                     CelebrationGroup.group_id == group_id,
                     CelebrationGroup.created_by == current_user.id
@@ -133,7 +133,7 @@ def create_payment_order(
         logger.info("💾 Saving payment record to database...")
         
         # Check for existing payment with retry
-        existing_payment = retry_on_db_error(
+        existing_payment = retry_database_operation(
             lambda: db.query(Payment).filter(
                 Payment.group_type == group_type,
                 Payment.teacher_group_id == group.id if group_type == "teacher" else None,
@@ -171,7 +171,7 @@ def create_payment_order(
             logger.info(f"💾 PAYMENT UPDATED: ID={existing_payment.id}, OrderID={existing_payment.razorpay_order_id}")
         
         # Get total payments count
-        total_payments = retry_on_db_error(lambda: db.query(Payment).count())
+        total_payments = retry_database_operation(lambda: db.query(Payment).count())
         logger.info(f"💾 Total payments in DB: {total_payments}")
         
         logger.info(f"📤 Returning response to frontend: order_id={order['id']}")
@@ -222,7 +222,7 @@ def verify_payment(
         logger.info(f"🔍 Looking for payment record: order_id={order_id}")
         
         # Find payment record with retry
-        payment_record = retry_on_db_error(
+        payment_record = retry_database_operation(
             lambda: db.query(Payment).filter(
                 Payment.razorpay_order_id == order_id
             ).first()
@@ -231,7 +231,7 @@ def verify_payment(
         if not payment_record:
             logger.error(f"❌ Payment record NOT FOUND for order_id={order_id}")
             # Log all payments for debugging
-            all_payments = retry_on_db_error(lambda: db.query(Payment).all())
+            all_payments = retry_database_operation(lambda: db.query(Payment).all())
             logger.info(f"📋 All payments in DB: {len(all_payments)}")
             for p in all_payments:
                 logger.info(f"   - ID={p.id}, OrderID={p.razorpay_order_id}, Status={p.status}")
@@ -257,7 +257,7 @@ def verify_payment(
         # Activate group
         group = None
         if payment_record.group_type == "teacher":
-            group = retry_on_db_error(
+            group = retry_database_operation(
                 lambda: db.query(TeacherGroup).filter(
                     TeacherGroup.id == payment_record.teacher_group_id
                 ).first()
@@ -268,7 +268,7 @@ def verify_payment(
             else:
                 logger.error(f"❌ Teacher group not found: ID={payment_record.teacher_group_id}")
         else:
-            group = retry_on_db_error(
+            group = retry_database_operation(
                 lambda: db.query(CelebrationGroup).filter(
                     CelebrationGroup.id == payment_record.celebration_group_id
                 ).first()
@@ -314,7 +314,7 @@ def get_order_status(
     logger.info(f"🔍 Checking order status: {order_id}")
     
     try:
-        payment_record = retry_on_db_error(
+        payment_record = retry_database_operation(
             lambda: db.query(Payment).filter(
                 Payment.razorpay_order_id == order_id
             ).first()

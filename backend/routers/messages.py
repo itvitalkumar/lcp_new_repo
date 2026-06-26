@@ -19,7 +19,7 @@ import logging
 
 from pydantic import BaseModel
 
-from app.database import get_db, retry_on_db_error
+from app.database import get_db, retry_database_operation
 from app.models import User, TeacherGroup, CelebrationGroup, GroupMember, Message
 from app.auth import get_current_user
 from app.config import settings
@@ -113,7 +113,9 @@ def save_image(base64_string: str) -> Optional[str]:
     except Exception as e:
         logger.error(f"❌ Error saving image: {e}")
         return None
-    # ============ 1. SEND MESSAGE ============
+
+
+# ============ 1. SEND MESSAGE ============
 @router.post("/send", response_model=dict)
 def send_message(
     data: MessageSend,
@@ -136,7 +138,7 @@ def send_message(
         # Find the group with retry
         group_db_id = None
         if data.group_type == "teacher":
-            group = retry_on_db_error(
+            group = retry_database_operation(
                 lambda: db.query(TeacherGroup).filter(
                     TeacherGroup.group_id == data.group_id
                 ).first()
@@ -146,7 +148,7 @@ def send_message(
                 raise HTTPException(status_code=404, detail="Teacher group not found")
             group_db_id = group.id
         elif data.group_type == "celebration":
-            group = retry_on_db_error(
+            group = retry_database_operation(
                 lambda: db.query(CelebrationGroup).filter(
                     CelebrationGroup.group_id == data.group_id
                 ).first()
@@ -161,7 +163,7 @@ def send_message(
         # Check if user is a member with retry
         is_member = False
         if data.group_type == "teacher":
-            member = retry_on_db_error(
+            member = retry_database_operation(
                 lambda: db.query(GroupMember).filter(
                     GroupMember.teacher_group_id == group_db_id,
                     GroupMember.user_id == current_user.id
@@ -169,7 +171,7 @@ def send_message(
             )
             is_member = member is not None
         else:
-            member = retry_on_db_error(
+            member = retry_database_operation(
                 lambda: db.query(GroupMember).filter(
                     GroupMember.celebration_group_id == group_db_id,
                     GroupMember.user_id == current_user.id
@@ -249,7 +251,7 @@ def get_messages(
         # Find the group with retry
         group_db_id = None
         if group_type == "teacher":
-            group = retry_on_db_error(
+            group = retry_database_operation(
                 lambda: db.query(TeacherGroup).filter(
                     TeacherGroup.group_id == group_id
                 ).first()
@@ -259,7 +261,7 @@ def get_messages(
                 raise HTTPException(status_code=404, detail="Teacher group not found")
             group_db_id = group.id
         elif group_type == "celebration":
-            group = retry_on_db_error(
+            group = retry_database_operation(
                 lambda: db.query(CelebrationGroup).filter(
                     CelebrationGroup.group_id == group_id
                 ).first()
@@ -274,7 +276,7 @@ def get_messages(
         # Check membership with retry
         is_member = False
         if group_type == "teacher":
-            member = retry_on_db_error(
+            member = retry_database_operation(
                 lambda: db.query(GroupMember).filter(
                     GroupMember.teacher_group_id == group_db_id,
                     GroupMember.user_id == current_user.id
@@ -282,7 +284,7 @@ def get_messages(
             )
             is_member = member is not None
         else:
-            member = retry_on_db_error(
+            member = retry_database_operation(
                 lambda: db.query(GroupMember).filter(
                     GroupMember.celebration_group_id == group_db_id,
                     GroupMember.user_id == current_user.id
@@ -296,14 +298,14 @@ def get_messages(
         
         # Get messages with retry
         if group_type == "teacher":
-            messages = retry_on_db_error(
+            messages = retry_database_operation(
                 lambda: db.query(Message).filter(
                     Message.teacher_group_id == group_db_id,
                     Message.group_type == "teacher"
                 ).order_by(Message.sent_at.desc()).limit(limit).all()
             )
         else:
-            messages = retry_on_db_error(
+            messages = retry_database_operation(
                 lambda: db.query(Message).filter(
                     Message.celebration_group_id == group_db_id,
                     Message.group_type == "celebration"
@@ -315,7 +317,7 @@ def get_messages(
         result = []
         for msg in messages:
             # ✅ Get sender with retry
-            sender = retry_on_db_error(
+            sender = retry_database_operation(
                 lambda: db.query(User).filter(User.id == msg.user_id).first()
             )
             
@@ -373,7 +375,7 @@ def delete_message(
     
     try:
         # Get message with retry
-        message = retry_on_db_error(
+        message = retry_database_operation(
             lambda: db.query(Message).filter(Message.id == message_id).first()
         )
         
@@ -385,7 +387,7 @@ def delete_message(
         if message.user_id != current_user.id:
             is_admin = False
             if message.group_type == "teacher":
-                group = retry_on_db_error(
+                group = retry_database_operation(
                     lambda: db.query(TeacherGroup).filter(
                         TeacherGroup.id == message.teacher_group_id
                     ).first()
@@ -393,7 +395,7 @@ def delete_message(
                 if group and group.created_by == current_user.id:
                     is_admin = True
             else:
-                group = retry_on_db_error(
+                group = retry_database_operation(
                     lambda: db.query(CelebrationGroup).filter(
                         CelebrationGroup.id == message.celebration_group_id
                     ).first()

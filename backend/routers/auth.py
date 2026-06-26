@@ -20,7 +20,7 @@ from datetime import datetime, timedelta
 import random
 import logging
 
-from app.database import get_db, retry_on_db_error, check_database_health
+from app.database import get_db, retry_database_operation, check_database_health
 from app.models import User
 from app.schemas import UserSignup, UserLogin, TokenResponse, UserResponse, OTPVerify
 from app.auth import get_password_hash, verify_password, create_access_token, get_current_user
@@ -101,7 +101,7 @@ def signup(user_data: UserSignup, db: Session = Depends(get_db)):
     """
     try:
         # ✅ Retry on transient database errors
-        existing_user = retry_on_db_error(
+        existing_user = retry_database_operation(
             lambda: db.query(User).filter(User.email == user_data.email).first()
         )
         
@@ -156,7 +156,9 @@ def signup(user_data: UserSignup, db: Session = Depends(get_db)):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred. Please try again."
         )
-    # ============================================================
+
+
+# ============================================================
 # EMAIL-BASED LOGIN
 # ============================================================
 @router.post("/login", response_model=TokenResponse)
@@ -175,7 +177,7 @@ def login(login_data: UserLogin, db: Session = Depends(get_db)):
         HTTPException: If email or password is invalid.
     """
     try:
-        user = retry_on_db_error(
+        user = retry_database_operation(
             lambda: db.query(User).filter(User.email == login_data.email).first()
         )
         
@@ -259,7 +261,7 @@ async def check_user_exists(
         dict: Contains 'exists' flag and user details if found.
     """
     try:
-        user = retry_on_db_error(
+        user = retry_database_operation(
             lambda: db.query(User).filter(User.whatsapp == whatsapp).first()
         )
         
@@ -357,7 +359,7 @@ async def verify_otp(request: dict, db: Session = Depends(get_db)):
     if settings.TEST_MODE and whatsapp in settings.TEST_PHONE_NUMBERS:
         logger.info(f"🧪 TEST MODE: Bypassing OTP verification for {whatsapp}")
         try:
-            user = retry_on_db_error(
+            user = retry_database_operation(
                 lambda: db.query(User).filter(User.whatsapp == whatsapp).first()
             )
             if user:
@@ -396,7 +398,7 @@ async def verify_otp(request: dict, db: Session = Depends(get_db)):
     stored["is_used"] = True
     
     try:
-        user = retry_on_db_error(
+        user = retry_database_operation(
             lambda: db.query(User).filter(User.whatsapp == whatsapp).first()
         )
         
@@ -419,7 +421,9 @@ async def verify_otp(request: dict, db: Session = Depends(get_db)):
             
     except OperationalError as e:
         raise handle_db_error(e, "OTP verification")
-    # ============================================================
+
+
+# ============================================================
 # OTP-ONLY LOGIN (NO AUTO-CREATE)
 # ============================================================
 @router.post("/otp-login", response_model=TokenResponse)
@@ -448,7 +452,7 @@ async def otp_login(data: OTPVerify, db: Session = Depends(get_db)):
         logger.info(f"🧪 TEST MODE: Bypassing OTP verification for {whatsapp}")
         try:
             # ✅ Retry on transient database errors
-            user = retry_on_db_error(
+            user = retry_database_operation(
                 lambda: db.query(User).filter(User.whatsapp == whatsapp).first()
             )
             if not user:
@@ -504,7 +508,7 @@ async def otp_login(data: OTPVerify, db: Session = Depends(get_db)):
 
     try:
         # ✅ Retry on transient database errors
-        user = retry_on_db_error(
+        user = retry_database_operation(
             lambda: db.query(User).filter(User.whatsapp == whatsapp).first()
         )
         
@@ -577,7 +581,7 @@ def whatsapp_signup(user_data: dict, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Missing required fields")
 
     try:
-        existing_user = retry_on_db_error(
+        existing_user = retry_database_operation(
             lambda: db.query(User).filter(User.whatsapp == whatsapp).first()
         )
         if existing_user:
@@ -644,7 +648,7 @@ def whatsapp_login(login_data: dict, db: Session = Depends(get_db)):
     password = login_data.get("password")
     
     try:
-        user = retry_on_db_error(
+        user = retry_database_operation(
             lambda: db.query(User).filter(User.whatsapp == whatsapp).first()
         )
         

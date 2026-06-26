@@ -17,7 +17,7 @@ from typing import List
 import logging
 
 # CORRECT imports - from app, not from ..app
-from app.database import get_db, retry_on_db_error
+from app.database import get_db, retry_database_operation
 from app.models import User, TeacherGroup, CelebrationGroup, GroupMember
 from app.schemas import DashboardResponse, DashboardGroup
 from app.auth import get_current_user
@@ -68,7 +68,7 @@ def get_student_dashboard(
     
     try:
         # ✅ Get all groups where user is a member with retry
-        memberships = retry_on_db_error(
+        memberships = retry_database_operation(
             lambda: db.query(GroupMember).filter(
                 GroupMember.user_id == current_user.id
             ).all()
@@ -79,14 +79,14 @@ def get_student_dashboard(
         for membership in memberships:
             if membership.group_type == "teacher" and membership.teacher_group_id:
                 # ✅ Get teacher group with retry
-                group = retry_on_db_error(
+                group = retry_database_operation(
                     lambda: db.query(TeacherGroup).filter(
                         TeacherGroup.id == membership.teacher_group_id
                     ).first()
                 )
                 if group:
                     # ✅ Count members with retry
-                    member_count = retry_on_db_error(
+                    member_count = retry_database_operation(
                         lambda: db.query(GroupMember).filter(
                             GroupMember.teacher_group_id == group.id
                         ).count()
@@ -107,14 +107,14 @@ def get_student_dashboard(
             
             elif membership.group_type == "celebration" and membership.celebration_group_id:
                 # ✅ Get celebration group with retry
-                group = retry_on_db_error(
+                group = retry_database_operation(
                     lambda: db.query(CelebrationGroup).filter(
                         CelebrationGroup.id == membership.celebration_group_id
                     ).first()
                 )
                 if group:
                     # ✅ Count members with retry
-                    member_count = retry_on_db_error(
+                    member_count = retry_database_operation(
                         lambda: db.query(GroupMember).filter(
                             GroupMember.celebration_group_id == group.id
                         ).count()
@@ -176,7 +176,7 @@ def get_teacher_dashboard(
     
     try:
         # ✅ Find teacher user with retry
-        teacher = retry_on_db_error(
+        teacher = retry_database_operation(
             lambda: db.query(User).filter(
                 User.id == teacher_id, 
                 User.role == "teacher"
@@ -188,7 +188,7 @@ def get_teacher_dashboard(
             raise HTTPException(status_code=404, detail="Teacher not found")
         
         # ✅ Get all teacher groups where this teacher is the honoree
-        groups = retry_on_db_error(
+        groups = retry_database_operation(
             lambda: db.query(TeacherGroup).filter(
                 TeacherGroup.teacher_name.ilike(f"%{teacher.full_name}%")
             ).all()
@@ -197,7 +197,7 @@ def get_teacher_dashboard(
         result = []
         for group in groups:
             # ✅ Count members with retry
-            member_count = retry_on_db_error(
+            member_count = retry_database_operation(
                 lambda: db.query(GroupMember).filter(
                     GroupMember.teacher_group_id == group.id
                 ).count()
@@ -257,21 +257,21 @@ def get_admin_stats(
     
     try:
         # ✅ Get all counts with retry
-        total_users = retry_on_db_error(lambda: db.query(User).count())
-        total_teacher_groups = retry_on_db_error(lambda: db.query(TeacherGroup).count())
-        total_celebration_groups = retry_on_db_error(lambda: db.query(CelebrationGroup).count())
+        total_users = retry_database_operation(lambda: db.query(User).count())
+        total_teacher_groups = retry_database_operation(lambda: db.query(TeacherGroup).count())
+        total_celebration_groups = retry_database_operation(lambda: db.query(CelebrationGroup).count())
         
-        active_teacher_groups = retry_on_db_error(
+        active_teacher_groups = retry_database_operation(
             lambda: db.query(TeacherGroup).filter(TeacherGroup.status == "active").count()
         )
-        active_celebration_groups = retry_on_db_error(
+        active_celebration_groups = retry_database_operation(
             lambda: db.query(CelebrationGroup).filter(CelebrationGroup.status == "active").count()
         )
         
         # ✅ Get recent users (last 7 days)
         from datetime import datetime, timedelta
         week_ago = datetime.utcnow() - timedelta(days=7)
-        recent_users = retry_on_db_error(
+        recent_users = retry_database_operation(
             lambda: db.query(User).filter(User.created_at >= week_ago).count()
         )
         
