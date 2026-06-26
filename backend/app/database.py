@@ -8,6 +8,7 @@ Phase 3 (June 25, 2026): Azure SQL Database (replaces SQLite in production).
 Phase 4 (June 26, 2026): ENHANCED - Connection pooling optimized for Azure SQL.
                          Added retry logic for transient errors.
                          Better error handling and logging.
+                         FIXED: Removed conflicting connect_args for Azure SQL.
 """
 
 from sqlalchemy import create_engine, event
@@ -51,11 +52,8 @@ def create_database_engine():
             pool_timeout=30,
             pool_recycle=300,
             pool_pre_ping=True,
-            echo=settings.DEBUG,
-            connect_args={
-                "timeout": 30,
-                "autocommit": False,
-            }
+            echo=settings.DEBUG
+            # ✅ REMOVED connect_args - they were causing conflict with Authentication
         )
         
         @event.listens_for(engine, "engine_connect")
