@@ -220,21 +220,23 @@ settings.RAZORPAY_WEBHOOK_SECRET = settings._get_razorpay_webhook_secret()
 # ========== BUILD DATABASE URL ==========
 def get_database_url() -> str:
     """
-    Build the Azure SQL connection URL using fetched credentials.
-    Falls back to SQLite for local development if Key Vault is unavailable.
+    Build the Azure SQL connection URL using Managed Identity (Azure AD).
+    Falls back to SQLite for local development.
     """
-    db_password = settings.DB_PASSWORD
     db_host = settings.DB_HOST
-    db_user = settings.DB_USER
     db_name = settings.DB_NAME
     db_driver = settings.DB_DRIVER
     
-    if db_password and db_host:
+    if db_host:
+        # ✅ Use Azure AD Managed Identity (no username/password)
         return (
-            f"mssql+pyodbc://{db_user}:{db_password}@{db_host}/{db_name}"
-            f"?driver={db_driver}&Encrypt=yes&TrustServerCertificate=no&ConnectionTimeout=30"
+            f"mssql+pyodbc://{db_host}/{db_name}"
+            f"?driver={db_driver}"
+            f"&Encrypt=yes"
+            f"&TrustServerCertificate=no"
+            f"&ConnectionTimeout=30"
+            f"&Authentication=ActiveDirectoryManagedIdentity"
         )
-    # Fallback to SQLite for local development
     sqlite_path = os.getenv("SQLITE_PATH", "sqlite:///./campus_central.db")
     print("⚠️ Using SQLite fallback (Azure SQL credentials not available)")
     return sqlite_path
