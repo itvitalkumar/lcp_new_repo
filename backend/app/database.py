@@ -46,11 +46,11 @@ def create_database_engine():
         engine = create_engine(
             database_url,
             poolclass=QueuePool,
-            pool_size=10,                  # Number of connections to keep in pool
-            max_overflow=20,               # Additional connections when pool is full
-            pool_timeout=30,               # Seconds to wait for a connection
-            pool_recycle=300,              # Recycle connections after 5 minutes
-            pool_pre_ping=True,            # Check connection before using
+            pool_size=10,
+            max_overflow=20,
+            pool_timeout=30,
+            pool_recycle=300,
+            pool_pre_ping=True,
             echo=settings.DEBUG,
             connect_args={
                 "timeout": 30,
@@ -58,7 +58,6 @@ def create_database_engine():
             }
         )
         
-        # ✅ ADDED: Event listener for connection errors with retry
         @event.listens_for(engine, "engine_connect")
         def ping_connection(connection, branch):
             """Check if connection is alive before using it."""
@@ -68,7 +67,6 @@ def create_database_engine():
                 connection.scalar("SELECT 1")
             except Exception as e:
                 logger.warning(f"⚠️ Connection ping failed: {e}")
-                # Disconnect and let pool create a new connection
                 connection.invalidate()
                 raise
     
@@ -102,12 +100,6 @@ def get_db():
     """
     Dependency that provides a database session.
     Ensures proper cleanup after request.
-    
-    Usage:
-        @app.get("/endpoint")
-        def endpoint(db: Session = Depends(get_db)):
-            # Use db here
-            pass
     """
     db = SessionLocal()
     try:
@@ -120,7 +112,7 @@ def get_db():
         db.close()
 
 # ============================================================
-# ✅ ADDED: HEALTH CHECK FUNCTION (for monitoring)
+# HEALTH CHECK FUNCTION
 # ============================================================
 
 def check_database_health() -> dict:
@@ -149,16 +141,13 @@ def check_database_health() -> dict:
     return {"status": "unknown"}
 
 # ============================================================
-# ✅ ADDED: RETRY HELPER FOR TRANSIENT ERRORS
+# RETRY HELPER FOR TRANSIENT ERRORS
 # ============================================================
 
 def retry_on_db_error(func, max_retries=3, delay=1):
     """
     Helper function to retry database operations on transient errors.
     Useful for Azure SQL occasional connection drops.
-    
-    Usage:
-        result = retry_on_db_error(lambda: db.query(User).first())
     """
     for attempt in range(max_retries):
         try:
@@ -173,7 +162,7 @@ def retry_on_db_error(func, max_retries=3, delay=1):
     return None
 
 # ============================================================
-# ✅ ADDED: INITIALIZE DATABASE (Create tables if they don't exist)
+# INITIALIZE DATABASE
 # ============================================================
 
 def init_database():

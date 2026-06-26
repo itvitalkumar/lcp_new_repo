@@ -11,6 +11,7 @@ Phase 3 (June 25, 2026): Azure Key Vault integration for secrets.
 Phase 4 (June 26, 2026): ENHANCED - Database initialization with retry logic.
                          Added startup validation for database connectivity.
                          Better error handling and logging.
+                         FIXED: Startup event moved AFTER app creation.
 """
 
 from fastapi import FastAPI, Depends, Request
@@ -95,30 +96,7 @@ def initialize_database():
 
 
 # ============================================================
-# ✅ ENHANCED: STARTUP EVENT - Initialize database on app startup
-# ============================================================
-@app.on_event("startup")
-async def startup_event():
-    """
-    Run on application startup.
-    Initializes database and logs startup status.
-    """
-    logger.info("🚀 Starting Campus Central API...")
-    logger.info(f"📊 Database URL: {'Azure SQL' if 'mssql' in settings.DATABASE_URL else 'SQLite (fallback)'}")
-    logger.info(f"🔧 Debug Mode: {settings.DEBUG}")
-    logger.info(f"🧪 Test Mode: {settings.TEST_MODE}")
-    
-    # Initialize database
-    success = initialize_database()
-    
-    if success:
-        logger.info("✅ Database initialized successfully")
-    else:
-        logger.warning("⚠️ Database initialization failed - app will continue but some features may not work")
-
-
-# ============================================================
-# FASTAPI APP
+# FASTAPI APP (MOVED BEFORE STARTUP EVENT)
 # ============================================================
 app = FastAPI(
     title=settings.APP_NAME,
@@ -139,6 +117,29 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# ============================================================
+# ✅ ENHANCED: STARTUP EVENT - Initialize database on app startup
+# ============================================================
+@app.on_event("startup")
+async def startup_event():
+    """
+    Run on application startup.
+    Initializes database and logs startup status.
+    """
+    logger.info("🚀 Starting Campus Central API...")
+    logger.info(f"📊 Database URL: {'Azure SQL' if 'mssql' in settings.DATABASE_URL else 'SQLite (fallback)'}")
+    logger.info(f"🔧 Debug Mode: {settings.DEBUG}")
+    logger.info(f"🧪 Test Mode: {settings.TEST_MODE}")
+    
+    # Initialize database
+    success = initialize_database()
+    
+    if success:
+        logger.info("✅ Database initialized successfully")
+    else:
+        logger.warning("⚠️ Database initialization failed - app will continue but some features may not work")
 
 
 # ============================================================

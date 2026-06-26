@@ -9,6 +9,7 @@ Phase 4 (June 26, 2026): ENHANCED - Added __table_args__ for Azure SQL compatibi
                          Added indexes for frequently queried columns.
                          Added cascading deletes for better data integrity.
                          Added string length constraints for Azure SQL.
+                         FIXED: Indentation error for all classes.
 """
 
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Boolean, UniqueConstraint, Index
@@ -23,7 +24,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String(255), unique=True, index=True, nullable=True)
     full_name = Column(String(255), nullable=False)
-    whatsapp = Column(String(20), nullable=False, index=True)  # ✅ Added index for faster lookups
+    whatsapp = Column(String(20), nullable=False, index=True)
     password_hash = Column(String(255), nullable=False)
     role = Column(String(50), default="student")
     
@@ -38,7 +39,6 @@ class User(Base):
     voice_used = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
-    # ✅ Added index on created_at for sorting queries
     __table_args__ = (
         Index('idx_users_created_at', 'created_at'),
         Index('idx_users_whatsapp', 'whatsapp'),
@@ -72,12 +72,11 @@ class TeacherGroup(Base):
     friends_list = Column(Text, nullable=True)
     contribution_points = Column(Integer, nullable=False)
     lucky_friend = Column(String(255), nullable=False)
-    status = Column(String(50), default="pending", index=True)  # ✅ Added index
+    status = Column(String(50), default="pending", index=True)
     created_by = Column(Integer, ForeignKey("users.id"))
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)  # ✅ Added index
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
     is_public = Column(Boolean, default=True)
     
-    # ✅ Added indexes for common queries
     __table_args__ = (
         Index('idx_teacher_groups_status', 'status'),
         Index('idx_teacher_groups_created_at', 'created_at'),
@@ -93,10 +92,9 @@ class OTPCode(Base):
     id = Column(Integer, primary_key=True, index=True)
     whatsapp = Column(String(20), nullable=False, index=True)
     code = Column(String(6), nullable=False)
-    expires_at = Column(DateTime, nullable=False, index=True)  # ✅ Added index for cleanup
+    expires_at = Column(DateTime, nullable=False, index=True)
     created_at = Column(DateTime, server_default=func.now())
     
-    # ✅ Added index on expires_at for cleanup queries
     __table_args__ = (
         Index('idx_otp_expires_at', 'expires_at'),
         Index('idx_otp_whatsapp_expires', 'whatsapp', 'expires_at'),
@@ -118,15 +116,17 @@ class FriendStory(Base):
     extracted_batches = Column(String(200), nullable=True)
     extracted_nicknames = Column(String(500), nullable=True)
     contact_revealed_count = Column(Integer, default=0)
-    is_active = Column(Boolean, default=True, index=True)  # ✅ Added index
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)  # ✅ Added index
+    is_active = Column(Boolean, default=True, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
     
     __table_args__ = (
         Index('idx_friend_stories_is_active', 'is_active'),
         Index('idx_friend_stories_created_at', 'created_at'),
         Index('idx_friend_stories_user_id', 'user_id'),
     )
-    class CelebrationGroup(Base):
+
+
+class CelebrationGroup(Base):
     __tablename__ = "celebration_groups"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -147,9 +147,9 @@ class FriendStory(Base):
     friends_list = Column(Text, nullable=True)
     contribution_points = Column(Integer, nullable=False)
     lucky_friend = Column(String(255), nullable=False)
-    status = Column(String(50), default="pending", index=True)  # ✅ Added index
+    status = Column(String(50), default="pending", index=True)
     created_by = Column(Integer, ForeignKey("users.id"))
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)  # ✅ Added index
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
     is_public = Column(Boolean, default=True)
     
     __table_args__ = (
@@ -166,9 +166,9 @@ class GroupMember(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     group_type = Column(String(20), nullable=False)
-    teacher_group_id = Column(Integer, ForeignKey("teacher_groups.id", ondelete="CASCADE"), nullable=True)  # ✅ Added CASCADE
-    celebration_group_id = Column(Integer, ForeignKey("celebration_groups.id", ondelete="CASCADE"), nullable=True)  # ✅ Added CASCADE
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)  # ✅ Added CASCADE
+    teacher_group_id = Column(Integer, ForeignKey("teacher_groups.id", ondelete="CASCADE"), nullable=True)
+    celebration_group_id = Column(Integer, ForeignKey("celebration_groups.id", ondelete="CASCADE"), nullable=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     role = Column(String(20), default="member")
     joined_at = Column(DateTime(timezone=True), server_default=func.now())
     
@@ -191,11 +191,11 @@ class Message(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     group_type = Column(String(20), nullable=False)
-    teacher_group_id = Column(Integer, ForeignKey("teacher_groups.id", ondelete="CASCADE"), nullable=True)  # ✅ Added CASCADE
-    celebration_group_id = Column(Integer, ForeignKey("celebration_groups.id", ondelete="CASCADE"), nullable=True)  # ✅ Added CASCADE
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)  # ✅ Added CASCADE
+    teacher_group_id = Column(Integer, ForeignKey("teacher_groups.id", ondelete="CASCADE"), nullable=True)
+    celebration_group_id = Column(Integer, ForeignKey("celebration_groups.id", ondelete="CASCADE"), nullable=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     message = Column(Text, nullable=False)
-    sent_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)  # ✅ Added index
+    sent_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
     
     __table_args__ = (
         Index('idx_messages_sent_at', 'sent_at'),
@@ -212,15 +212,15 @@ class Payment(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     group_type = Column(String(20), nullable=False)
-    teacher_group_id = Column(Integer, ForeignKey("teacher_groups.id", ondelete="SET NULL"), nullable=True)  # ✅ Changed to SET NULL
-    celebration_group_id = Column(Integer, ForeignKey("celebration_groups.id", ondelete="SET NULL"), nullable=True)  # ✅ Changed to SET NULL
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)  # ✅ Changed to nullable
+    teacher_group_id = Column(Integer, ForeignKey("teacher_groups.id", ondelete="SET NULL"), nullable=True)
+    celebration_group_id = Column(Integer, ForeignKey("celebration_groups.id", ondelete="SET NULL"), nullable=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     amount = Column(Integer, nullable=False)
-    status = Column(String(50), default="pending", index=True)  # ✅ Added index
+    status = Column(String(50), default="pending", index=True)
     
-    # ✅ RAZORPAY COLUMNS (ADDED)
-    razorpay_order_id = Column(String(255), nullable=True, index=True)  # ✅ Added index
-    razorpay_payment_id = Column(String(255), nullable=True, index=True)  # ✅ Added index
+    # ✅ RAZORPAY COLUMNS
+    razorpay_order_id = Column(String(255), nullable=True, index=True)
+    razorpay_payment_id = Column(String(255), nullable=True, index=True)
     razorpay_signature = Column(String(255), nullable=True)
     
     # ✅ UPI (kept for backward compatibility)
@@ -228,7 +228,7 @@ class Payment(Base):
     
     # ✅ Timestamps
     paid_at = Column(DateTime(timezone=True), nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)  # ✅ Added index
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     __table_args__ = (
@@ -251,8 +251,8 @@ class SuccessStory(Base):
     id = Column(Integer, primary_key=True, index=True)
     story_text = Column(Text, nullable=False)
     author_name = Column(String(255), nullable=False)
-    is_approved = Column(Boolean, default=False, index=True)  # ✅ Added index
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)  # ✅ Added index
+    is_approved = Column(Boolean, default=False, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
     
     __table_args__ = (
         Index('idx_success_stories_is_approved', 'is_approved'),
@@ -265,17 +265,17 @@ class SocialPost(Base):
     __tablename__ = "social_posts"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)  # ✅ Added CASCADE
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     user_name = Column(String(255), nullable=False)
     college = Column(String(255), nullable=False)
     batch = Column(String(50), nullable=True)
     message = Column(Text, nullable=False)
     photo = Column(Text, nullable=True)
-    video_url = Column(String(500), nullable=True)  # NEW: For uploaded videos
+    video_url = Column(String(500), nullable=True)
     privacy = Column(String(20), default="public")
     anonymous = Column(Boolean, default=False)
     likes_count = Column(Integer, default=0)
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)  # ✅ Added index
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
     
     # For Mood & Memory page
     title = Column(String(255), nullable=False, default="")
@@ -298,11 +298,11 @@ class SocialComment(Base):
     __tablename__ = "social_comments"
 
     id = Column(Integer, primary_key=True, index=True)
-    post_id = Column(Integer, ForeignKey("social_posts.id", ondelete="CASCADE"), nullable=False)  # ✅ Added CASCADE
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)  # ✅ Added CASCADE
+    post_id = Column(Integer, ForeignKey("social_posts.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     user_name = Column(String(255), nullable=False)
     text = Column(Text, nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)  # ✅ Added index
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
     
     __table_args__ = (
         Index('idx_social_comments_post_id', 'post_id'),
@@ -317,8 +317,8 @@ class SocialLike(Base):
     __tablename__ = "social_likes"
 
     id = Column(Integer, primary_key=True, index=True)
-    post_id = Column(Integer, ForeignKey("social_posts.id", ondelete="CASCADE"), nullable=False)  # ✅ Added CASCADE
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)  # ✅ Added CASCADE
+    post_id = Column(Integer, ForeignKey("social_posts.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     __table_args__ = (
@@ -336,10 +336,10 @@ class ConnectionRequest(Base):
     __tablename__ = "connection_requests"
 
     id = Column(Integer, primary_key=True, index=True)
-    from_user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)  # ✅ Added CASCADE
-    to_user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)  # ✅ Added CASCADE
-    status = Column(String(20), default="pending", index=True)  # ✅ Added index
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)  # ✅ Added index
+    from_user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    to_user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    status = Column(String(20), default="pending", index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
     responded_at = Column(DateTime(timezone=True), nullable=True)
     
     __table_args__ = (

@@ -188,23 +188,3 @@ if settings.DEBUG:
     print(f"   TEST_MODE: {settings.TEST_MODE}")
     if settings.TEST_MODE:
         print(f"   TEST_PHONE_NUMBERS: {settings.TEST_PHONE_NUMBERS}")
-
-
-# ========== ✅ ADDED: Connection validation on startup ==========
-def validate_database_connection() -> bool:
-    try:
-        from sqlalchemy import create_engine, text
-        engine = create_engine(settings.DATABASE_URL)
-        with engine.connect() as conn:
-            result = conn.execute(text("SELECT 1"))
-            return True
-    except Exception as e:
-        print(f"⚠️ Database connection validation failed: {e}")
-        return False
-
-
-try:
-    if settings.DEBUG:
-        validate_database_connection()
-except Exception:
-    pass
