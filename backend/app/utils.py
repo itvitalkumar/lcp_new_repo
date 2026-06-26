@@ -1,12 +1,31 @@
 # utils.py - Complete file with TEST MODE for 1-6 rupees
+# Phase 1 (June 18, 2026): Initial utility functions.
+# Phase 2 (June 19, 2026): Added TEST_MODE for lucky number game.
+# Phase 3 (June 25, 2026): Added photo and friends serialization.
+# Phase 4 (June 26, 2026): ENHANCED - Added logging instead of print statements.
+#                         Better error handling for JSON operations.
+#                         Added validation for photo operations.
+#                         Added Azure Blob Storage preparation.
+
 import random
 import uuid
 import json
 import os
+import base64
+import logging
 from typing import List, Dict, Any, Tuple
 from datetime import datetime
 from .config import settings
 
+# ============================================================
+# LOGGING SETUP
+# ============================================================
+logger = logging.getLogger(__name__)
+
+
+# ============================================================
+# LUCKY NUMBER GENERATION
+# ============================================================
 def generate_lucky_numbers(friends: List[str], group_type: str) -> Dict[str, Any]:
     """
     Generate random points for each friend and find the lowest.
@@ -25,7 +44,7 @@ def generate_lucky_numbers(friends: List[str], group_type: str) -> Dict[str, Any
         if settings.TEST_MODE:
             min_points = 1
             max_points = 6
-            print(f"🧪 TEST MODE: Teacher lucky range = 1-6")
+            logger.info(f"🧪 TEST MODE: Teacher lucky range = 1-6")
         else:
             min_points = settings.TEACHER_MIN_POINTS
             max_points = settings.TEACHER_MAX_POINTS
@@ -87,76 +106,208 @@ def validate_friends_count(friends: List[str]) -> Tuple[bool, str]:
     return True, ""
 
 
+# ============================================================
+# PHOTO OPERATIONS (Local Storage - For Azure Blob migration)
+# ============================================================
 def save_photo(base64_string: str, folder: str = "groups") -> str:
     """
     Save a base64 encoded photo to disk and return the file path.
-    In production, use Azure Blob Storage instead.
+    
+    ✅ ENHANCED: Added validation, error handling, and logging.
+    Note: In production, use Azure Blob Storage instead of local disk.
     """
-    import base64
+    if not base64_string:
+        logger.warning("⚠️ Empty base64 string provided for photo save")
+        return ""
     
-    # Create directory if not exists
-    upload_dir = os.path.join(settings.UPLOAD_DIR, folder)
-    os.makedirs(upload_dir, exist_ok=True)
-    
-    # Generate unique filename
-    filename = f"{uuid.uuid4().hex}.jpg"
-    filepath = os.path.join(upload_dir, filename)
-    
-    # Decode and save
-    if base64_string.startswith("data:image"):
-        # Extract base64 part after comma
-        base64_string = base64_string.split(",")[1]
-    
-    image_data = base64.b64decode(base64_string)
-    with open(filepath, "wb") as f:
-        f.write(image_data)
-    
-    # Return relative path
-    return f"/{upload_dir}/{filename}"
+    try:
+        # Create directory if not exists
+        upload_dir = os.path.join(settings.UPLOAD_DIR, folder)
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        # Generate unique filename
+        filename = f"{uuid.uuid4().hex}.jpg"
+        filepath = os.path.join(upload_dir, filename)
+        
+        # Decode and save
+        if base64_string.startswith("data:image"):
+            # Extract base64 part after comma
+            base64_string = base64_string.split(",")[1]
+        
+        image_data = base64.b64decode(base64_string)
+        
+        # ✅ Validate image size
+        if len(image_data) > settings.MAX_UPLOAD_SIZE:
+            logger.error(f"❌ Image too large: {len(image_data)} bytes (max: {settings.MAX_UPLOAD_SIZE})")
+            return ""
+        
+        with open(filepath, "wb") as f:
+            f.write(image_data)
+        
+        logger.info(f"✅ Photo saved: {filepath}")
+        # Return relative path
+        return f"/{upload_dir}/{filename}"
+        
+    except base64.binascii.Error as e:
+        logger.error(f"❌ Invalid base64 string: {e}")
+        return ""
+    except IOError as e:
+        logger.error(f"❌ Failed to save photo: {e}")
+        return ""
+    except Exception as e:
+        logger.error(f"❌ Unexpected error saving photo: {e}")
+        return ""
 
 
 def validate_photo_size(base64_string: str) -> bool:
-    """Validate photo size is within limit"""
-    import base64
-    if base64_string.startswith("data:image"):
-        base64_string = base64_string.split(",")[1]
+    """
+    Validate photo size is within limit.
     
-    # Approximate size: base64 length * 0.75
-    approx_size = len(base64_string) * 0.75
-    return approx_size <= settings.MAX_UPLOAD_SIZE
+    ✅ ENHANCED: Added better error handling.
+    """
+    if not base64_string:
+        return False
+    
+    try:
+        if base64_string.startswith("data:image"):
+            base64_string = base64_string.split(",")[1]
+        
+        # Approximate size: base64 length * 0.75
+        approx_size = len(base64_string) * 0.75
+        return approx_size <= settings.MAX_UPLOAD_SIZE
+        
+    except Exception as e:
+        logger.error(f"❌ Error validating photo size: {e}")
+        return False
 
 
+# ============================================================
+# ✅ ADDED: AZURE BLOB STORAGE PREPARATION
+# ============================================================
+def get_blob_connection_string() -> str:
+    """
+    Get Azure Blob Storage connection string from settings.
+    Returns empty string if not configured.
+    """
+    try:
+        from app.config import settings
+        # This would be fetched from Key Vault in production
+        return os.getenv("AZURE_STORAGE_CONNECTION_STRING", "")
+    except Exception as e:
+        logger.error(f"❌ Error getting blob connection string: {e}")
+        return ""
+
+
+def upload_to_blob(file_path: str, container_name: str = "photos") -> str:
+    """
+    ✅ NEW: Upload a file to Azure Blob Storage.
+    This is a placeholder for future Azure Blob integration.
+    """
+    try:
+        from azure.storage.blob import BlobServiceClient
+        
+        conn_str = get_blob_connection_string()
+        if not conn_str:
+            logger.warning("⚠️ Azure Storage not configured, using local storage")
+            return file_path
+        
+        blob_service_client = BlobServiceClient.from_connection_string(conn_str)
+        blob_client = blob_service_client.get_blob_client(
+            container=container_name,
+            blob=os.path.basename(file_path)
+        )
+        
+        with open(file_path, "rb") as data:
+            blob_client.upload_blob(data, overwrite=True)
+        
+        url = blob_client.url
+        logger.info(f"✅ File uploaded to Azure Blob: {url}")
+        return url
+        
+    except ImportError:
+        logger.warning("⚠️ Azure Storage SDK not installed, using local storage")
+        return file_path
+    except Exception as e:
+        logger.error(f"❌ Error uploading to blob: {e}")
+        return file_path
+
+
+# ============================================================
+# SERIALIZATION HELPERS (with error handling)
+# ============================================================
 def serialize_photos(photos: List[str]) -> str:
-    """Serialize photo list to JSON string"""
-    return json.dumps(photos)
+    """Serialize photo list to JSON string with error handling"""
+    if not photos:
+        return "[]"
+    try:
+        return json.dumps(photos)
+    except Exception as e:
+        logger.error(f"❌ Error serializing photos: {e}")
+        return "[]"
 
 
 def deserialize_photos(photos_json: str) -> List[str]:
-    """Deserialize JSON string to photo list"""
+    """Deserialize JSON string to photo list with error handling"""
     if not photos_json:
         return []
-    return json.loads(photos_json)
+    try:
+        return json.loads(photos_json)
+    except json.JSONDecodeError as e:
+        logger.error(f"❌ Error deserializing photos: {e}")
+        return []
+    except Exception as e:
+        logger.error(f"❌ Unexpected error deserializing photos: {e}")
+        return []
 
 
 def serialize_friends(friends_with_points: List[Dict]) -> str:
-    """Serialize friends with points to JSON string"""
-    return json.dumps(friends_with_points)
+    """Serialize friends with points to JSON string with error handling"""
+    if not friends_with_points:
+        return "[]"
+    try:
+        return json.dumps(friends_with_points)
+    except Exception as e:
+        logger.error(f"❌ Error serializing friends: {e}")
+        return "[]"
 
 
 def deserialize_friends(friends_json: str) -> List[Dict]:
-    """Deserialize JSON string to friends list"""
+    """Deserialize JSON string to friends list with error handling"""
     if not friends_json:
         return []
-    return json.loads(friends_json)
+    try:
+        return json.loads(friends_json)
+    except json.JSONDecodeError as e:
+        logger.error(f"❌ Error deserializing friends: {e}")
+        return []
+    except Exception as e:
+        logger.error(f"❌ Unexpected error deserializing friends: {e}")
+        return []
 
 
+# ============================================================
+# EVENT COUNTDOWN (with better error handling)
+# ============================================================
 def calculate_next_event_countdown(event_date: str) -> str:
-    """Calculate days until event"""
+    """Calculate days until event with better error handling"""
     if not event_date:
         return "Date TBD"
     
     try:
-        event_date_obj = datetime.strptime(event_date, "%Y-%m-%d")
+        # Try multiple date formats
+        formats = ["%Y-%m-%d", "%d-%m-%Y", "%m/%d/%Y", "%Y/%m/%d"]
+        event_date_obj = None
+        
+        for fmt in formats:
+            try:
+                event_date_obj = datetime.strptime(event_date, fmt)
+                break
+            except ValueError:
+                continue
+        
+        if not event_date_obj:
+            return "Date TBD"
+        
         today = datetime.now().date()
         delta = (event_date_obj.date() - today).days
         
@@ -168,5 +319,46 @@ def calculate_next_event_countdown(event_date: str) -> str:
             return "Tomorrow"
         else:
             return f"{delta} days"
-    except:
+            
+    except Exception as e:
+        logger.error(f"❌ Error calculating countdown: {e}")
         return "Date TBD"
+
+
+# ============================================================
+# ✅ ADDED: ADDITIONAL UTILITY FUNCTIONS
+# ============================================================
+def truncate_string(text: str, max_length: int = 100) -> str:
+    """Truncate a string to a maximum length"""
+    if not text:
+        return ""
+    if len(text) <= max_length:
+        return text
+    return text[:max_length] + "..."
+
+
+def sanitize_input(text: str) -> str:
+    """Sanitize user input to prevent XSS"""
+    if not text:
+        return ""
+    # Remove potentially dangerous characters
+    dangerous = ["<", ">", "&", "'", '"']
+    for char in dangerous:
+        text = text.replace(char, "")
+    return text.strip()
+
+
+def is_valid_whatsapp(whatsapp: str) -> bool:
+    """Validate WhatsApp number format"""
+    if not whatsapp:
+        return False
+    import re
+    return bool(re.match(r'^[6-9]\d{9}$', whatsapp))
+
+
+def is_valid_email(email: str) -> bool:
+    """Validate email format"""
+    if not email:
+        return False
+    import re
+    return bool(re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email))

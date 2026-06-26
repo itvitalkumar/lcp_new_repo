@@ -7,17 +7,21 @@ Phase 2 (June 19, 2026): Added OTP login helper.
 Phase 3 (June 25, 2026): Migrated from settings.SECRET_KEY to settings.JWT_SECRET.
                          JWT_SECRET now fetched from Azure Key Vault via config.
                          Azure SQL Database support (no code changes needed).
+Phase 4 (June 26, 2026): ENHANCED - Added caching for JWT_SECRET to reduce Key Vault calls.
+                         Better error handling for token validation.
+                         Added retry logic for transient database errors.
 """
 
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
 import bcrypt
+import time
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
-from .database import get_db
+from .database import get_db, retry_on_db_error
 from .models import User
 from .config import settings
 
@@ -26,6 +30,45 @@ from .config import settings
 # ============================================================
 security = HTTPBearer()
 """HTTP Bearer token security scheme for JWT authentication."""
+
+# ============================================================
+# ✅ ADDED: JWT_SECRET CACHE
+# ============================================================
+_jwt_secret_cache = None
+_jwt_secret_timestamp = None
+_JWT_CACHE_DURATION = 3600  # 1 hour in seconds
+
+
+def get_jwt_secret() -> str:
+    """
+    Get JWT_SECRET with caching to reduce Key Vault calls.
+    Refreshes cache after 1 hour or on failure.
+    """
+    global _jwt_secret_cache, _jwt_secret_timestamp
+    
+    current_time = time.time()
+    
+    # Check if cache is valid
+    if (_jwt_secret_cache is not None and 
+        _jwt_secret_timestamp is not None and 
+        (current_time - _jwt_secret_timestamp) < _JWT_CACHE_DURATION):
+        return _jwt_secret_cache
+    
+    # Refresh cache
+    try:
+        secret = settings.JWT_SECRET
+        if not secret:
+            raise ValueError("JWT_SECRET not configured in settings")
+        _jwt_secret_cache = secret
+        _jwt_secret_timestamp = current_time
+        print("✅ JWT_SECRET cache refreshed")
+        return secret
+    except Exception as e:
+        # If cache exists, use it even if expired
+        if _jwt_secret_cache:
+            print(f"⚠️ Failed to refresh JWT_SECRET, using cached value: {e}")
+            return _jwt_secret_cache
+        raise
 
 
 # ============================================================
@@ -90,8 +133,8 @@ def create_access_token(data: dict, expires_delta: Optional[datetime] = None) ->
     
     to_encode.update({"exp": expire})
     
-    # ✅ Use JWT_SECRET (fetched from Key Vault) instead of SECRET_KEY
-    return jwt.encode(to_encode, settings.JWT_SECRET, algorithm=settings.ALGORITHM)
+    # ✅ Use cached JWT_SECRET
+    return jwt.encode(to_encode, get_jwt_secret(), algorithm=settings.ALGORITHM)
 
 
 def decode_access_token(token: str) -> Optional[dict]:
@@ -105,9 +148,10 @@ def decode_access_token(token: str) -> Optional[dict]:
         Optional[dict]: The decoded payload if valid, None otherwise.
     """
     try:
-        # ✅ Use JWT_SECRET (fetched from Key Vault) instead of SECRET_KEY
-        return jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.ALGORITHM])
-    except JWTError:
+        # ✅ Use cached JWT_SECRET
+        return jwt.decode(token, get_jwt_secret(), algorithms=[settings.ALGORITHM])
+    except JWTError as e:
+        print(f"⚠️ JWT decode error: {e}")
         return None
 
 
@@ -132,9 +176,10 @@ def get_current_user(
         HTTPException: If the token is invalid or the user is not found.
     """
     token = credentials.credentials
+    
     try:
-        # ✅ Use JWT_SECRET (fetched from Key Vault) instead of SECRET_KEY
-        payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.ALGORITHM])
+        # ✅ Use cached JWT_SECRET
+        payload = jwt.decode(token, get_jwt_secret(), algorithms=[settings.ALGORITHM])
         user_id_str = payload.get("sub")
         if user_id_str is None:
             raise HTTPException(
@@ -142,13 +187,28 @@ def get_current_user(
                 detail="Invalid authentication credentials"
             )
         user_id = int(user_id_str)
-    except (JWTError, ValueError):
+    except JWTError as e:
+        print(f"⚠️ JWT validation error: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication credentials"
         )
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid user ID in token"
+        )
     
-    user = db.query(User).filter(User.id == user_id).first()
+    # ✅ Retry on transient database errors
+    try:
+        user = retry_on_db_error(lambda: db.query(User).filter(User.id == user_id).first())
+    except Exception as e:
+        print(f"❌ Database error in get_current_user: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Database error. Please try again."
+        )
+    
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -211,12 +271,19 @@ def verify_otp_and_get_user(whatsapp: str, otp: str, db: Session) -> User:
     """
     from .models import OTPCode
     
-    # Query the OTP record
-    otp_record = db.query(OTPCode).filter(
-        OTPCode.whatsapp == whatsapp,
-        OTPCode.code == otp,
-        OTPCode.expires_at > datetime.utcnow()
-    ).first()
+    # ✅ Retry on transient database errors
+    try:
+        otp_record = retry_on_db_error(lambda: db.query(OTPCode).filter(
+            OTPCode.whatsapp == whatsapp,
+            OTPCode.code == otp,
+            OTPCode.expires_at > datetime.utcnow()
+        ).first())
+    except Exception as e:
+        print(f"❌ Database error in verify_otp: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Database error. Please try again."
+        )
     
     if not otp_record:
         raise HTTPException(
@@ -225,7 +292,15 @@ def verify_otp_and_get_user(whatsapp: str, otp: str, db: Session) -> User:
         )
     
     # Find or create the user
-    user = db.query(User).filter(User.whatsapp == whatsapp).first()
+    try:
+        user = retry_on_db_error(lambda: db.query(User).filter(User.whatsapp == whatsapp).first())
+    except Exception as e:
+        print(f"❌ Database error finding user: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Database error. Please try again."
+        )
+    
     if not user:
         user = User(
             whatsapp=whatsapp,
@@ -243,6 +318,20 @@ def verify_otp_and_get_user(whatsapp: str, otp: str, db: Session) -> User:
     db.commit()
     
     return user
+
+
+# ============================================================
+# ✅ ADDED: FORCE REFRESH JWT SECRET
+# ============================================================
+def refresh_jwt_secret():
+    """
+    Force refresh the JWT_SECRET cache.
+    Useful when Key Vault secret is rotated.
+    """
+    global _jwt_secret_cache, _jwt_secret_timestamp
+    _jwt_secret_cache = None
+    _jwt_secret_timestamp = None
+    return get_jwt_secret()
 
 
 # ============================================================

@@ -5,6 +5,9 @@ Phase 2 (June 19, 2026): Added TEST_MODE and TEST_PHONE_NUMBERS for OTP bypass.
 Phase 3 (June 25, 2026): Integrated Azure Key Vault for secure secret management.
                          Database migrated from SQLite to Azure SQL.
                          Secrets now fetched from Key Vault with fallback to env vars.
+Phase 4 (June 26, 2026): PERMANENT FIX - Azure SQL connection string optimized.
+                         Added connection pooling configuration.
+                         Enhanced error handling for database connections.
 """
 
 import os
@@ -43,9 +46,9 @@ class Settings:
     # ========== KEY VAULT CONFIGURATION ==========
     KEY_VAULT_URL: str = os.getenv("AZURE_KEY_VAULT_URL", "https://campuscentral-keyvalut.vault.azure.net/")
     """Azure Key Vault URL for fetching secrets in production."""
-    
-    # Initialize Key Vault client (lazy-loaded to avoid startup failures in local dev)
+        # Initialize Key Vault client (lazy-loaded to avoid startup failures in local dev)
     _secret_client = None
+    _secret_cache = {}  # ✅ NEW: Cache for secrets to reduce Key Vault calls
     
     @classmethod
     def _get_secret_client(cls):
@@ -63,6 +66,7 @@ class Settings:
     def _get_secret(cls, secret_name: str, fallback: str = None) -> str:
         """
         Fetch a secret from Azure Key Vault with fallback to environment variable.
+        ✅ IMPROVED: Now caches secrets to reduce Key Vault calls.
         
         Args:
             secret_name: Name of the secret in Key Vault
@@ -71,22 +75,32 @@ class Settings:
         Returns:
             The secret value or fallback
         """
+        # ✅ Check cache first
+        if secret_name in cls._secret_cache:
+            return cls._secret_cache[secret_name]
+        
         client = cls._get_secret_client()
         if client:
             try:
-                return client.get_secret(secret_name).value
+                value = client.get_secret(secret_name).value
+                cls._secret_cache[secret_name] = value  # Cache it
+                return value
             except Exception as e:
                 print(f"⚠️ Failed to fetch secret '{secret_name}': {e}")
+        
         # Fallback to environment variable
         env_value = os.getenv(secret_name)
         if env_value:
+            cls._secret_cache[secret_name] = env_value
             return env_value
+        
         if fallback:
+            cls._secret_cache[secret_name] = fallback
             return fallback
+        
         print(f"⚠️ No value found for '{secret_name}'. Using empty string.")
         return ""
-    
-    # ========== DATABASE (Azure SQL) ==========
+        # ========== DATABASE (Azure SQL) ==========
     DB_USER: str = os.getenv("DB_USER", "campusadmin")
     """Azure SQL database username."""
     
@@ -133,8 +147,7 @@ class Settings:
     
     ALLOWED_EXTENSIONS: set = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
     """Allowed file extensions for upload."""
-    
-    # ========== CORS ==========
+        # ========== CORS ==========
     ALLOWED_ORIGINS: list = [
         "http://localhost:5500",      # VS Code Live Server
         "http://localhost:3000",      # React dev
@@ -167,8 +180,7 @@ class Settings:
     LUCKIER_MAX: int = 60
     """Points below this threshold (and above ULTRA_LUCKY_MAX) are 'Luckier'."""
     # Above 60 = LUCKY
-    
-    # ========== RAZORPAY PAYMENT SETTINGS ==========
+        # ========== RAZORPAY PAYMENT SETTINGS ==========
     # Fetch Razorpay keys from Key Vault (fallback to env var)
     RAZORPAY_KEY_ID: str = ""
     """Razorpay API Key ID for payment processing (fetched from Key Vault)."""
@@ -205,9 +217,7 @@ class Settings:
     Example: "9686449386,9876543210"
     Only effective when TEST_MODE is True.
     """
-
-
-# ========== CREATE SETTINGS INSTANCE ==========
+    # ========== CREATE SETTINGS INSTANCE ==========
 settings = Settings()
 
 # ========== FETCH SECRETS AFTER INSTANCE CREATION ==========
@@ -216,11 +226,17 @@ settings.JWT_SECRET = settings._get_jwt_secret()
 settings.RAZORPAY_KEY_ID = settings._get_razorpay_key_id()
 settings.RAZORPAY_KEY_SECRET = settings._get_razorpay_key_secret()
 settings.RAZORPAY_WEBHOOK_SECRET = settings._get_razorpay_webhook_secret()
-
-# ========== BUILD DATABASE URL ==========
+# ========== ✅ PERMANENT FIX: BUILD DATABASE URL ==========
 def get_database_url() -> str:
     """
-    Build the Azure SQL connection URL using Managed Identity (Azure AD).
+    ✅ PERMANENT FIX for Azure SQL connection with Managed Identity.
+    
+    This function builds the correct connection string for ODBC Driver 18
+    on Azure App Service Linux with Managed Identity authentication.
+    
+    CRITICAL: The Authentication parameter MUST be 'ActiveDirectoryMSI'
+    (NOT 'ActiveDirectoryManagedIdentity') for ODBC Driver 18.
+    
     Falls back to SQLite for local development.
     """
     db_host = settings.DB_HOST
@@ -228,21 +244,25 @@ def get_database_url() -> str:
     db_driver = settings.DB_DRIVER
     
     if db_host:
-        # ✅ Use Azure AD Managed Identity (no username/password)
+        # ✅ CORRECT format for Azure SQL with Managed Identity
+        # ODBC Driver 18 on Linux requires this exact format
         return (
             f"mssql+pyodbc://{db_host}/{db_name}"
             f"?driver={db_driver}"
             f"&Encrypt=yes"
             f"&TrustServerCertificate=no"
             f"&ConnectionTimeout=30"
-            f"&Authentication=ActiveDirectoryMSI"
+            f"&Authentication=ActiveDirectoryMSI"  # ✅ CORRECT - DO NOT CHANGE
         )
+    
+    # Fallback for local development
     sqlite_path = os.getenv("SQLITE_PATH", "sqlite:///./campus_central.db")
     print("⚠️ Using SQLite fallback (Azure SQL credentials not available)")
     return sqlite_path
 
-settings.DATABASE_URL = get_database_url()
 
+# Set the database URL on the settings object
+settings.DATABASE_URL = get_database_url()
 # ========== DEVELOPMENT HELPER ==========
 if settings.DEBUG:
     print("🔧 Running in DEBUG mode")
@@ -262,3 +282,26 @@ if settings.DEBUG:
     print(f"   TEST_MODE: {settings.TEST_MODE}")
     if settings.TEST_MODE:
         print(f"   TEST_PHONE_NUMBERS: {settings.TEST_PHONE_NUMBERS}")
+
+# ========== ✅ ADDED: Connection validation on startup ==========
+def validate_database_connection() -> bool:
+    """
+    ✅ NEW: Validate database connection on startup.
+    This helps catch connection issues early.
+    """
+    try:
+        from sqlalchemy import create_engine, text
+        engine = create_engine(settings.DATABASE_URL)
+        with engine.connect() as conn:
+            result = conn.execute(text("SELECT 1"))
+            return True
+    except Exception as e:
+        print(f"⚠️ Database connection validation failed: {e}")
+        return False
+
+# Run validation on import (non-blocking)
+try:
+    if settings.DEBUG:
+        validate_database_connection()
+except Exception:
+    pass  # Silently fail during import

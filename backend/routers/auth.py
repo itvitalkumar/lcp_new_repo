@@ -7,18 +7,29 @@ Phase 2 (June 19, 2026): Added TEST_MODE toggle for bypassing OTP during develop
 Phase 3 (June 25, 2026): Migrated TEST_MODE and TEST_PHONE_NUMBERS to use settings from config.py.
                          JWT_SECRET now fetched from Azure Key Vault via settings.
                          All secrets managed centrally.
+Phase 4 (June 26, 2026): ENHANCED - Added retry logic for database operations.
+                         Better error handling with specific error messages.
+                         Added connection pool health checks before DB operations.
+                         Improved logging for debugging.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import OperationalError, TimeoutError as SQLTimeoutError
 from datetime import datetime, timedelta
 import random
+import logging
 
-from app.database import get_db
+from app.database import get_db, retry_on_db_error, check_database_health
 from app.models import User
 from app.schemas import UserSignup, UserLogin, TokenResponse, UserResponse, OTPVerify
 from app.auth import get_password_hash, verify_password, create_access_token, get_current_user
-from app.config import settings  # ✅ Import settings (contains TEST_MODE, TEST_PHONE_NUMBERS, JWT_SECRET)
+from app.config import settings
+
+# ============================================================
+# LOGGING SETUP
+# ============================================================
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
@@ -42,6 +53,34 @@ def generate_otp() -> str:
         str: A 6-digit OTP as a string.
     """
     return f"{random.randint(100000, 999999)}"
+
+
+# ============================================================
+# ✅ ADDED: HELPER FOR DATABASE ERROR HANDLING
+# ============================================================
+def handle_db_error(e: Exception, operation: str) -> HTTPException:
+    """
+    Convert database errors to user-friendly HTTP exceptions.
+    """
+    logger.error(f"❌ Database error during {operation}: {str(e)}")
+    
+    if "timeout" in str(e).lower() or "connection" in str(e).lower():
+        return HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database temporarily unavailable. Please try again in a moment."
+        )
+    elif "duplicate" in str(e).lower() or "unique" in str(e).lower():
+        return HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Duplicate entry. The record already exists."
+        )
+    else:
+        return HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Database error. Please try again later."
+        )
+
+
 # ============================================================
 # EMAIL-BASED SIGNUP
 # ============================================================
@@ -58,51 +97,66 @@ def signup(user_data: UserSignup, db: Session = Depends(get_db)):
         TokenResponse: JWT access token and user details.
 
     Raises:
-        HTTPException: If email is already registered.
+        HTTPException: If email is already registered or database error.
     """
-    
-    existing_user = db.query(User).filter(User.email == user_data.email).first()
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered"
+    try:
+        # ✅ Retry on transient database errors
+        existing_user = retry_on_db_error(
+            lambda: db.query(User).filter(User.email == user_data.email).first()
         )
-    
-    hashed_password = get_password_hash(user_data.password)
-    
-    new_user = User(
-        email=user_data.email,
-        full_name=user_data.full_name,
-        whatsapp=user_data.whatsapp,
-        password_hash=hashed_password,
-        role=user_data.role,
-        hometown=user_data.hometown,
-        district=user_data.district,
-        college=user_data.college,
-        gender=user_data.gender,
-        hobbies=user_data.hobbies,
-        course=user_data.course,
-        specialization=user_data.specialization
-    )
-    
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    
-    access_token = create_access_token(data={"sub": new_user.id})
-    
-    user_response = UserResponse(
-        id=new_user.id,
-        email=new_user.email or "",
-        full_name=new_user.full_name,
-        role=new_user.role,
-        created_at=new_user.created_at
-    )
-    
-    return TokenResponse(access_token=access_token, user=user_response)
-
-
-# ============================================================
+        
+        if existing_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already registered"
+            )
+        
+        hashed_password = get_password_hash(user_data.password)
+        
+        new_user = User(
+            email=user_data.email,
+            full_name=user_data.full_name,
+            whatsapp=user_data.whatsapp,
+            password_hash=hashed_password,
+            role=user_data.role,
+            hometown=user_data.hometown,
+            district=user_data.district,
+            college=user_data.college,
+            gender=user_data.gender,
+            hobbies=user_data.hobbies,
+            course=user_data.course,
+            specialization=user_data.specialization
+        )
+        
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+        
+        access_token = create_access_token(data={"sub": new_user.id})
+        
+        user_response = UserResponse(
+            id=new_user.id,
+            email=new_user.email or "",
+            full_name=new_user.full_name,
+            role=new_user.role,
+            created_at=new_user.created_at
+        )
+        
+        return TokenResponse(access_token=access_token, user=user_response)
+        
+    except HTTPException:
+        raise
+    except OperationalError as e:
+        raise handle_db_error(e, "user signup")
+    except SQLTimeoutError as e:
+        raise handle_db_error(e, "user signup")
+    except Exception as e:
+        logger.error(f"❌ Unexpected error during signup: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred. Please try again."
+        )
+    # ============================================================
 # EMAIL-BASED LOGIN
 # ============================================================
 @router.post("/login", response_model=TokenResponse)
@@ -120,32 +174,47 @@ def login(login_data: UserLogin, db: Session = Depends(get_db)):
     Raises:
         HTTPException: If email or password is invalid.
     """
-    
-    user = db.query(User).filter(User.email == login_data.email).first()
-    
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password"
+    try:
+        user = retry_on_db_error(
+            lambda: db.query(User).filter(User.email == login_data.email).first()
         )
-    
-    if not verify_password(login_data.password, user.password_hash):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password"
+        
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid email or password"
+            )
+        
+        if not verify_password(login_data.password, user.password_hash):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid email or password"
+            )
+        
+        access_token = create_access_token(data={"sub": user.id})
+        
+        user_response = UserResponse(
+            id=user.id,
+            email=user.email or "",
+            full_name=user.full_name,
+            role=user.role,
+            created_at=user.created_at
         )
-    
-    access_token = create_access_token(data={"sub": user.id})
-    
-    user_response = UserResponse(
-        id=user.id,
-        email=user.email or "",
-        full_name=user.full_name,
-        role=user.role,
-        created_at=user.created_at
-    )
-    
-    return TokenResponse(access_token=access_token, user=user_response)
+        
+        return TokenResponse(access_token=access_token, user=user_response)
+        
+    except HTTPException:
+        raise
+    except OperationalError as e:
+        raise handle_db_error(e, "user login")
+    except SQLTimeoutError as e:
+        raise handle_db_error(e, "user login")
+    except Exception as e:
+        logger.error(f"❌ Unexpected error during login: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred. Please try again."
+        )
 
 
 # ============================================================
@@ -162,7 +231,6 @@ def get_me(current_user: User = Depends(get_current_user)):
     Returns:
         UserResponse: User profile data.
     """
-    
     return UserResponse(
         id=current_user.id,
         email=current_user.email or "",
@@ -190,23 +258,39 @@ async def check_user_exists(
     Returns:
         dict: Contains 'exists' flag and user details if found.
     """
-    user = db.query(User).filter(User.whatsapp == whatsapp).first()
-    
-    if user:
-        return {
-            "exists": True,
-            "message": "User already exists with this WhatsApp number",
-            "user": {
-                "id": user.id,
-                "full_name": user.full_name,
-                "whatsapp": user.whatsapp
+    try:
+        user = retry_on_db_error(
+            lambda: db.query(User).filter(User.whatsapp == whatsapp).first()
+        )
+        
+        if user:
+            return {
+                "exists": True,
+                "message": "User already exists with this WhatsApp number",
+                "user": {
+                    "id": user.id,
+                    "full_name": user.full_name,
+                    "whatsapp": user.whatsapp
+                }
             }
-        }
-    else:
-        return {
-            "exists": False,
-            "message": "New user - can proceed with signup"
-        }
+        else:
+            return {
+                "exists": False,
+                "message": "New user - can proceed with signup"
+            }
+            
+    except OperationalError as e:
+        logger.error(f"❌ Database error in check-user: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database temporarily unavailable. Please try again."
+        )
+    except Exception as e:
+        logger.error(f"❌ Unexpected error in check-user: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred. Please try again."
+        )
 
 
 # ============================================================
@@ -233,7 +317,7 @@ async def send_otp(request: dict):
     
     # ✅ Use settings.TEST_MODE and settings.TEST_PHONE_NUMBERS from config.py
     if settings.TEST_MODE and whatsapp in settings.TEST_PHONE_NUMBERS:
-        print(f"🧪 TEST MODE: Bypassing OTP for {whatsapp}")
+        logger.info(f"🧪 TEST MODE: Bypassing OTP for {whatsapp}")
         return {"message": "OTP sent successfully (TEST MODE - bypassed)", "debug_otp": "000000"}
     
     otp = generate_otp()
@@ -245,7 +329,7 @@ async def send_otp(request: dict):
         "is_used": False
     }
     
-    print(f"📱 OTP for {whatsapp}: {otp}")
+    logger.info(f"📱 OTP for {whatsapp}: {otp}")
     
     return {"message": "OTP sent successfully", "debug_otp": otp}
 
@@ -271,24 +355,29 @@ async def verify_otp(request: dict, db: Session = Depends(get_db)):
     
     # ✅ Use settings.TEST_MODE and settings.TEST_PHONE_NUMBERS from config.py
     if settings.TEST_MODE and whatsapp in settings.TEST_PHONE_NUMBERS:
-        print(f"🧪 TEST MODE: Bypassing OTP verification for {whatsapp}")
-        user = db.query(User).filter(User.whatsapp == whatsapp).first()
-        if user:
-            access_token = create_access_token(data={"sub": user.id})
-            return {
-                "verified": True,
-                "exists": True,
-                "access_token": access_token,
-                "token_type": "bearer",
-                "user": {
-                    "id": user.id,
-                    "whatsapp": user.whatsapp,
-                    "full_name": user.full_name,
-                    "course": user.course
+        logger.info(f"🧪 TEST MODE: Bypassing OTP verification for {whatsapp}")
+        try:
+            user = retry_on_db_error(
+                lambda: db.query(User).filter(User.whatsapp == whatsapp).first()
+            )
+            if user:
+                access_token = create_access_token(data={"sub": user.id})
+                return {
+                    "verified": True,
+                    "exists": True,
+                    "access_token": access_token,
+                    "token_type": "bearer",
+                    "user": {
+                        "id": user.id,
+                        "whatsapp": user.whatsapp,
+                        "full_name": user.full_name,
+                        "course": user.course
+                    }
                 }
-            }
-        else:
-            return {"verified": True, "exists": False}
+            else:
+                return {"verified": True, "exists": False}
+        except OperationalError as e:
+            raise handle_db_error(e, "OTP verification")
     
     stored = otp_storage.get(whatsapp)
     
@@ -306,24 +395,30 @@ async def verify_otp(request: dict, db: Session = Depends(get_db)):
     
     stored["is_used"] = True
     
-    user = db.query(User).filter(User.whatsapp == whatsapp).first()
-    
-    if user:
-        access_token = create_access_token(data={"sub": user.id})
-        return {
-            "verified": True,
-            "exists": True,
-            "access_token": access_token,
-            "token_type": "bearer",
-            "user": {
-                "id": user.id,
-                "whatsapp": user.whatsapp,
-                "full_name": user.full_name,
-                "course": user.course
+    try:
+        user = retry_on_db_error(
+            lambda: db.query(User).filter(User.whatsapp == whatsapp).first()
+        )
+        
+        if user:
+            access_token = create_access_token(data={"sub": user.id})
+            return {
+                "verified": True,
+                "exists": True,
+                "access_token": access_token,
+                "token_type": "bearer",
+                "user": {
+                    "id": user.id,
+                    "whatsapp": user.whatsapp,
+                    "full_name": user.full_name,
+                    "course": user.course
+                }
             }
-        }
-    else:
-        return {"verified": True, "exists": False}
+        else:
+            return {"verified": True, "exists": False}
+            
+    except OperationalError as e:
+        raise handle_db_error(e, "OTP verification")
     # ============================================================
 # OTP-ONLY LOGIN (NO AUTO-CREATE)
 # ============================================================
@@ -346,24 +441,53 @@ async def otp_login(data: OTPVerify, db: Session = Depends(get_db)):
     whatsapp = data.whatsapp
     otp = data.otp
 
+    logger.info(f"🔐 OTP Login attempt for {whatsapp}")
+
     # ✅ Use settings.TEST_MODE and settings.TEST_PHONE_NUMBERS from config.py
     if settings.TEST_MODE and whatsapp in settings.TEST_PHONE_NUMBERS:
-        print(f"🧪 TEST MODE: Bypassing OTP verification for {whatsapp}")
-        user = db.query(User).filter(User.whatsapp == whatsapp).first()
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found. Please sign up first."
+        logger.info(f"🧪 TEST MODE: Bypassing OTP verification for {whatsapp}")
+        try:
+            # ✅ Retry on transient database errors
+            user = retry_on_db_error(
+                lambda: db.query(User).filter(User.whatsapp == whatsapp).first()
             )
-        access_token = create_access_token(data={"sub": user.id})
-        user_response = UserResponse(
-            id=user.id,
-            email=user.email or "",
-            full_name=user.full_name,
-            role=user.role,
-            created_at=user.created_at
-        )
-        return TokenResponse(access_token=access_token, user=user_response)
+            if not user:
+                logger.warning(f"⚠️ TEST MODE: User not found for {whatsapp}")
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="User not found. Please sign up first."
+                )
+            access_token = create_access_token(data={"sub": user.id})
+            user_response = UserResponse(
+                id=user.id,
+                email=user.email or "",
+                full_name=user.full_name,
+                role=user.role,
+                created_at=user.created_at
+            )
+            logger.info(f"✅ TEST MODE: Login successful for {whatsapp}")
+            return TokenResponse(access_token=access_token, user=user_response)
+            
+        except HTTPException:
+            raise
+        except OperationalError as e:
+            logger.error(f"❌ Database error in OTP login (test mode): {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Database temporarily unavailable. Please try again."
+            )
+        except SQLTimeoutError as e:
+            logger.error(f"❌ Database timeout in OTP login (test mode): {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Database connection timeout. Please try again."
+            )
+        except Exception as e:
+            logger.error(f"❌ Unexpected error in OTP login (test mode): {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An unexpected error occurred. Please try again."
+            )
 
     # Regular OTP verification
     stored = otp_storage.get(whatsapp)
@@ -378,22 +502,50 @@ async def otp_login(data: OTPVerify, db: Session = Depends(get_db)):
     
     stored["is_used"] = True
 
-    user = db.query(User).filter(User.whatsapp == whatsapp).first()
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found. Please sign up first."
+    try:
+        # ✅ Retry on transient database errors
+        user = retry_on_db_error(
+            lambda: db.query(User).filter(User.whatsapp == whatsapp).first()
         )
+        
+        if not user:
+            logger.warning(f"⚠️ User not found for {whatsapp} during OTP login")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found. Please sign up first."
+            )
 
-    access_token = create_access_token(data={"sub": user.id})
-    user_response = UserResponse(
-        id=user.id,
-        email=user.email or "",
-        full_name=user.full_name,
-        role=user.role,
-        created_at=user.created_at
-    )
-    return TokenResponse(access_token=access_token, user=user_response)
+        access_token = create_access_token(data={"sub": user.id})
+        user_response = UserResponse(
+            id=user.id,
+            email=user.email or "",
+            full_name=user.full_name,
+            role=user.role,
+            created_at=user.created_at
+        )
+        logger.info(f"✅ OTP login successful for {whatsapp}")
+        return TokenResponse(access_token=access_token, user=user_response)
+        
+    except HTTPException:
+        raise
+    except OperationalError as e:
+        logger.error(f"❌ Database error in OTP login: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database temporarily unavailable. Please try again."
+        )
+    except SQLTimeoutError as e:
+        logger.error(f"❌ Database timeout in OTP login: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database connection timeout. Please try again."
+        )
+    except Exception as e:
+        logger.error(f"❌ Unexpected error in OTP login: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred. Please try again."
+        )
 
 
 # ============================================================
@@ -424,33 +576,50 @@ def whatsapp_signup(user_data: dict, db: Session = Depends(get_db)):
     if not whatsapp or not full_name:
         raise HTTPException(status_code=400, detail="Missing required fields")
 
-    existing_user = db.query(User).filter(User.whatsapp == whatsapp).first()
-    if existing_user:
-        raise HTTPException(status_code=400, detail="WhatsApp number already registered")
+    try:
+        existing_user = retry_on_db_error(
+            lambda: db.query(User).filter(User.whatsapp == whatsapp).first()
+        )
+        if existing_user:
+            raise HTTPException(status_code=400, detail="WhatsApp number already registered")
 
-    hashed_password = get_password_hash(password) if password else ""
+        hashed_password = get_password_hash(password) if password else ""
 
-    new_user = User(
-        whatsapp=whatsapp,
-        full_name=full_name,
-        course=course or "",
-        password_hash=hashed_password,
-        photo=photo,
-        role="student"
-    )
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+        new_user = User(
+            whatsapp=whatsapp,
+            full_name=full_name,
+            course=course or "",
+            password_hash=hashed_password,
+            photo=photo,
+            role="student"
+        )
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
 
-    access_token = create_access_token(data={"sub": new_user.id})
-    user_response = UserResponse(
-        id=new_user.id,
-        email=new_user.email or "",
-        full_name=new_user.full_name,
-        role=new_user.role,
-        created_at=new_user.created_at
-    )
-    return TokenResponse(access_token=access_token, user=user_response)
+        access_token = create_access_token(data={"sub": new_user.id})
+        user_response = UserResponse(
+            id=new_user.id,
+            email=new_user.email or "",
+            full_name=new_user.full_name,
+            role=new_user.role,
+            created_at=new_user.created_at
+        )
+        logger.info(f"✅ WhatsApp signup successful for {whatsapp}")
+        return TokenResponse(access_token=access_token, user=user_response)
+        
+    except HTTPException:
+        raise
+    except OperationalError as e:
+        raise handle_db_error(e, "WhatsApp signup")
+    except SQLTimeoutError as e:
+        raise handle_db_error(e, "WhatsApp signup")
+    except Exception as e:
+        logger.error(f"❌ Unexpected error during WhatsApp signup: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred. Please try again."
+        )
 
 
 # ============================================================
@@ -474,28 +643,45 @@ def whatsapp_login(login_data: dict, db: Session = Depends(get_db)):
     whatsapp = login_data.get("whatsapp")
     password = login_data.get("password")
     
-    user = db.query(User).filter(User.whatsapp == whatsapp).first()
-    
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid WhatsApp number or password"
+    try:
+        user = retry_on_db_error(
+            lambda: db.query(User).filter(User.whatsapp == whatsapp).first()
         )
-    
-    if not verify_password(password, user.password_hash):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid WhatsApp number or password"
+        
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid WhatsApp number or password"
+            )
+        
+        if not verify_password(password, user.password_hash):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid WhatsApp number or password"
+            )
+        
+        access_token = create_access_token(data={"sub": user.id})
+        
+        user_response = UserResponse(
+            id=user.id,
+            email=user.email or "",
+            full_name=user.full_name,
+            role=user.role,
+            created_at=user.created_at
         )
-    
-    access_token = create_access_token(data={"sub": user.id})
-    
-    user_response = UserResponse(
-        id=user.id,
-        email=user.email or "",
-        full_name=user.full_name,
-        role=user.role,
-        created_at=user.created_at
-    )
-    
-    return TokenResponse(access_token=access_token, user=user_response)
+        
+        logger.info(f"✅ WhatsApp login successful for {whatsapp}")
+        return TokenResponse(access_token=access_token, user=user_response)
+        
+    except HTTPException:
+        raise
+    except OperationalError as e:
+        raise handle_db_error(e, "WhatsApp login")
+    except SQLTimeoutError as e:
+        raise handle_db_error(e, "WhatsApp login")
+    except Exception as e:
+        logger.error(f"❌ Unexpected error during WhatsApp login: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred. Please try again."
+        )

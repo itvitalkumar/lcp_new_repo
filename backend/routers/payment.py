@@ -1,15 +1,28 @@
 # ============================================================
 # RAZORPAY PAYMENT INTEGRATION
+# Phase 1 (June 18, 2026): Initial payment integration.
+# Phase 2 (June 25, 2026): Added Razorpay keys from Key Vault.
+# Phase 3 (June 26, 2026): ENHANCED - Added retry logic for database operations.
+#                         Better error handling for Azure SQL.
+#                         Added logging instead of print statements.
+#                         Added transaction management.
 # ============================================================
 import razorpay
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import OperationalError, TimeoutError as SQLTimeoutError
 from datetime import datetime
+import logging
 
-from app.database import get_db
+from app.database import get_db, retry_on_db_error
 from app.models import TeacherGroup, CelebrationGroup, Payment
 from app.auth import get_current_user
 from app.config import settings
+
+# ============================================================
+# LOGGING SETUP
+# ============================================================
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/payment", tags=["Payment"])
 
@@ -19,9 +32,30 @@ razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZOR
 # ============================================================
 # 🔍 DEBUG: Log when the router is loaded
 # ============================================================
-print("🚀 Payment router loaded successfully")
-print(f"🔑 RAZORPAY_KEY_ID: {settings.RAZORPAY_KEY_ID[:10]}...")
-print(f"📂 DATABASE_URL: {settings.DATABASE_URL}")
+logger.info("🚀 Payment router loaded successfully")
+logger.info(f"🔑 RAZORPAY_KEY_ID: {settings.RAZORPAY_KEY_ID[:10]}...")
+
+
+# ============================================================
+# ✅ ADDED: HELPER FOR DATABASE ERROR HANDLING
+# ============================================================
+def handle_db_error(e: Exception, operation: str) -> HTTPException:
+    """
+    Convert database errors to user-friendly HTTP exceptions.
+    """
+    logger.error(f"❌ Database error during {operation}: {str(e)}")
+    
+    if "timeout" in str(e).lower() or "connection" in str(e).lower():
+        return HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database temporarily unavailable. Please try again in a moment."
+        )
+    else:
+        return HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Database error. Please try again later."
+        )
+
 
 # ============================================================
 # CREATE ORDER
@@ -32,90 +66,88 @@ def create_payment_order(
     current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    print("\n" + "="*60)
-    print("💰 CREATE ORDER STARTED")
-    print("="*60)
-    
-    # DEBUG LINE 1
-    print(f"📥 Request received: amount={request.get('amount')}, group_id={request.get('group_id')}, group_type={request.get('group_type')}")
+    logger.info("💰 CREATE ORDER STARTED")
+    logger.info(f"📥 Request received: amount={request.get('amount')}, group_id={request.get('group_id')}, group_type={request.get('group_type')}")
     
     amount = request.get("amount")
     group_id = request.get("group_id")
     group_type = request.get("group_type")
     
     if not amount or not group_id:
-        print("❌ Missing amount or group_id")
+        logger.error("❌ Missing amount or group_id")
         raise HTTPException(status_code=400, detail="Amount and group_id required")
     
     try:
         amount_value = float(amount)
-        print(f"✅ Amount validated: ₹{amount_value}")
+        logger.info(f"✅ Amount validated: ₹{amount_value}")
     except (TypeError, ValueError):
-        print("❌ Invalid amount format")
+        logger.error("❌ Invalid amount format")
         raise HTTPException(status_code=400, detail="Amount must be a valid number")
     
     if amount_value <= 0:
-        print("❌ Amount must be greater than zero")
+        logger.error("❌ Amount must be greater than zero")
         raise HTTPException(status_code=400, detail="Amount must be greater than zero")
     
-    # DEBUG LINE 2
-    print(f"🔍 Looking for group: group_type={group_type}, group_id={group_id}")
-    
-    # Verify group
-    if group_type == "teacher":
-        group = db.query(TeacherGroup).filter(
-            TeacherGroup.group_id == group_id,
-            TeacherGroup.created_by == current_user.id
-        ).first()
-    else:
-        group = db.query(CelebrationGroup).filter(
-            CelebrationGroup.group_id == group_id,
-            CelebrationGroup.created_by == current_user.id
-        ).first()
-    
-    if not group:
-        print("❌ Group not found")
-        raise HTTPException(status_code=404, detail="Group not found")
-    
-    # DEBUG LINE 3
-    print(f"✅ Group found: ID={group.id}, Name={group.teacher_name if group_type=='teacher' else group.title}")
-    
-    # Create Razorpay order
-    order_data = {
-        "amount": int(amount * 100),
-        "currency": "INR",
-        "receipt": f"{group_type}_{group_id}_{current_user.id}",
-        "payment_capture": 1
-    }
-    print(f"📤 Sending order to Razorpay: {order_data}")
+    logger.info(f"🔍 Looking for group: group_type={group_type}, group_id={group_id}")
     
     try:
-        order = razorpay_client.order.create(data=order_data)
+        # Verify group with retry
+        if group_type == "teacher":
+            group = retry_on_db_error(
+                lambda: db.query(TeacherGroup).filter(
+                    TeacherGroup.group_id == group_id,
+                    TeacherGroup.created_by == current_user.id
+                ).first()
+            )
+        else:
+            group = retry_on_db_error(
+                lambda: db.query(CelebrationGroup).filter(
+                    CelebrationGroup.group_id == group_id,
+                    CelebrationGroup.created_by == current_user.id
+                ).first()
+            )
         
-        # DEBUG LINE 4
-        print(f"✅ Razorpay order created: order_id={order['id']}")
+        if not group:
+            logger.error("❌ Group not found")
+            raise HTTPException(status_code=404, detail="Group not found")
+        
+        logger.info(f"✅ Group found: ID={group.id}, Name={group.teacher_name if group_type=='teacher' else group.title}")
+        
+        # Create Razorpay order
+        order_data = {
+            "amount": int(amount * 100),
+            "currency": "INR",
+            "receipt": f"{group_type}_{group_id}_{current_user.id}",
+            "payment_capture": 1
+        }
+        logger.info(f"📤 Sending order to Razorpay: {order_data}")
+        
+        try:
+            order = razorpay_client.order.create(data=order_data)
+            logger.info(f"✅ Razorpay order created: order_id={order['id']}")
+        except Exception as e:
+            logger.error(f"❌ Razorpay order creation failed: {e}")
+            raise HTTPException(status_code=500, detail=f"Razorpay error: {str(e)}")
         
         # Store order in database
-        print("💾 Saving payment record to database...")
+        logger.info("💾 Saving payment record to database...")
         
-        # DEBUG LINE 5
-        print(f"🔍 Checking for existing payment: group_type={group_type}, group_id={group.id}")
-        
-        existing_payment = db.query(Payment).filter(
-            Payment.group_type == group_type,
-            Payment.teacher_group_id == group.id if group_type == "teacher" else None,
-            Payment.celebration_group_id == group.id if group_type == "celebration" else None
-        ).first()
+        # Check for existing payment with retry
+        existing_payment = retry_on_db_error(
+            lambda: db.query(Payment).filter(
+                Payment.group_type == group_type,
+                Payment.teacher_group_id == group.id if group_type == "teacher" else None,
+                Payment.celebration_group_id == group.id if group_type == "celebration" else None
+            ).first()
+        )
         
         if existing_payment:
-            # DEBUG LINE 6
-            print(f"🔄 Existing payment found: ID={existing_payment.id}, updating...")
+            logger.info(f"🔄 Existing payment found: ID={existing_payment.id}, updating...")
             existing_payment.razorpay_order_id = order["id"]
             existing_payment.amount = amount
             existing_payment.status = "pending"
         else:
-            # DEBUG LINE 7
-            print("🆕 No existing payment found. Creating new...")
+            logger.info("🆕 No existing payment found. Creating new...")
             new_payment = Payment(
                 group_type=group_type,
                 teacher_group_id=group.id if group_type == "teacher" else None,
@@ -126,28 +158,23 @@ def create_payment_order(
                 razorpay_order_id=order["id"]
             )
             db.add(new_payment)
-            print(f"🆕 Payment object created (before commit): ID={new_payment.id}")
         
-        # DEBUG LINE 8
-        print("🔄 Committing to database...")
+        # Commit transaction
         db.commit()
-        print("✅ Database commit successful")
+        logger.info("✅ Database commit successful")
         
-        # DEBUG LINE 9
         if not existing_payment:
             db.refresh(new_payment)
-            print(f"💾 PAYMENT SAVED: ID={new_payment.id}, OrderID={new_payment.razorpay_order_id}")
+            logger.info(f"💾 PAYMENT SAVED: ID={new_payment.id}, OrderID={new_payment.razorpay_order_id}")
         else:
             db.refresh(existing_payment)
-            print(f"💾 PAYMENT UPDATED: ID={existing_payment.id}, OrderID={existing_payment.razorpay_order_id}")
+            logger.info(f"💾 PAYMENT UPDATED: ID={existing_payment.id}, OrderID={existing_payment.razorpay_order_id}")
         
-        # DEBUG LINE 10
-        total_payments = db.query(Payment).count()
-        print(f"💾 Total payments in DB: {total_payments}")
+        # Get total payments count
+        total_payments = retry_on_db_error(lambda: db.query(Payment).count())
+        logger.info(f"💾 Total payments in DB: {total_payments}")
         
-        # DEBUG LINE 11
-        print(f"📤 Returning response to frontend: order_id={order['id']}")
-        print("="*60)
+        logger.info(f"📤 Returning response to frontend: order_id={order['id']}")
         
         return {
             "success": True,
@@ -158,9 +185,17 @@ def create_payment_order(
             "group_type": group_type
         }
         
+    except HTTPException:
+        raise
+    except OperationalError as e:
+        db.rollback()
+        raise handle_db_error(e, "creating payment order")
+    except SQLTimeoutError as e:
+        db.rollback()
+        raise handle_db_error(e, "creating payment order")
     except Exception as e:
-        # DEBUG LINE 12
-        print(f"❌ RAZORPAY ERROR: {e}")
+        db.rollback()
+        logger.error(f"❌ Unexpected error creating payment order: {e}")
         raise HTTPException(status_code=500, detail=f"Payment initialization failed: {str(e)}")
 
 
@@ -173,69 +208,79 @@ def verify_payment(
     current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    print("\n" + "="*60)
-    print("🔐 VERIFY PAYMENT STARTED")
-    print("="*60)
-    
-    # DEBUG LINE 1
-    print(f"📥 Verification request: {payment_data}")
+    logger.info("🔐 VERIFY PAYMENT STARTED")
+    logger.info(f"📥 Verification request: {payment_data}")
     
     try:
-        print("🔑 Verifying Razorpay signature...")
+        logger.info("🔑 Verifying Razorpay signature...")
         razorpay_client.utility.verify_payment_signature(payment_data)
-        print("✅ Signature verified successfully")
+        logger.info("✅ Signature verified successfully")
         
-        # ✅ FIX: Use razorpay_order_id (not order_id)
+        # Use razorpay_order_id (not order_id)
         order_id = payment_data.get("razorpay_order_id")
         payment_id = payment_data.get("razorpay_payment_id")
-        print(f"🔍 Looking for payment record: order_id={order_id}")
+        logger.info(f"🔍 Looking for payment record: order_id={order_id}")
         
-        # DEBUG LINE 2
-        payment_record = db.query(Payment).filter(
-            Payment.razorpay_order_id == order_id
-        ).first()
+        # Find payment record with retry
+        payment_record = retry_on_db_error(
+            lambda: db.query(Payment).filter(
+                Payment.razorpay_order_id == order_id
+            ).first()
+        )
         
         if not payment_record:
-            print(f"❌ Payment record NOT FOUND for order_id={order_id}")
-            # DEBUG LINE 3 - Check all payments
-            all_payments = db.query(Payment).all()
-            print(f"📋 All payments in DB: {len(all_payments)}")
+            logger.error(f"❌ Payment record NOT FOUND for order_id={order_id}")
+            # Log all payments for debugging
+            all_payments = retry_on_db_error(lambda: db.query(Payment).all())
+            logger.info(f"📋 All payments in DB: {len(all_payments)}")
             for p in all_payments:
-                print(f"   - ID={p.id}, OrderID={p.razorpay_order_id}, Status={p.status}")
+                logger.info(f"   - ID={p.id}, OrderID={p.razorpay_order_id}, Status={p.status}")
             raise HTTPException(status_code=404, detail="Payment record not found")
         
-        # DEBUG LINE 4
-        print(f"✅ Payment record found: ID={payment_record.id}, Status={payment_record.status}")
+        logger.info(f"✅ Payment record found: ID={payment_record.id}, Status={payment_record.status}")
+        
+        # Check if already processed
+        if payment_record.status == "success":
+            logger.info(f"ℹ️ Payment {payment_id} already verified")
+            return {
+                "success": True,
+                "message": "Payment already verified",
+                "group_id": payment_record.teacher_group_id or payment_record.celebration_group_id
+            }
         
         # Update payment status
         payment_record.status = "success"
         payment_record.razorpay_payment_id = payment_id
         payment_record.paid_at = datetime.utcnow()
-        print(f"🔄 Updated payment status to 'success'")
+        logger.info(f"🔄 Updated payment status to 'success'")
         
         # Activate group
+        group = None
         if payment_record.group_type == "teacher":
-            group = db.query(TeacherGroup).filter(
-                TeacherGroup.id == payment_record.teacher_group_id
-            ).first()
+            group = retry_on_db_error(
+                lambda: db.query(TeacherGroup).filter(
+                    TeacherGroup.id == payment_record.teacher_group_id
+                ).first()
+            )
             if group:
                 group.status = "active"
-                print(f"✅ Teacher group activated: ID={group.id}, Name={group.teacher_name}")
+                logger.info(f"✅ Teacher group activated: ID={group.id}, Name={group.teacher_name}")
             else:
-                print(f"❌ Teacher group not found: ID={payment_record.teacher_group_id}")
+                logger.error(f"❌ Teacher group not found: ID={payment_record.teacher_group_id}")
         else:
-            group = db.query(CelebrationGroup).filter(
-                CelebrationGroup.id == payment_record.celebration_group_id
-            ).first()
+            group = retry_on_db_error(
+                lambda: db.query(CelebrationGroup).filter(
+                    CelebrationGroup.id == payment_record.celebration_group_id
+                ).first()
+            )
             if group:
                 group.status = "active"
-                print(f"✅ Celebration group activated: ID={group.id}, Title={group.title}")
+                logger.info(f"✅ Celebration group activated: ID={group.id}, Title={group.title}")
             else:
-                print(f"❌ Celebration group not found: ID={payment_record.celebration_group_id}")
+                logger.error(f"❌ Celebration group not found: ID={payment_record.celebration_group_id}")
         
         db.commit()
-        print("✅ Database commit successful")
-        print("="*60)
+        logger.info("✅ Database commit successful")
         
         return {
             "success": True,
@@ -243,9 +288,18 @@ def verify_payment(
             "group_id": group.group_id if group else None
         }
         
+    except HTTPException:
+        raise
+    except OperationalError as e:
+        db.rollback()
+        raise handle_db_error(e, "verifying payment")
+    except SQLTimeoutError as e:
+        db.rollback()
+        raise handle_db_error(e, "verifying payment")
     except Exception as e:
-        print(f"❌ PAYMENT VERIFICATION ERROR: {e}")
-        raise HTTPException(status_code=400, detail="Payment verification failed")
+        db.rollback()
+        logger.error(f"❌ Payment verification error: {e}")
+        raise HTTPException(status_code=400, detail=f"Payment verification failed: {str(e)}")
 
 
 # ============================================================
@@ -257,17 +311,31 @@ def get_order_status(
     current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    print(f"🔍 Checking order status: {order_id}")
+    logger.info(f"🔍 Checking order status: {order_id}")
     
-    payment_record = db.query(Payment).filter(
-        Payment.razorpay_order_id == order_id
-    ).first()
-    
-    if not payment_record:
-        return {"status": "not_found"}
-    
-    return {
-        "status": payment_record.status,
-        "amount": payment_record.amount,
-        "paid_at": payment_record.paid_at
-    }
+    try:
+        payment_record = retry_on_db_error(
+            lambda: db.query(Payment).filter(
+                Payment.razorpay_order_id == order_id
+            ).first()
+        )
+        
+        if not payment_record:
+            return {"status": "not_found"}
+        
+        return {
+            "status": payment_record.status,
+            "amount": payment_record.amount,
+            "paid_at": payment_record.paid_at
+        }
+        
+    except OperationalError as e:
+        raise handle_db_error(e, "checking order status")
+    except SQLTimeoutError as e:
+        raise handle_db_error(e, "checking order status")
+    except Exception as e:
+        logger.error(f"❌ Unexpected error checking order status: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred. Please try again."
+        )

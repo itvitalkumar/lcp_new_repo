@@ -8,6 +8,9 @@ Phase 3 (June 25, 2026): Azure Key Vault integration for secrets.
                          Azure SQL Database (replaces SQLite).
                          JWT_SECRET now fetched from Key Vault.
                          Database URL built dynamically from Key Vault secrets.
+Phase 4 (June 26, 2026): ENHANCED - Database initialization with retry logic.
+                         Added startup validation for database connectivity.
+                         Better error handling and logging.
 """
 
 from fastapi import FastAPI, Depends, Request
@@ -20,7 +23,7 @@ import time
 import logging
 
 from app.config import settings
-from app.database import engine, Base, get_db
+from app.database import engine, Base, get_db, check_database_health, init_database
 
 # ========== LOGGING SETUP ==========
 logging.basicConfig(
@@ -48,15 +51,71 @@ from app.models import (
     FriendStory
 )
 
+
 # ============================================================
-# CREATE TABLES (Azure SQL or SQLite fallback)
+# ✅ ENHANCED: INITIALIZE DATABASE WITH RETRY
 # ============================================================
-try:
-    Base.metadata.create_all(bind=engine)
-    logger.info("✅ Database tables created/verified successfully")
-    logger.info(f"   Database: {'Azure SQL' if 'mssql' in settings.DATABASE_URL else 'SQLite (fallback)'}")
-except Exception as e:
-    logger.error(f"❌ Failed to create database tables: {e}")
+def initialize_database():
+    """
+    Initialize database tables with retry logic for Azure SQL.
+    Retries up to 3 times if connection fails.
+    """
+    max_retries = 3
+    retry_delay = 2
+    
+    for attempt in range(max_retries):
+        try:
+            logger.info(f"🔄 Database initialization attempt {attempt + 1}/{max_retries}")
+            
+            # Create tables
+            Base.metadata.create_all(bind=engine)
+            
+            # Verify connection
+            health = check_database_health()
+            if health.get("status") == "healthy":
+                logger.info("✅ Database tables created/verified successfully")
+                logger.info(f"   Database: {health.get('database', 'Unknown')}")
+                logger.info(f"   Pool Size: {health.get('pool_size', 'N/A')}")
+                return True
+            else:
+                logger.warning(f"⚠️ Database health check failed: {health}")
+                
+        except Exception as e:
+            logger.error(f"❌ Database initialization attempt {attempt + 1} failed: {e}")
+            
+            if attempt < max_retries - 1:
+                logger.info(f"⏳ Retrying in {retry_delay} seconds...")
+                time.sleep(retry_delay)
+                retry_delay *= 2  # Exponential backoff
+            else:
+                logger.error("❌ All database initialization attempts failed")
+                return False
+    
+    return False
+
+
+# ============================================================
+# ✅ ENHANCED: STARTUP EVENT - Initialize database on app startup
+# ============================================================
+@app.on_event("startup")
+async def startup_event():
+    """
+    Run on application startup.
+    Initializes database and logs startup status.
+    """
+    logger.info("🚀 Starting Campus Central API...")
+    logger.info(f"📊 Database URL: {'Azure SQL' if 'mssql' in settings.DATABASE_URL else 'SQLite (fallback)'}")
+    logger.info(f"🔧 Debug Mode: {settings.DEBUG}")
+    logger.info(f"🧪 Test Mode: {settings.TEST_MODE}")
+    
+    # Initialize database
+    success = initialize_database()
+    
+    if success:
+        logger.info("✅ Database initialized successfully")
+    else:
+        logger.warning("⚠️ Database initialization failed - app will continue but some features may not work")
+
 
 # ============================================================
 # FASTAPI APP
@@ -69,16 +128,18 @@ app = FastAPI(
     redoc_url="/redoc" if settings.DEBUG else None,
 )
 
+
 # ============================================================
 # CORS (MUST BE FIRST MIDDLEWARE)
 # ============================================================
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.ALLOWED_ORIGINS,  # ✅ Uses your updated list from config.py
+    allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # ============================================================
 # GLOBAL REQUEST LOGGER
@@ -87,42 +148,31 @@ app.add_middleware(
 async def log_requests(request: Request, call_next):
     """Log all incoming requests with method, path, status, and duration."""
     start = time.time()
-    response = await call_next(request)
-    duration = (time.time() - start) * 1000
-    logger.info(f"{request.method} {request.url.path} -> {response.status_code} ({duration:.0f}ms)")
-    return response
+    try:
+        response = await call_next(request)
+        duration = (time.time() - start) * 1000
+        logger.info(f"{request.method} {request.url.path} -> {response.status_code} ({duration:.0f}ms)")
+        return response
+    except Exception as e:
+        logger.error(f"❌ Request failed: {request.method} {request.url.path} - {e}")
+        raise
+
 
 # ============================================================
-# IMPORTANT: HANDLE PREFLIGHT (OPTIONS REQUESTS)
+# HANDLE PREFLIGHT (OPTIONS REQUESTS)
 # ============================================================
 @app.options("/{path:path}")
 async def preflight_handler(path: str):
     """Handle CORS preflight OPTIONS requests."""
     return Response(status_code=200)
 
-# ============================================================
-# OPTIONAL: IP WHITELIST (DISABLED SAFE FOR AZURE)
-# ============================================================
-"""
-from starlette.middleware.base import BaseHTTPMiddleware
-
-ALLOWED_IPS = {"152.57.19.112", "152.57.3.55"}
-
-class IPWhitelistMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        ip = request.client.host
-        if ip not in ALLOWED_IPS:
-            return Response("Forbidden", status_code=403)
-        return await call_next(request)
-
-# app.add_middleware(IPWhitelistMiddleware)
-"""
 
 # ============================================================
 # STATIC FILES
 # ============================================================
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
+
 
 # ============================================================
 # ROUTERS
@@ -180,29 +230,41 @@ app.include_router(connections.router)
 app.include_router(mood_memory.router)
 app.include_router(friend_search.router)
 
+
 # ============================================================
 # ROOT ENDPOINT
 # ============================================================
 @app.get("/")
 def root():
     """Root endpoint with database status."""
+    health = check_database_health()
     return {
         "message": "Welcome to Campus Central API",
         "status": "running",
         "database": "Azure SQL" if "mssql" in settings.DATABASE_URL else "SQLite (fallback)",
+        "database_health": health.get("status", "unknown"),
         "version": settings.APP_VERSION
     }
 
+
 # ============================================================
-# HEALTH CHECK
+# ✅ ENHANCED: HEALTH CHECK
 # ============================================================
 @app.get("/health")
 def health():
-    """Health check endpoint for Azure monitoring."""
+    """
+    Enhanced health check endpoint for Azure monitoring.
+    Includes database connectivity status.
+    """
+    health_status = check_database_health()
+    
     return {
-        "status": "healthy",
-        "database": "Azure SQL" if "mssql" in settings.DATABASE_URL else "SQLite (fallback)"
+        "status": health_status.get("status", "unknown"),
+        "database": health_status.get("database", "Unknown"),
+        "pool_size": health_status.get("pool_size", "N/A"),
+        "timestamp": time.time()
     }
+
 
 # ============================================================
 # PUBLIC JOIN
@@ -237,12 +299,14 @@ def join_group(group_id: str, db: Session = Depends(get_db)):
 
     return {"success": False, "message": "Group not found"}
 
+
 # ============================================================
 # VERSION
 # ============================================================
 @app.get("/api/version")
 def version():
     """Returns the current API version and available features."""
+    health = check_database_health()
     return {
         "version": settings.APP_VERSION,
         "features": [
@@ -252,20 +316,65 @@ def version():
             "Mood & Memory",
             "Find My Friend",
         ],
-        "database": "Azure SQL" if "mssql" in settings.DATABASE_URL else "SQLite (fallback)"
+        "database": "Azure SQL" if "mssql" in settings.DATABASE_URL else "SQLite (fallback)",
+        "database_health": health.get("status", "unknown")
     }
 
+
 # ============================================================
-# TEMPORARY: INIT DATABASE TABLES (ONE-TIME USE)
+# ✅ ENHANCED: INIT DATABASE TABLES (WITH RETRY)
 # ============================================================
 @app.get("/init-db")
-def init_database():
-    """One-time endpoint to create all tables (useful for first deployment)."""
+def init_database_endpoint():
+    """
+    One-time endpoint to create all tables.
+    Useful for first deployment or manual table creation.
+    """
     try:
-        Base.metadata.create_all(bind=engine)
-        return {"status": "✅ All tables created successfully"}
+        # Call the enhanced init function
+        success = initialize_database()
+        if success:
+            return {
+                "status": "✅ All tables created successfully",
+                "database": "Azure SQL" if "mssql" in settings.DATABASE_URL else "SQLite (fallback)"
+            }
+        else:
+            return {
+                "status": "❌ Failed to create tables",
+                "message": "Check logs for details"
+            }
     except Exception as e:
-        return {"status": "❌ Failed to create tables", "error": str(e)}
+        logger.error(f"❌ Init-db error: {e}")
+        return {
+            "status": "❌ Failed to create tables",
+            "error": str(e)
+        }
+
+
+# ============================================================
+# ✅ ADDED: FORCE REFRESH DATABASE CONNECTION
+# ============================================================
+@app.post("/api/admin/refresh-db")
+async def refresh_database():
+    """
+    Admin endpoint to force refresh database connection pool.
+    Useful when connection issues occur.
+    """
+    try:
+        from app.database import engine
+        engine.dispose()
+        return {
+            "success": True,
+            "message": "Database connection pool disposed and recreated",
+            "timestamp": time.time()
+        }
+    except Exception as e:
+        logger.error(f"❌ Refresh DB error: {e}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
 
 # ============================================================
 # RUN LOCALLY ONLY
