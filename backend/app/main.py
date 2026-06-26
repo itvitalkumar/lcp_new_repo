@@ -1,277 +1,274 @@
 """
 backend/app/main.py
+
 Campus Central API - FastAPI entry point
 
-Phase 1 (June 18, 2026): Initial deployment.
-Phase 2 (June 19, 2026): CORS fix + Azure deployment stability + preflight handling.
-Phase 3 (June 25, 2026): Azure Key Vault integration for secrets.
-                         Azure SQL Database (replaces SQLite).
-                         JWT_SECRET now fetched from Key Vault.
-                         Database URL built dynamically from Key Vault secrets.
-Phase 4 (June 26, 2026): ENHANCED - Database initialization with retry logic.
-                         Added startup validation for database connectivity.
-                         Better error handling and logging.
-                         FIXED: Startup event moved AFTER app creation.
+Architecture:
+    Azure App Service
+        ↓
+    FastAPI + Uvicorn
+        ↓
+    Azure SQL (via Managed Identity)
+
+Features:
+- Azure Key Vault integration for secrets
+- Azure SQL Database with Managed Identity
+- CORS configuration
+- Request logging with timing
+- Health checks for Azure monitoring
+- Database initialization with retry logic
+- Router registration
+- Static file serving
 """
+
+import logging
+import os
+import sys
+from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 
 from fastapi import FastAPI, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import Response
 from sqlalchemy.orm import Session
-import os
-import time
-import logging
 
 from app.config import settings
-from app.database import engine, Base, get_db, check_database_health, init_database
-
-# ========== LOGGING SETUP ==========
-logging.basicConfig(
-    level=logging.DEBUG if settings.DEBUG else logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+from app.database import (
+    engine,
+    get_db,
+    check_database_health,
+    initialize_database,
+    close_database_connections,
 )
+from app.dependencies import get_current_admin_user
+from app.models import User  # Only import User for admin dependency
+
+# ==========================================================
+# Logging Configuration
+# ==========================================================
+
+# Let Uvicorn handle logging configuration
 logger = logging.getLogger(__name__)
 
-# ============================================================
-# IMPORT ALL MODELS (REQUIRED FOR TABLE CREATION)
-# ============================================================
-from app.models import (
-    User,
-    TeacherGroup,
-    CelebrationGroup,
-    GroupMember,
-    Message,
-    Payment,
-    SuccessStory,
-    OTPCode,
-    SocialPost,
-    SocialComment,
-    SocialLike,
-    ConnectionRequest,
-    FriendStory
-)
 
+# ==========================================================
+# Application Lifespan Context Manager
+# ==========================================================
 
-# ============================================================
-# ✅ ENHANCED: INITIALIZE DATABASE WITH RETRY
-# ============================================================
-def initialize_database():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     """
-    Initialize database tables with retry logic for Azure SQL.
-    Retries up to 3 times if connection fails.
+    Lifespan context manager for startup and shutdown events.
+    Replaces deprecated @app.on_event("startup") and @app.on_event("shutdown").
     """
-    max_retries = 3
-    retry_delay = 2
-    
-    for attempt in range(max_retries):
-        try:
-            logger.info(f"🔄 Database initialization attempt {attempt + 1}/{max_retries}")
-            
-            # Create tables
-            Base.metadata.create_all(bind=engine)
-            
-            # Verify connection
-            health = check_database_health()
-            if health.get("status") == "healthy":
-                logger.info("✅ Database tables created/verified successfully")
-                logger.info(f"   Database: {health.get('database', 'Unknown')}")
-                logger.info(f"   Pool Size: {health.get('pool_size', 'N/A')}")
-                return True
-            else:
-                logger.warning(f"⚠️ Database health check failed: {health}")
-                
-        except Exception as e:
-            logger.error(f"❌ Database initialization attempt {attempt + 1} failed: {e}")
-            
-            if attempt < max_retries - 1:
-                logger.info(f"⏳ Retrying in {retry_delay} seconds...")
-                time.sleep(retry_delay)
-                retry_delay *= 2  # Exponential backoff
-            else:
-                logger.error("❌ All database initialization attempts failed")
-                return False
-    
-    return False
+    # --- Startup ---
+    logger.info("🚀 Starting Campus Central API...")
+    logger.info(f"📊 Database: {'Azure SQL' if not settings.USE_SQLITE else 'SQLite'}")
+    logger.info(f"📦 Version: {settings.APP_VERSION}")
+    logger.info(f"🔧 Environment: {'Development' if settings.DEBUG else 'Production'}")
+
+    # Initialize database with retry logic
+    # CRITICAL: Table creation is disabled in production
+    # Production migrations must be handled via Alembic
+    create_tables = settings.DEBUG and settings.CREATE_TABLES_ON_STARTUP
+    success = initialize_database(create_tables=create_tables)
+
+    if success:
+        if create_tables:
+            logger.info("✅ Database initialized with table creation (development mode)")
+        else:
+            logger.info("✅ Database connection verified (production mode)")
+    else:
+        logger.error("❌ Database initialization failed - app may not function correctly")
+
+    yield  # Application runs here
+
+    # --- Shutdown ---
+    logger.info("🛑 Shutting down Campus Central API...")
+    close_database_connections()
+    logger.info("✅ Clean shutdown complete")
 
 
-# ============================================================
-# FASTAPI APP (MOVED BEFORE STARTUP EVENT)
-# ============================================================
+# ==========================================================
+# Create FastAPI Application
+# ==========================================================
+
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
     debug=settings.DEBUG,
     docs_url="/docs" if settings.DEBUG else None,
     redoc_url="/redoc" if settings.DEBUG else None,
+    openapi_url="/openapi.json" if settings.DEBUG else None,
+    lifespan=lifespan,
 )
 
 
-# ============================================================
-# CORS (MUST BE FIRST MIDDLEWARE)
-# ============================================================
+# ==========================================================
+# CORS Middleware
+# ==========================================================
+
+# Validate CORS configuration for production
+if not settings.ALLOWED_ORIGINS:
+    if settings.DEBUG:
+        logger.warning("⚠️ ALLOWED_ORIGINS is empty. Using ['*'] for development only.")
+    else:
+        raise RuntimeError(
+            "ALLOWED_ORIGINS must be configured in production. "
+            "Please set ALLOWED_ORIGINS in your environment or .env file."
+        )
+
+# CORS configuration
+# IMPORTANT: allow_credentials=True requires explicit origins, not ["*"]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.ALLOWED_ORIGINS,
+    allow_origins=settings.ALLOWED_ORIGINS,  # Must be explicit in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-Request-ID", "X-Response-Time"],
+    max_age=600,
 )
 
-
-# ============================================================
-# ✅ ENHANCED: STARTUP EVENT - Initialize database on app startup
-# ============================================================
-@app.on_event("startup")
-async def startup_event():
-    """
-    Run on application startup.
-    Initializes database and logs startup status.
-    """
-    logger.info("🚀 Starting Campus Central API...")
-    logger.info(f"📊 Database URL: {'Azure SQL' if 'mssql' in settings.DATABASE_URL else 'SQLite (fallback)'}")
-    logger.info(f"🔧 Debug Mode: {settings.DEBUG}")
-    logger.info(f"🧪 Test Mode: {settings.TEST_MODE}")
-    
-    # Initialize database
-    success = initialize_database()
-    
-    if success:
-        logger.info("✅ Database initialized successfully")
-    else:
-        logger.warning("⚠️ Database initialization failed - app will continue but some features may not work")
+logger.info(f"✅ CORS configured with origins: {settings.ALLOWED_ORIGINS}")
 
 
-# ============================================================
-# GLOBAL REQUEST LOGGER
-# ============================================================
+# ==========================================================
+# Request Logging Middleware
+# ==========================================================
+
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
-    """Log all incoming requests with method, path, status, and duration."""
-    start = time.time()
+    """
+    Log all incoming requests with method, path, status, duration, and client IP.
+    """
+    start_time = datetime.now(timezone.utc)
+    client_ip = request.client.host if request.client else "unknown"
+    method = request.method
+    path = request.url.path
+
+    logger.info(f"→ {method} {path} from {client_ip}")
+
     try:
         response = await call_next(request)
-        duration = (time.time() - start) * 1000
-        logger.info(f"{request.method} {request.url.path} -> {response.status_code} ({duration:.0f}ms)")
+        duration = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+
+        # Add response time header
+        response.headers["X-Response-Time"] = f"{duration:.0f}ms"
+
+        logger.info(
+            f"← {method} {path} → {response.status_code} "
+            f"({duration:.1f}ms) from {client_ip}"
+        )
         return response
-    except Exception as e:
-        logger.error(f"❌ Request failed: {request.method} {request.url.path} - {e}")
+
+    except Exception:
+        logger.exception(f"✗ {method} {path} failed from {client_ip}")
         raise
 
 
-# ============================================================
-# HANDLE PREFLIGHT (OPTIONS REQUESTS)
-# ============================================================
-@app.options("/{path:path}")
-async def preflight_handler(path: str):
-    """Handle CORS preflight OPTIONS requests."""
-    return Response(status_code=200)
+# ==========================================================
+# Static Files
+# ==========================================================
 
-
-# ============================================================
-# STATIC FILES
-# ============================================================
+# Create upload directory if it doesn't exist
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
 
 
-# ============================================================
-# ROUTERS
-# ============================================================
-from routers import (
-    auth,
-    groups,
-    dashboard,
-    search,
-    stories,
-    admin,
-    batchmate,
-    business,
-    startup,
-    hive,
-    crush,
-    avatar,
-    forum,
-    marriage,
-    messages,
-    public,
-    findmyfriend,
-    social_posts,
-    users,
-    connections,
-    mood_memory,
-    friend_search,
-)
+# ==========================================================
+# Root Endpoint
+# ==========================================================
 
-from routers.payment import router as payment_router
-
-# ========== INCLUDE ALL ROUTERS ==========
-app.include_router(auth.router)
-app.include_router(groups.router)
-app.include_router(dashboard.router)
-app.include_router(search.router)
-app.include_router(stories.router)
-app.include_router(admin.router)
-
-app.include_router(batchmate.router)
-app.include_router(business.router)
-app.include_router(startup.router)
-app.include_router(hive.router)
-app.include_router(crush.router)
-app.include_router(avatar.router)
-app.include_router(forum.router)
-app.include_router(marriage.router)
-app.include_router(messages.router)
-app.include_router(public.router)
-app.include_router(findmyfriend.router)
-app.include_router(payment_router)
-app.include_router(social_posts.router)
-app.include_router(users.router)
-app.include_router(connections.router)
-app.include_router(mood_memory.router)
-app.include_router(friend_search.router)
-
-
-# ============================================================
-# ROOT ENDPOINT
-# ============================================================
 @app.get("/")
-def root():
-    """Root endpoint with database status."""
-    health = check_database_health()
-    return {
-        "message": "Welcome to Campus Central API",
+async def root():
+    """
+    Root endpoint - API information.
+    Does NOT query the database for faster response.
+    Does NOT expose debug information in production.
+    """
+    response = {
+        "name": settings.APP_NAME,
+        "version": settings.APP_VERSION,
         "status": "running",
-        "database": "Azure SQL" if "mssql" in settings.DATABASE_URL else "SQLite (fallback)",
-        "database_health": health.get("status", "unknown"),
-        "version": settings.APP_VERSION
     }
+    
+    # Only expose debug info in development
+    if settings.DEBUG:
+        response["debug"] = settings.DEBUG
+        response["database"] = "Azure SQL" if not settings.USE_SQLITE else "SQLite"
+    
+    return response
 
 
-# ============================================================
-# ✅ ENHANCED: HEALTH CHECK
-# ============================================================
+# ==========================================================
+# Health Check Endpoint
+# ==========================================================
+
 @app.get("/health")
-def health():
+async def health():
     """
     Enhanced health check endpoint for Azure monitoring.
-    Includes database connectivity status.
+    Includes database connectivity and connection pool status.
     """
     health_status = check_database_health()
-    
-    return {
+
+    response = {
         "status": health_status.get("status", "unknown"),
-        "database": health_status.get("database", "Unknown"),
-        "pool_size": health_status.get("pool_size", "N/A"),
-        "timestamp": time.time()
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "version": settings.APP_VERSION,
     }
+    
+    # Include database details in health check
+    if health_status:
+        response["database"] = {
+            "type": health_status.get("database", "Unknown"),
+            "status": health_status.get("status", "unknown"),
+            "pool_size": health_status.get("pool_size", "N/A"),
+            "checked_in": health_status.get("checked_in", "N/A"),
+            "checked_out": health_status.get("checked_out", "N/A"),
+            "overflow": health_status.get("overflow", "N/A"),
+        }
+    
+    return response
 
 
-# ============================================================
-# PUBLIC JOIN
-# ============================================================
+# ==========================================================
+# Version Endpoint
+# ==========================================================
+
+@app.get("/api/version")
+async def version():
+    """
+    Get API version and feature information.
+    Does NOT query the database.
+    """
+    response = {
+        "name": settings.APP_NAME,
+        "version": settings.APP_VERSION,
+        "python": sys.version.split()[0],
+        "features": [
+            "Batchmate Finder",
+            "Crush Corner",
+            "Startup Nest",
+            "Mood & Memory",
+            "Find My Friend",
+        ],
+    }
+    
+    # Only expose debug info in development
+    if settings.DEBUG:
+        response["debug"] = settings.DEBUG
+    
+    return response
+
+
+# ==========================================================
+# Public Join Endpoint
+# ==========================================================
+
 @app.get("/join/{group_id}")
-def join_group(group_id: str, db: Session = Depends(get_db)):
+async def join_group(group_id: str, db: Session = Depends(get_db)):
     """
     Public endpoint to check group details before joining.
     Returns group type and member count.
@@ -301,85 +298,144 @@ def join_group(group_id: str, db: Session = Depends(get_db)):
     return {"success": False, "message": "Group not found"}
 
 
-# ============================================================
-# VERSION
-# ============================================================
-@app.get("/api/version")
-def version():
-    """Returns the current API version and available features."""
-    health = check_database_health()
-    return {
-        "version": settings.APP_VERSION,
-        "features": [
-            "Batchmate Finder",
-            "Crush Corner",
-            "Startup Nest",
-            "Mood & Memory",
-            "Find My Friend",
-        ],
-        "database": "Azure SQL" if "mssql" in settings.DATABASE_URL else "SQLite (fallback)",
-        "database_health": health.get("status", "unknown")
-    }
+# ==========================================================
+# Admin - Initialize Database (Development Only)
+# ==========================================================
 
-
-# ============================================================
-# ✅ ENHANCED: INIT DATABASE TABLES (WITH RETRY)
-# ============================================================
 @app.get("/init-db")
-def init_database_endpoint():
+async def init_database_endpoint():
     """
-    One-time endpoint to create all tables.
-    Useful for first deployment or manual table creation.
+    Initialize database tables.
+    
+    ⚠️ DEVELOPMENT ONLY - Disabled in production.
+    In production, migrations should be handled via Alembic.
     """
+    # Disable this endpoint entirely in production
+    if not settings.DEBUG:
+        return {
+            "status": "error",
+            "message": "This endpoint is disabled in production. Use Alembic migrations instead.",
+        }
+
     try:
-        # Call the enhanced init function
-        success = initialize_database()
+        success = initialize_database(create_tables=True)
         if success:
             return {
-                "status": "✅ All tables created successfully",
-                "database": "Azure SQL" if "mssql" in settings.DATABASE_URL else "SQLite (fallback)"
+                "status": "success",
+                "message": "Database tables created successfully",
+                "database": "Azure SQL" if not settings.USE_SQLITE else "SQLite",
             }
         else:
             return {
-                "status": "❌ Failed to create tables",
-                "message": "Check logs for details"
+                "status": "error",
+                "message": "Failed to create database tables. Check logs for details.",
             }
     except Exception as e:
-        logger.error(f"❌ Init-db error: {e}")
+        logger.exception("Init-db endpoint error")
         return {
-            "status": "❌ Failed to create tables",
-            "error": str(e)
+            "status": "error",
+            "message": str(e),
         }
 
 
-# ============================================================
-# ✅ ADDED: FORCE REFRESH DATABASE CONNECTION
-# ============================================================
+# ==========================================================
+# Admin - Refresh Database Connection Pool
+# ==========================================================
+
 @app.post("/api/admin/refresh-db")
-async def refresh_database():
+async def refresh_database(
+    current_user: User = Depends(get_current_admin_user),
+):
     """
     Admin endpoint to force refresh database connection pool.
     Useful when connection issues occur.
+    
+    ⚠️ Requires admin authentication.
     """
     try:
-        from app.database import engine
         engine.dispose()
+        logger.info(f"Database connection pool disposed by admin: {current_user.email}")
         return {
             "success": True,
             "message": "Database connection pool disposed and recreated",
-            "timestamp": time.time()
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
     except Exception as e:
-        logger.error(f"❌ Refresh DB error: {e}")
+        logger.exception(f"Refresh DB error by admin: {current_user.email}")
         return {
             "success": False,
-            "error": str(e)
+            "error": str(e),
         }
 
 
-# ============================================================
-# RUN LOCALLY ONLY
-# ============================================================
+# ==========================================================
+# Router Registration
+# ==========================================================
+
+from app.routers import (
+    auth,
+    groups,
+    dashboard,
+    search,
+    stories,
+    admin,
+    batchmate,
+    business,
+    startup,
+    hive,
+    crush,
+    avatar,
+    forum,
+    marriage,
+    messages,
+    public,
+    findmyfriend,
+    social_posts,
+    users,
+    connections,
+    mood_memory,
+    friend_search,
+)
+from app.routers.payment import router as payment_router
+
+# API routes
+app.include_router(auth.router)
+app.include_router(groups.router)
+app.include_router(dashboard.router)
+app.include_router(search.router)
+app.include_router(stories.router)
+app.include_router(admin.router)
+
+app.include_router(batchmate.router)
+app.include_router(business.router)
+app.include_router(startup.router)
+app.include_router(hive.router)
+app.include_router(crush.router)
+app.include_router(avatar.router)
+app.include_router(forum.router)
+app.include_router(marriage.router)
+app.include_router(messages.router)
+app.include_router(public.router)
+app.include_router(findmyfriend.router)
+app.include_router(payment_router)
+app.include_router(social_posts.router)
+app.include_router(users.router)
+app.include_router(connections.router)
+app.include_router(mood_memory.router)
+app.include_router(friend_search.router)
+
+logger.info("All routers registered successfully")
+
+
+# ==========================================================
+# Local Development Runner
+# ==========================================================
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(
+        "app.main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=settings.DEBUG,
+    )

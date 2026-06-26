@@ -1,16 +1,27 @@
 """
 backend/app/config.py
+
+Campus Central - Configuration
+
 Phase 1 (June 18, 2026): Core app settings.
 Phase 2 (June 19, 2026): Added TEST_MODE and TEST_PHONE_NUMBERS for OTP bypass.
 Phase 3 (June 25, 2026): Integrated Azure Key Vault for secure secret management.
-                         Database migrated from SQLite to Azure SQL.
-                         Secrets now fetched from Key Vault with fallback to env vars.
-Phase 4 (June 26, 2026): PERMANENT FIX - Azure SQL connection string optimized.
-                         Added connection pooling configuration.
-                         Enhanced error handling for database connections.
+Phase 4 (June 26, 2026): REFACTORED - Production-ready config.
+                         - Added logging instead of print()
+                         - Lazy secret loading for faster startup
+                         - Added USE_SQLITE switch
+                         - ODBC Driver 18 (current Azure standard)
+                         - Azure CLI support for local development
+                         - Removed DATABASE_URL (now built in database.py)
+                         - Key Vault URL must be set via environment variable
+                         - Added type hints for better code quality
+                         - Removed hardcoded Razorpay test keys
+                         - Added warnings for missing Razorpay keys
 """
 
 import os
+import logging
+from typing import Optional, Dict
 from dotenv import load_dotenv
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
@@ -18,10 +29,14 @@ from azure.keyvault.secrets import SecretClient
 # Load environment variables from .env file (for local development)
 load_dotenv()
 
+# Setup logger
+logger = logging.getLogger(__name__)
+
 
 class Settings:
     """
     Application settings loaded from environment variables and Azure Key Vault.
+    Secrets are loaded lazily to improve startup performance.
     """
     
     # ========== APP SETTINGS ==========
@@ -30,64 +45,108 @@ class Settings:
     DEBUG: bool = os.getenv("DEBUG", "False").lower() == "true"
     
     # ========== KEY VAULT CONFIGURATION ==========
-    KEY_VAULT_URL: str = os.getenv("AZURE_KEY_VAULT_URL", "https://campuscentral-keyvalut.vault.azure.net/")
-    _secret_client = None
-    _secret_cache = {}
+    # ✅ Must be set via Application Setting in Azure App Service
+    # ✅ Or .env file for local development
+    KEY_VAULT_URL: str = os.getenv("AZURE_KEY_VAULT_URL", "")
+    
+    _secret_client: Optional[SecretClient] = None
+    _secret_cache: Dict[str, str] = {}
     
     @classmethod
     def _get_secret_client(cls):
+        """Lazy-initialize Key Vault client with optimized credentials."""
         if cls._secret_client is None:
+            # ✅ Validate Key Vault URL is configured
+            if not cls.KEY_VAULT_URL:
+                logger.warning("AZURE_KEY_VAULT_URL is not configured. Secrets will not be available.")
+                return None
+            
             try:
-                credential = DefaultAzureCredential()
-                cls._secret_client = SecretClient(vault_url=cls.KEY_VAULT_URL, credential=credential)
+                # ✅ Balanced DefaultAzureCredential:
+                # - Works on Azure App Service (Managed Identity)
+                # - Works locally with az login
+                # - Skips only VS Code and Shared Token Cache for speed
+                credential = DefaultAzureCredential(
+                    exclude_visual_studio_code_credential=True,
+                    exclude_shared_token_cache_credential=True,
+                )
+                cls._secret_client = SecretClient(
+                    vault_url=cls.KEY_VAULT_URL, 
+                    credential=credential
+                )
+                logger.info("✅ Key Vault client initialized successfully")
             except Exception as e:
-                print(f"⚠️ Failed to initialize Key Vault client: {e}")
+                logger.warning("Failed to initialize Key Vault client: %s", e)
                 cls._secret_client = None
         return cls._secret_client
     
     @classmethod
-    def _get_secret(cls, secret_name: str, fallback: str = None) -> str:
+    def _get_secret(cls, secret_name: str, fallback: Optional[str] = None) -> str:
+        """
+        Fetch a secret from Azure Key Vault with caching.
+        Returns fallback value if secret cannot be fetched.
+        """
+        # ✅ Check cache first
         if secret_name in cls._secret_cache:
             return cls._secret_cache[secret_name]
         
+        # ✅ Try Key Vault
         client = cls._get_secret_client()
         if client:
             try:
                 value = client.get_secret(secret_name).value
                 cls._secret_cache[secret_name] = value
+                logger.debug("Secret '%s' fetched from Key Vault", secret_name)
                 return value
             except Exception as e:
-                print(f"⚠️ Failed to fetch secret '{secret_name}': {e}")
+                logger.warning("Failed to fetch secret '%s': %s", secret_name, e)
         
+        # ✅ Fallback to environment variable
         env_value = os.getenv(secret_name)
         if env_value:
             cls._secret_cache[secret_name] = env_value
+            logger.debug("Secret '%s' fetched from environment", secret_name)
             return env_value
         
-        if fallback:
+        # ✅ Use fallback
+        if fallback is not None:
             cls._secret_cache[secret_name] = fallback
+            logger.debug("Secret '%s' using fallback value", secret_name)
             return fallback
         
-        print(f"⚠️ No value found for '{secret_name}'. Using empty string.")
+        logger.warning("No value found for secret '%s'", secret_name)
         return ""
     
     # ========== DATABASE (Azure SQL) ==========
-    DB_USER: str = os.getenv("DB_USER", "campusadmin")
+    # ✅ Managed Identity ONLY - no username/password needed
+    USE_SQLITE: bool = os.getenv("USE_SQLITE", "false").lower() == "true"
+    
     DB_HOST: str = os.getenv("DB_HOST", "campuscentral-sql-server.database.windows.net")
     DB_NAME: str = os.getenv("DB_NAME", "campuscentral_sql_db")
+    # ✅ ODBC Driver 18 - Current Azure App Service standard
     DB_DRIVER: str = os.getenv("DB_DRIVER", "ODBC Driver 18 for SQL Server")
-    DB_PASSWORD: str = ""
     
-    @classmethod
-    def _get_db_password(cls):
-        return cls._get_secret("DB-Password", fallback=os.getenv("DB_PASSWORD", ""))
+    # SQLite (for local development)
+    SQLITE_DATABASE_URL: str = os.getenv(
+        "SQLITE_DATABASE_URL",
+        "sqlite:///./campus_central.db"
+    )
     
     # ========== SECURITY ==========
-    JWT_SECRET: str = ""
+    # ✅ Lazy-loaded from Key Vault
+    _jwt_secret: Optional[str] = None
     
-    @classmethod
-    def _get_jwt_secret(cls):
-        return cls._get_secret("JWT-Secret", fallback=os.getenv("JWT_SECRET", "your-super-secret-key-change-in-production"))
+    @property
+    def JWT_SECRET(self) -> str:
+        """Lazy-load JWT_SECRET from Key Vault."""
+        if self._jwt_secret is None:
+            self._jwt_secret = self._get_secret(
+                "JWT-Secret",
+                fallback=os.getenv("JWT_SECRET", "your-super-secret-key-change-in-production")
+            )
+            if self._jwt_secret == "your-super-secret-key-change-in-production":
+                logger.warning("⚠️ JWT_SECRET using default value - CHANGE THIS IN PRODUCTION!")
+        return self._jwt_secret
     
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "10080"))
@@ -118,21 +177,48 @@ class Settings:
     LUCKIER_MAX: int = 60
     
     # ========== RAZORPAY PAYMENT SETTINGS ==========
-    RAZORPAY_KEY_ID: str = ""
-    RAZORPAY_KEY_SECRET: str = ""
-    RAZORPAY_WEBHOOK_SECRET: str = ""
+    # ✅ Lazy-loaded from Key Vault
+    # ✅ No hardcoded test keys - only from Key Vault or environment
+    # ✅ Warning logged if keys are missing
+    _razorpay_key_id: Optional[str] = None
+    _razorpay_key_secret: Optional[str] = None
+    _razorpay_webhook_secret: Optional[str] = None
     
-    @classmethod
-    def _get_razorpay_key_id(cls):
-        return cls._get_secret("Razorpay-KeyId", fallback=os.getenv("RAZORPAY_KEY_ID", "rzp_test_T0KRH1p12BN6S3"))
+    @property
+    def RAZORPAY_KEY_ID(self) -> str:
+        """Lazy-load Razorpay Key ID from Key Vault."""
+        if self._razorpay_key_id is None:
+            self._razorpay_key_id = self._get_secret(
+                "Razorpay-KeyId",
+                fallback=os.getenv("RAZORPAY_KEY_ID", "")
+            )
+            if not self._razorpay_key_id:
+                logger.warning("⚠️ RAZORPAY_KEY_ID is not configured. Payment will not work.")
+        return self._razorpay_key_id
     
-    @classmethod
-    def _get_razorpay_key_secret(cls):
-        return cls._get_secret("Razorpay-KeySecret", fallback=os.getenv("RAZORPAY_KEY_SECRET", "13NK59ubLhjQAp75VzkLm803"))
+    @property
+    def RAZORPAY_KEY_SECRET(self) -> str:
+        """Lazy-load Razorpay Key Secret from Key Vault."""
+        if self._razorpay_key_secret is None:
+            self._razorpay_key_secret = self._get_secret(
+                "Razorpay-KeySecret",
+                fallback=os.getenv("RAZORPAY_KEY_SECRET", "")
+            )
+            if not self._razorpay_key_secret:
+                logger.warning("⚠️ RAZORPAY_KEY_SECRET is not configured. Payment will not work.")
+        return self._razorpay_key_secret
     
-    @classmethod
-    def _get_razorpay_webhook_secret(cls):
-        return cls._get_secret("Razorpay-Webhook-Secret", fallback=os.getenv("RAZORPAY_WEBHOOK_SECRET", "your_webhook_secret_here"))
+    @property
+    def RAZORPAY_WEBHOOK_SECRET(self) -> str:
+        """Lazy-load Razorpay Webhook Secret from Key Vault."""
+        if self._razorpay_webhook_secret is None:
+            self._razorpay_webhook_secret = self._get_secret(
+                "Razorpay-Webhook-Secret",
+                fallback=os.getenv("RAZORPAY_WEBHOOK_SECRET", "")
+            )
+            if not self._razorpay_webhook_secret:
+                logger.warning("⚠️ RAZORPAY_WEBHOOK_SECRET is not configured. Webhooks will not work.")
+        return self._razorpay_webhook_secret
     
     # ========== TEST MODE ==========
     TEST_MODE: bool = os.getenv("TEST_MODE", "false").lower() == "true"
@@ -142,49 +228,12 @@ class Settings:
 # ========== CREATE SETTINGS INSTANCE ==========
 settings = Settings()
 
-# ========== FETCH SECRETS AFTER INSTANCE CREATION ==========
-settings.DB_PASSWORD = settings._get_db_password()
-settings.JWT_SECRET = settings._get_jwt_secret()
-settings.RAZORPAY_KEY_ID = settings._get_razorpay_key_id()
-settings.RAZORPAY_KEY_SECRET = settings._get_razorpay_key_secret()
-settings.RAZORPAY_WEBHOOK_SECRET = settings._get_razorpay_webhook_secret()
-
-# ========== ✅ PERMANENT FIX: BUILD DATABASE URL ==========
-def get_database_url() -> str:
-    db_host = settings.DB_HOST
-    db_name = settings.DB_NAME
-    db_driver = settings.DB_DRIVER
-    
-    if db_host:
-        return (
-            f"mssql+pyodbc://{db_host}/{db_name}"
-            f"?driver={db_driver}"
-            f"&Encrypt=yes"
-            f"&TrustServerCertificate=no"
-            f"&ConnectionTimeout=30"
-            f"&Authentication=ActiveDirectoryMSI"
-        )
-    
-    sqlite_path = os.getenv("SQLITE_PATH", "sqlite:///./campus_central.db")
-    print("⚠️ Using SQLite fallback (Azure SQL credentials not available)")
-    return sqlite_path
-
-
-settings.DATABASE_URL = get_database_url()
-
-# ========== DEVELOPMENT HELPER ==========
+# ========== LOG CONFIGURATION STATUS ==========
 if settings.DEBUG:
-    print("🔧 Running in DEBUG mode")
-    db_url = settings.DATABASE_URL
-    if '@' in db_url:
-        parts = db_url.split('@')
-        if '://' in parts[0]:
-            protocol = parts[0].split('://')[0] + '://'
-            creds = parts[0].split('://')[1]
-            if ':' in creds:
-                user = creds.split(':')[0]
-                db_url = f"{protocol}{user}:****@{parts[1]}"
-    print(f"   Database: {db_url}")
-    print(f"   TEST_MODE: {settings.TEST_MODE}")
+    logger.info("🔧 Running in DEBUG mode")
+    logger.info("   Database: %s", "SQLite (local)" if settings.USE_SQLITE else "Azure SQL")
+    logger.info("   TEST_MODE: %s", settings.TEST_MODE)
     if settings.TEST_MODE:
-        print(f"   TEST_PHONE_NUMBERS: {settings.TEST_PHONE_NUMBERS}")
+        logger.info("   TEST_PHONE_NUMBERS: %s", settings.TEST_PHONE_NUMBERS)
+else:
+    logger.info("✅ Configuration loaded successfully")
